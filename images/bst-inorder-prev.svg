@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="300" viewBox="0 0 880 300" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="300" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">THE prev POINTER &#8212; ADJACENT-PAIR ACCESS TO SORTED ORDER</text>
+  <g font-size="14" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="60"  y="70" width="50" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="85"  y="92" fill="#e2e8f0">1</text>
+    <rect x="116" y="70" width="50" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="141" y="92" fill="#e2e8f0">3</text>
+    <rect x="172" y="70" width="50" height="34" rx="6" fill="#f59e0b"/><text x="197" y="92" fill="#0f172a">6</text>
+    <rect x="228" y="70" width="50" height="34" rx="6" fill="#f59e0b"/><text x="253" y="92" fill="#0f172a">8</text>
+    <rect x="284" y="70" width="50" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="309" y="92" fill="#e2e8f0">10</text>
+    <rect x="340" y="70" width="50" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="365" y="92" fill="#e2e8f0">14</text>
+  </g>
+  <text x="197" y="122" fill="#f59e0b" font-size="11" text-anchor="middle">prev</text>
+  <text x="253" y="122" fill="#f59e0b" font-size="11" text-anchor="middle">cur</text>
+  <text x="460" y="85"  fill="#e2e8f0" font-size="12.5">validate (98): prev &#8805; cur anywhere &#8658; not a BST</text>
+  <text x="460" y="108" fill="#94a3b8" font-size="12">min gap (530): track min(cur &#8722; prev) &#8212; the minimum</text>
+  <text x="460" y="126" fill="#94a3b8" font-size="12">of a sorted sequence lives between neighbors</text>
+
+  <text x="40" y="180" fill="#f87171" font-size="12.5" font-weight="bold">RECOVER (99): two swapped nodes show up as inversions</text>
+  <g font-size="14" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="60"  y="195" width="50" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="85"  y="217" fill="#e2e8f0">1</text>
+    <rect x="116" y="195" width="50" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="141" y="217" fill="#e2e8f0">3</text>
+    <rect x="172" y="195" width="50" height="34" rx="6" fill="#7f1d1d" stroke="#f87171" stroke-width="2"/><text x="197" y="217" fill="#fecaca">10</text>
+    <rect x="228" y="195" width="50" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="253" y="217" fill="#e2e8f0">8</text>
+    <rect x="284" y="195" width="50" height="34" rx="6" fill="#7f1d1d" stroke="#f87171" stroke-width="2"/><text x="309" y="217" fill="#fecaca">6</text>
+    <rect x="340" y="195" width="50" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="365" y="217" fill="#e2e8f0">14</text>
+  </g>
+  <path d="M 197,236 C 210,252 240,252 253,236" fill="none" stroke="#f87171" stroke-width="1.8"/>
+  <path d="M 253,236 C 266,252 296,252 309,236" fill="none" stroke="#f87171" stroke-width="1.8"/>
+  <text x="460" y="212" fill="#e2e8f0" font-size="12.5">1st inversion &#8594; prev = 10 &#183; last inversion &#8594; cur = 6</text>
+  <text x="460" y="234" fill="#34d399" font-size="12.5">swap values 10 &#8596; 6 &#8212; the sequence heals</text>
+  <text x="460" y="264" fill="#94a3b8" font-size="12">adjacent swap produces only ONE inversion &#8212;</text>
+  <text x="460" y="282" fill="#94a3b8" font-size="12">initialize both answers at the first hit</text>
+</svg>

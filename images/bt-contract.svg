@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="300" viewBox="0 0 880 300" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="300" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">THE CONTRACT + THE LEAP OF FAITH (maxDepth)</text>
+  <line x1="150" y1="105" x2="90"  y2="185" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="150" y1="105" x2="210" y2="185" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="90"  y1="185" x2="50"  y2="255" stroke="#64748b" stroke-width="1.8"/>
+  <ellipse cx="72" cy="218" rx="62" ry="68" fill="none" stroke="#334155" stroke-dasharray="5 4"/>
+  <circle cx="210" cy="185" r="30" fill="none" stroke="#334155" stroke-dasharray="5 4"/>
+  <circle cx="150" cy="105" r="16" fill="#f59e0b"/><text x="150" y="110" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle">A</text>
+  <circle cx="90"  cy="185" r="16" fill="#3b82f6"/><text x="90"  y="190" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">B</text>
+  <circle cx="210" cy="185" r="16" fill="#3b82f6"/><text x="210" y="190" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">C</text>
+  <circle cx="50"  cy="255" r="16" fill="#3b82f6"/><text x="50"  y="260" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">D</text>
+  <text x="115" y="182" fill="#34d399" font-size="11.5" font-family="Consolas, monospace">&#8594; 2</text>
+  <text x="245" y="182" fill="#34d399" font-size="11.5" font-family="Consolas, monospace">&#8594; 1</text>
+  <text x="178" y="96" fill="#f59e0b" font-size="12" font-family="Consolas, monospace">1 + max(2,1) = 3</text>
+  <text x="40" y="292" fill="#94a3b8" font-size="11.5">dashed = trust boundary: never trace inside</text>
+
+  <text x="430" y="100" fill="#e2e8f0" font-size="13.5" font-weight="bold">contract: &#8220;returns the height of the subtree rooted here&#8221;</text>
+  <text x="430" y="135" fill="#94a3b8" font-size="12.5">assume the children honor it &#8212; verify ONLY the</text>
+  <text x="430" y="155" fill="#94a3b8" font-size="12.5">single-node combine logic</text>
+  <text x="430" y="195" fill="#e2e8f0" font-size="13" font-family="Consolas, monospace">base case: nullptr &#8594; 0</text>
+  <text x="430" y="235" fill="#f87171" font-size="12.5">tracing into child calls out loud reads as</text>
+  <text x="430" y="255" fill="#f87171" font-size="12.5">not trusting recursion &#8212; state the contract instead</text>
+</svg>

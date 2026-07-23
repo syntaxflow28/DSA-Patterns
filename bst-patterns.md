@@ -15,6 +15,8 @@ Those are the guide's two engines:
 - **The global trap.** The invariant constrains a node against **all** ancestors, not just its parent — a node in the left subtree must be smaller than the *root*, not merely its parent. Every "check parent vs child" solution to a BST problem is wrong for this reason, and interviewers know it.
 - **Strictness.** LeetCode BSTs are strict (`<`, `>`, no duplicates unless stated). Confirm before assuming — duplicate policy changes routing and validation.
 
+![The BST invariant is global — bounds travel down, and in-order linearizes the tree into sorted order](images/bst-invariant.svg)
+
 ---
 
 ## How to Recognize Which Pattern
@@ -33,6 +35,10 @@ Those are the guide's two engines:
 **Logic:** In-order traversal of a BST visits values in **strictly increasing order**. Any problem phrased over the *sorted sequence* of a BST's values is solved by an in-order walk carrying a `prev` pointer (or a countdown), never by extracting values into an array first.
 
 **Core insight — why it works:** The BST property is *global*, and in-order is precisely the traversal that linearizes it: left-subtree values, then node, then right-subtree values, each block internally sorted by induction. So the walk gives you adjacent-pair access to the sorted sequence — min gap, inversion detection, duplicate runs — in O(n) time and O(h) space with zero extra structure. The dual formulation for validation: pass down `(lo, hi)` bounds — each node constrains its subtrees' *ranges* — which is the same invariant read top-down instead of linearized. Know both; interviewers ask for "the other one."
+
+**Picture — adjacent pairs during the walk, and 99's inversions:**
+
+![The prev pointer exposes adjacent sorted pairs; swapped nodes appear as inversions](images/bst-inorder-prev.svg)
 
 **Template (in-order with prev — the workhorse):**
 ```cpp
@@ -72,6 +78,10 @@ bool inorder(TreeNode* node) {                 // validation flavor
 
 **Core insight — why it works:** Each comparison discards an entire subtree with certainty — the invariant guarantees the key *cannot* be there — which is the same halving argument as binary search on an array (and degrades the same way: O(n) when the tree is a path, which is why balanced variants exist). The split-point argument for LCA: while both targets route the same way, the current node is a common ancestor but not the lowest (both live in one subtree); the first divergence node has one target on each side, so no deeper node can be an ancestor of both — it's the LCA, found top-down with no post-order needed. Contrast that explicitly with the general-tree LCA (236, Binary Tree guide), which must search both sides *because* it has no routing information.
 
+**Picture — routing until the targets diverge:**
+
+![Both targets route left at 8, then split at 3 — the split point is the LCA](images/bst-routing.svg)
+
 **Template (LCA of a BST — the split point):**
 ```cpp
 TreeNode* lca(TreeNode* root, TreeNode* p, TreeNode* q) {
@@ -108,6 +118,10 @@ TreeNode* lca(TreeNode* root, TreeNode* p, TreeNode* q) {
 **Logic:** Mutations follow one universal shape: `root->left/right = op(child, ...)` — each call returns the (possibly new) subtree root and the parent reattaches it, so no parent pointers are ever needed. Delete routes to the node, then splices (0–1 children) or swaps with the in-order successor (2 children). Trim uses bounds to discard whole subtrees at once.
 
 **Core insight — why it works:** The return-and-reattach idiom works because every mutation is local once routing is done: the recursion rebuilds only the O(h) spine of ancestors above the change, sharing every untouched subtree — the same structural-sharing insight that powers persistent trees. Delete's two-children case is the one real puzzle: the node's replacement must keep the invariant, and exactly two values can — the in-order predecessor or successor. Take the successor (leftmost of right subtree): it has **no left child by construction** (it's a leftmost node), so deleting *it* is guaranteed to hit the easy 0–1-children case — the hard case provably reduces to the easy one, once. Trim's leverage is the bound argument: if `root->val < lo`, the invariant says the entire left subtree is also `< lo` — discard it without looking.
+
+**Picture — the successor swap, before and after:**
+
+![Deleting a two-children node by copying up its in-order successor and deleting that instead](images/bst-delete.svg)
 
 **Template (delete — the hardest of the family):**
 ```cpp
@@ -151,6 +165,10 @@ TreeNode* deleteNode(TreeNode* root, int key) {
 
 **Core insight — why it works:** Sorted-array → BST is binary search run as a *builder*: choosing the middle as root puts half the values on each side at every level, so depth is ⌈log n⌉ — balance isn't checked, it's forced by construction. Pre-order → BST works because the invariant is a second information source: the general-tree ambiguity ("many shapes share a pre-order") disappears when value bounds dictate where each value *must* attach — pre-order of a BST determines the tree uniquely. That's also the compare-and-contrast with 297 (Binary Tree guide): general trees need null markers to pin the shape; BSTs need only the values — half the bytes, same O(n) rebuild.
 
+**Picture — middle-out balance, and bounds as the second information source:**
+
+![Sorted array rebuilt middle-out for balance, and preorder attached by value bounds](images/bst-build.svg)
+
 **Template (1008 — BST from preorder with bounds):**
 ```cpp
 int i = 0;                                       // pre-order consumption pointer
@@ -187,6 +205,10 @@ TreeNode* build(vector<int>& pre, int lo, int hi) {
 **Logic:** Treat the BST as a lazily-unrolled sorted array: an explicit stack holding the left spine yields the next-smallest element on demand — O(h) memory, amortized O(1) per element. This powers the iterator design question, k-way problems over multiple BSTs, and two-pointer techniques (smallest-from-one-end, largest-from-the-other with a reverse spine).
 
 **Core insight — why it works:** The stack holds exactly the ancestors whose values are still pending — the left spine of the unvisited region. Popping yields the minimum of everything remaining (nothing smaller exists: its left subtree is exhausted by the spine construction); pushing the popped node's right-child spine restores the property. Each node is pushed and popped exactly once across the whole iteration → amortized O(1) `next()`, worst-case O(h) — and the amortization argument ("total work / total calls," not per-call) is precisely what the interviewer wants said. With two such streams — or a forward and a reverse spine on one tree — you get sorted-array two-pointer techniques on trees without materializing arrays.
+
+**Picture — the spine stack yielding the sorted stream:**
+
+![The stack holds the left spine; each pop yields the minimum of everything remaining](images/bst-iterator.svg)
 
 **Template (173 — the pausable in-order):**
 ```cpp

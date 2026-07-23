@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">108: MIDDLE = ROOT</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="65" width="46" height="32" rx="6" fill="#14532d" stroke="#34d399"/><text x="63"  y="86" fill="#86efac">1</text>
+    <rect x="92"  y="65" width="46" height="32" rx="6" fill="#14532d" stroke="#34d399"/><text x="115" y="86" fill="#86efac">3</text>
+    <rect x="144" y="65" width="46" height="32" rx="6" fill="#14532d" stroke="#34d399"/><text x="167" y="86" fill="#86efac">6</text>
+    <rect x="196" y="65" width="46" height="32" rx="6" fill="#f59e0b"/><text x="219" y="86" fill="#0f172a">8</text>
+    <rect x="248" y="65" width="46" height="32" rx="6" fill="#2e1065" stroke="#a78bfa"/><text x="271" y="86" fill="#c4b5fd">10</text>
+    <rect x="300" y="65" width="46" height="32" rx="6" fill="#2e1065" stroke="#a78bfa"/><text x="323" y="86" fill="#c4b5fd">14</text>
+  </g>
+  <text x="219" y="118" fill="#f59e0b" font-size="11" text-anchor="middle">mid = root</text>
+  <line x1="219" y1="125" x2="185" y2="160" stroke="#94a3b8" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="170" y1="180" x2="110" y2="235" stroke="#64748b" stroke-width="1.6"/>
+  <line x1="170" y1="180" x2="230" y2="235" stroke="#64748b" stroke-width="1.6"/>
+  <line x1="110" y1="235" x2="70"  y2="290" stroke="#64748b" stroke-width="1.6"/>
+  <line x1="110" y1="235" x2="150" y2="290" stroke="#64748b" stroke-width="1.6"/>
+  <line x1="230" y1="235" x2="290" y2="290" stroke="#64748b" stroke-width="1.6"/>
+  <circle cx="170" cy="180" r="15" fill="#f59e0b"/><text x="170" y="185" fill="#0f172a" font-size="12" font-weight="bold" text-anchor="middle">8</text>
+  <circle cx="110" cy="235" r="15" fill="#34d399"/><text x="110" y="240" fill="#052e16" font-size="12" font-weight="bold" text-anchor="middle">3</text>
+  <circle cx="230" cy="235" r="15" fill="#a78bfa"/><text x="230" y="240" fill="#1e1b4b" font-size="12" font-weight="bold" text-anchor="middle">10</text>
+  <circle cx="70"  cy="290" r="15" fill="#34d399"/><text x="70"  y="295" fill="#052e16" font-size="12" font-weight="bold" text-anchor="middle">1</text>
+  <circle cx="150" cy="290" r="15" fill="#34d399"/><text x="150" y="295" fill="#052e16" font-size="12" font-weight="bold" text-anchor="middle">6</text>
+  <circle cx="290" cy="290" r="15" fill="#a78bfa"/><text x="290" y="295" fill="#1e1b4b" font-size="12" font-weight="bold" text-anchor="middle">14</text>
+  <text x="40" y="328" fill="#94a3b8" font-size="12">half the values each side, every level &#8658; depth &#8968;log n&#8969; &#8212; balance by construction</text>
+
+  <text x="470" y="45" fill="#f8fafc" font-size="14" font-weight="bold">1008: BOUNDS REPLACE THE IN-ORDER</text>
+  <text x="470" y="80" fill="#e2e8f0" font-size="13" font-family="Consolas, monospace">pre: 8 3 1 6 10 14</text>
+  <line x1="620" y1="115" x2="560" y2="180" stroke="#64748b" stroke-width="1.6"/>
+  <line x1="620" y1="115" x2="680" y2="180" stroke="#64748b" stroke-width="1.6"/>
+  <line x1="560" y1="180" x2="510" y2="245" stroke="#64748b" stroke-width="1.6"/>
+  <line x1="560" y1="180" x2="610" y2="245" stroke="#64748b" stroke-width="1.6"/>
+  <line x1="680" y1="180" x2="740" y2="245" stroke="#64748b" stroke-width="1.6"/>
+  <circle cx="620" cy="115" r="15" fill="#3b82f6"/><text x="620" y="120" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">8</text>
+  <circle cx="560" cy="180" r="15" fill="#3b82f6"/><text x="560" y="185" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">3</text>
+  <circle cx="680" cy="180" r="15" fill="#3b82f6"/><text x="680" y="185" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">10</text>
+  <circle cx="510" cy="245" r="15" fill="#3b82f6"/><text x="510" y="250" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">1</text>
+  <circle cx="610" cy="245" r="15" fill="#3b82f6"/><text x="610" y="250" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">6</text>
+  <circle cx="740" cy="245" r="15" fill="#3b82f6"/><text x="740" y="250" fill="#fff" font-size="12" font-weight="bold" text-anchor="middle">14</text>
+  <g font-size="10.5" fill="#94a3b8" font-family="Consolas, monospace">
+    <text x="482" y="175">(&#8722;&#8734;,8)</text>
+    <text x="700" y="175">(8,&#8734;)</text>
+    <text x="440" y="250">(&#8722;&#8734;,3)</text>
+    <text x="633" y="250">(3,8)</text>
+    <text x="763" y="250">(10,&#8734;)</text>
+  </g>
+  <text x="470" y="295" fill="#60a5fa" font-size="12.5">each pre value attaches where its (lo,hi) window fits &#8212; the bounds ARE the in-order info</text>
+  <text x="470" y="320" fill="#f87171" font-size="12">out-of-range &#8594; return null WITHOUT consuming (no i++) &#8212; the value belongs elsewhere</text>
+</svg>

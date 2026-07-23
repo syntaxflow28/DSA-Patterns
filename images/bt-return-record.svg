@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">RETURN THE STRAIGHT LINE &#183; RECORD THE BEND (diameter)</text>
+  <line x1="250" y1="95"  x2="170" y2="175" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="250" y1="95"  x2="330" y2="175" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="170" y1="175" x2="100" y2="255" stroke="#34d399" stroke-width="3.5"/>
+  <line x1="170" y1="175" x2="240" y2="255" stroke="#34d399" stroke-width="3.5"/>
+  <line x1="100" y1="255" x2="60"  y2="335" stroke="#34d399" stroke-width="3.5"/>
+  <line x1="196" y1="158" x2="230" y2="118" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <circle cx="250" cy="95"  r="16" fill="#3b82f6"/><text x="250" y="100" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">R</text>
+  <circle cx="170" cy="175" r="16" fill="#f59e0b"/><text x="170" y="180" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle">X</text>
+  <circle cx="330" cy="175" r="16" fill="#3b82f6"/><text x="330" y="180" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">C</text>
+  <circle cx="100" cy="255" r="16" fill="#3b82f6"/><text x="100" y="260" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">D</text>
+  <circle cx="240" cy="255" r="16" fill="#3b82f6"/><text x="240" y="260" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">E</text>
+  <circle cx="60"  cy="335" r="16" fill="#3b82f6"/><text x="60"  y="340" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">G</text>
+  <text x="105" y="222" fill="#34d399" font-size="11.5" font-family="Consolas, monospace">l=2</text>
+  <text x="216" y="222" fill="#34d399" font-size="11.5" font-family="Consolas, monospace">r=1</text>
+
+  <text x="470" y="110" fill="#34d399" font-size="13" font-weight="bold">RECORD at the bend: best = max(best, l + r)</text>
+  <text x="470" y="132" fill="#94a3b8" font-size="12">here l=2, r=1 &#8594; best bent path = 3 edges (G&#8211;D&#8211;X&#8211;E)</text>
+  <text x="470" y="175" fill="#f59e0b" font-size="13" font-weight="bold">RETURN the straight arm: 1 + max(l, r) = 3</text>
+  <text x="470" y="197" fill="#94a3b8" font-size="12">R can extend only ONE arm upward &#8212; handing it</text>
+  <text x="470" y="215" fill="#94a3b8" font-size="12">the bent value would double-count the bend</text>
+  <text x="470" y="262" fill="#e2e8f0" font-size="12.5">one recursion, two products: the return feeds the</text>
+  <text x="470" y="282" fill="#e2e8f0" font-size="12.5">parent; the record feeds the global answer</text>
+  <text x="470" y="322" fill="#94a3b8" font-size="12">same split runs 543, 124 (with a max(0,&#183;) clamp),</text>
+  <text x="470" y="342" fill="#94a3b8" font-size="12">687, and every &#8220;best path&#8221; tree problem</text>
+</svg>

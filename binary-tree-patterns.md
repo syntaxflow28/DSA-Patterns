@@ -15,6 +15,8 @@ Binary-tree problems are the purest form of recursion in interviews: every subtr
 
 The other master habit: the **recursive leap of faith**. State the function's contract ("returns the height of the subtree rooted here"), *assume* it holds on the children, and verify only the single-node logic. Tracing into child calls three levels deep is how interviews are lost.
 
+![The life of one node — pre and post moments — and one tree's three traversal orders](images/bt-two-moments.svg)
+
 ---
 
 ## How to Recognize Which Pattern
@@ -34,6 +36,10 @@ The other master habit: the **recursive leap of faith**. State the function's co
 **Logic:** Define the function's meaning *on a single node*, trust it on the children, combine. `maxDepth(node) = 1 + max(maxDepth(l), maxDepth(r))`, base case `nullptr → 0`. Every tree problem is: pick the right return value, the right base case, and the right combiner.
 
 **Core insight — why it works:** Trees are recursively self-similar — every subtree is itself a tree — so structural induction applies directly: if the function is correct on all smaller trees (children), and the combine step is correct, it's correct everywhere. The practical discipline this buys you is the **recursive leap of faith**: never trace into the child calls; *assume* they return what the function's contract promises, and verify only the single-node logic.
+
+**Picture — the contract and the trust boundary:**
+
+![State the contract, trust the children's returns, verify only the combine](images/bt-contract.svg)
 
 **Template (the shape of all tree recursion):**
 ```cpp
@@ -70,6 +76,10 @@ int dfs(TreeNode* node) {
 **Logic:** The parent's answer depends on its children's answers, so compute children first (post-order) and return a compact **summary** upward. The signature move of harder problems: the value you *return* (constrained to be combinable by the parent) differs from the value you *record* (the unconstrained global best, updated in a side variable).
 
 **Core insight — why it works:** Post-order *is* dynamic programming on the tree: children are strict subproblems, the post-order guarantees they're solved before the parent needs them, and each node is solved exactly once → O(n). The return/record split exists because of a real asymmetry: a parent can only extend a path that goes *straight down* through one child (a bent path can't be extended upward), so the return value must be the best *extendable* answer, while the best *overall* answer — which may bend at this very node — is recorded globally at the bend point. Diameter, max path sum, longest univalue path are all this one idea: **return the best straight line; record the best bend.**
+
+**Picture — the bent path is recorded, the straight arm is returned:**
+
+![Return the best straight line to the parent, record the best bend globally](images/bt-return-record.svg)
 
 **Template (diameter — the return/record split):**
 ```cpp
@@ -110,6 +120,10 @@ int depth(TreeNode* node) {                  // RETURNS: longest downward path (
 
 **Core insight — why it works:** A root-to-leaf path corresponds exactly to one chain of recursive calls, so the call stack *is* the path — pass-by-value parameters give each branch its own copy of the inherited state for free, which is why simple path problems need no explicit undo. The pre/post choice is forced by information direction: "sum from root to here" is inherited (only ancestors determine it) → pre-order; "height below here" is synthesized (only descendants determine it) → post-order. When the inherited state is heavy (a shared `path` vector), you switch to mutate-and-undo — which is exactly the choose/explore/unchoose discipline of the Backtracking guide, revealing these as one family.
 
+**Picture — the call stack is the path:**
+
+![Running remainder inherited down a root-to-leaf path, with the matching call stack](images/bt-path-sum.svg)
+
 **Template (path sum to leaves):**
 ```cpp
 bool dfs(TreeNode* node, int remaining) {          // inherited state as parameter
@@ -145,6 +159,10 @@ bool dfs(TreeNode* node, int remaining) {          // inherited state as paramet
 **Logic:** Rebuild a tree from traversal orders, or flatten one to a string and back. The engine: **pre-order (or post-order) tells you who the root is; in-order (or null markers) tells you where the split is.** Consume the root sequence with a moving index; determine each root's left/right ranges; recurse.
 
 **Core insight — why it works:** A single traversal order doesn't determine a tree (many shapes share a pre-order) — you need a second source of structure. For general binary trees there are two in circulation: (1) an **in-order sequence** — the root's position in it splits left values from right values (hash value→index for O(1) splits); (2) **null markers** in the serialization — the shape is encoded explicitly, so pre-order alone suffices (297). (BSTs offer a third — value bounds replace the in-order — covered in the BST guide.) In every case the pre-order index advances monotonically — it's consumed left-subtree-first, which is *why* recursing left before right is mandatory, and each element is consumed once → O(n).
+
+**Picture — the two roles, worked on 105's example:**
+
+![Pre-order names the root, in-order splits the values into left and right ranges](images/bt-construct.svg)
 
 **Template (105 — pre-order + in-order):**
 ```cpp
@@ -184,6 +202,10 @@ TreeNode* build(vector<int>& preorder, int lo, int hi) {   // in-order range [lo
 **Logic:** Replace the call stack with your own `stack<TreeNode*>`. In-order: dive down the left spine pushing everything, pop (that's the in-order visit), then enter the popped node's right child and repeat. This isn't just recursion-phobia: it's the engine of pausable traversals (iterators), O(h)-memory streaming, and the answer to "now do it without recursion."
 
 **Core insight — why it works:** The recursion's call stack at any moment holds exactly the left-spine ancestors whose "visit" moment hasn't come yet — the explicit stack stores precisely that, nothing more. The pop *is* the in-order moment: everything in the left subtree is already emitted, so the node is next; then its right subtree gets the same treatment. Pre-order iterative is easier (visit on push; push right child first so left pops first). Post-order is the awkward one — visit must wait for *both* subtrees — solved by the reverse trick: generate node-right-left pre-order, reverse the output. For O(1) space, **Morris traversal** threads temporary right-pointers from each left subtree's rightmost node back to its root — mention it, code it only if asked.
+
+**Picture — the stack holds exactly the pending left spine:**
+
+![The explicit stack mirrors the left spine; the pop is the in-order moment](images/bt-iter-inorder.svg)
 
 **Template (iterative in-order):**
 ```cpp

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">INHERIT DOWN, DECIDE AT THE LEAF (112 &#8212; target 22)</text>
+  <line x1="220" y1="95"  x2="140" y2="170" stroke="#34d399" stroke-width="3.5"/>
+  <line x1="220" y1="95"  x2="300" y2="170" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="140" y1="170" x2="90"  y2="245" stroke="#34d399" stroke-width="3.5"/>
+  <line x1="300" y1="170" x2="260" y2="245" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="300" y1="170" x2="340" y2="245" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="90"  y1="245" x2="50"  y2="320" stroke="#64748b" stroke-width="1.8"/>
+  <line x1="90"  y1="245" x2="130" y2="320" stroke="#34d399" stroke-width="3.5"/>
+  <circle cx="220" cy="95"  r="17" fill="#34d399"/><text x="220" y="100" fill="#052e16" font-size="13" font-weight="bold" text-anchor="middle">5</text>
+  <circle cx="140" cy="170" r="17" fill="#34d399"/><text x="140" y="175" fill="#052e16" font-size="13" font-weight="bold" text-anchor="middle">4</text>
+  <circle cx="300" cy="170" r="17" fill="#3b82f6"/><text x="300" y="175" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">8</text>
+  <circle cx="90"  cy="245" r="17" fill="#34d399"/><text x="90"  y="250" fill="#052e16" font-size="13" font-weight="bold" text-anchor="middle">11</text>
+  <circle cx="260" cy="245" r="17" fill="#3b82f6"/><text x="260" y="250" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">13</text>
+  <circle cx="340" cy="245" r="17" fill="#3b82f6"/><text x="340" y="250" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">4</text>
+  <circle cx="50"  cy="320" r="17" fill="#3b82f6"/><text x="50"  y="325" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">7</text>
+  <circle cx="130" cy="320" r="17" fill="#34d399"/><text x="130" y="325" fill="#052e16" font-size="13" font-weight="bold" text-anchor="middle">2</text>
+  <text x="160" y="330" fill="#34d399" font-size="12">&#10003; leaf, rem == 0</text>
+
+  <text x="470" y="90" fill="#e2e8f0" font-size="13" font-weight="bold">the call stack IS the path:</text>
+  <g font-size="12.5" font-family="Consolas, monospace">
+    <rect x="470" y="105" width="290" height="30" rx="6" fill="#1e293b" stroke="#334155"/><text x="484" y="125" fill="#e2e8f0">dfs(5,  rem 22 &#8594; 17)</text>
+    <rect x="470" y="141" width="290" height="30" rx="6" fill="#1e293b" stroke="#334155"/><text x="484" y="161" fill="#e2e8f0">dfs(4,  rem 17 &#8594; 13)</text>
+    <rect x="470" y="177" width="290" height="30" rx="6" fill="#1e293b" stroke="#334155"/><text x="484" y="197" fill="#e2e8f0">dfs(11, rem 13 &#8594; 2)</text>
+    <rect x="470" y="213" width="290" height="30" rx="6" fill="#1e293b" stroke="#34d399" stroke-width="2"/><text x="484" y="233" fill="#34d399">dfs(2,  rem 2 &#8594; 0)  leaf &#10003;</text>
+  </g>
+  <text x="470" y="285" fill="#94a3b8" font-size="12.5">pass-by-value rem &#8594; each branch owns its copy;</text>
+  <text x="470" y="305" fill="#94a3b8" font-size="12.5">returning unwinds it automatically &#8212; free rollback,</text>
+  <text x="470" y="325" fill="#94a3b8" font-size="12.5">no explicit undo until state gets heavy (113's path)</text>
+</svg>
