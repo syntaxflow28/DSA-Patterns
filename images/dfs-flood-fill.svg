@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="330" viewBox="0 0 880 330" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="330" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">SINK THE ISLAND (200)</text>
+  <!-- before grid: 1 1 0 0 / 1 0 0 1 / 0 0 1 1 ; island A = green -->
+  <g font-size="14" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="70"  width="38" height="38" rx="6" fill="#34d399"/><text x="59"  y="94"  fill="#052e16">1</text>
+    <rect x="82"  y="70"  width="38" height="38" rx="6" fill="#34d399"/><text x="101" y="94"  fill="#052e16">1</text>
+    <rect x="124" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="143" y="94"  fill="#64748b">0</text>
+    <rect x="166" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="185" y="94"  fill="#64748b">0</text>
+    <rect x="40"  y="112" width="38" height="38" rx="6" fill="#34d399"/><text x="59"  y="136" fill="#052e16">1</text>
+    <rect x="82"  y="112" width="38" height="38" rx="6" fill="#1e293b"/><text x="101" y="136" fill="#64748b">0</text>
+    <rect x="124" y="112" width="38" height="38" rx="6" fill="#1e293b"/><text x="143" y="136" fill="#64748b">0</text>
+    <rect x="166" y="112" width="38" height="38" rx="6" fill="#fbbf24"/><text x="185" y="136" fill="#451a03">1</text>
+    <rect x="40"  y="154" width="38" height="38" rx="6" fill="#1e293b"/><text x="59"  y="178" fill="#64748b">0</text>
+    <rect x="82"  y="154" width="38" height="38" rx="6" fill="#1e293b"/><text x="101" y="178" fill="#64748b">0</text>
+    <rect x="124" y="154" width="38" height="38" rx="6" fill="#fbbf24"/><text x="143" y="178" fill="#451a03">1</text>
+    <rect x="166" y="154" width="38" height="38" rx="6" fill="#fbbf24"/><text x="185" y="178" fill="#451a03">1</text>
+  </g>
+  <text x="230" y="120" fill="#94a3b8" font-size="11.5">dfs(0,0)</text>
+  <line x1="222" y1="133" x2="256" y2="133" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+  <!-- after grid -->
+  <g font-size="14" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="270" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="289" y="94"  fill="#64748b">0</text>
+    <rect x="312" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="331" y="94"  fill="#64748b">0</text>
+    <rect x="354" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="373" y="94"  fill="#64748b">0</text>
+    <rect x="396" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="415" y="94"  fill="#64748b">0</text>
+    <rect x="270" y="112" width="38" height="38" rx="6" fill="#1e293b"/><text x="289" y="136" fill="#64748b">0</text>
+    <rect x="312" y="112" width="38" height="38" rx="6" fill="#1e293b"/><text x="331" y="136" fill="#64748b">0</text>
+    <rect x="354" y="112" width="38" height="38" rx="6" fill="#1e293b"/><text x="373" y="136" fill="#64748b">0</text>
+    <rect x="396" y="112" width="38" height="38" rx="6" fill="#fbbf24"/><text x="415" y="136" fill="#451a03">1</text>
+    <rect x="270" y="154" width="38" height="38" rx="6" fill="#1e293b"/><text x="289" y="178" fill="#64748b">0</text>
+    <rect x="312" y="154" width="38" height="38" rx="6" fill="#1e293b"/><text x="331" y="178" fill="#64748b">0</text>
+    <rect x="354" y="154" width="38" height="38" rx="6" fill="#fbbf24"/><text x="373" y="178" fill="#451a03">1</text>
+    <rect x="396" y="154" width="38" height="38" rx="6" fill="#fbbf24"/><text x="415" y="178" fill="#451a03">1</text>
+  </g>
+  <text x="40" y="245" fill="#94a3b8" font-size="12.5">island #1 sunk in place &#8212; the grid IS the visited set;</text>
+  <text x="40" y="266" fill="#94a3b8" font-size="12.5">count = 1, scan resumes &#8594; next surviving '1' starts island #2</text>
+
+  <text x="520" y="45" fill="#f8fafc" font-size="14" font-weight="bold">INVERSION (130): FLOOD FROM THE BORDER</text>
+  <!-- X X X O / X O O X / X X O X / X O X X -->
+  <g font-size="14" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="520" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="539" y="94"  fill="#64748b">X</text>
+    <rect x="562" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="581" y="94"  fill="#64748b">X</text>
+    <rect x="604" y="70"  width="38" height="38" rx="6" fill="#1e293b"/><text x="623" y="94"  fill="#64748b">X</text>
+    <rect x="646" y="70"  width="38" height="38" rx="6" fill="#3b82f6"/><text x="665" y="94"  fill="#fff">O</text>
+    <rect x="520" y="112" width="38" height="38" rx="6" fill="#1e293b"/><text x="539" y="136" fill="#64748b">X</text>
+    <rect x="562" y="112" width="38" height="38" rx="6" fill="#ef4444"/><text x="581" y="136" fill="#fff">O</text>
+    <rect x="604" y="112" width="38" height="38" rx="6" fill="#ef4444"/><text x="623" y="136" fill="#fff">O</text>
+    <rect x="646" y="112" width="38" height="38" rx="6" fill="#1e293b"/><text x="665" y="136" fill="#64748b">X</text>
+    <rect x="520" y="154" width="38" height="38" rx="6" fill="#1e293b"/><text x="539" y="178" fill="#64748b">X</text>
+    <rect x="562" y="154" width="38" height="38" rx="6" fill="#1e293b"/><text x="581" y="178" fill="#64748b">X</text>
+    <rect x="604" y="154" width="38" height="38" rx="6" fill="#ef4444"/><text x="623" y="178" fill="#fff">O</text>
+    <rect x="646" y="154" width="38" height="38" rx="6" fill="#1e293b"/><text x="665" y="178" fill="#64748b">X</text>
+    <rect x="520" y="196" width="38" height="38" rx="6" fill="#1e293b"/><text x="539" y="220" fill="#64748b">X</text>
+    <rect x="562" y="196" width="38" height="38" rx="6" fill="#3b82f6"/><text x="581" y="220" fill="#fff">O</text>
+    <rect x="604" y="196" width="38" height="38" rx="6" fill="#1e293b"/><text x="623" y="220" fill="#64748b">X</text>
+    <rect x="646" y="196" width="38" height="38" rx="6" fill="#1e293b"/><text x="665" y="220" fill="#64748b">X</text>
+  </g>
+  <rect x="710" y="86" width="12" height="12" rx="3" fill="#3b82f6"/><text x="730" y="97" fill="#cbd5e1" font-size="12">border-connected &#8594; survives</text>
+  <rect x="710" y="116" width="12" height="12" rx="3" fill="#ef4444"/><text x="730" y="127" fill="#cbd5e1" font-size="12">enclosed &#8594; flips to X</text>
+  <text x="710" y="170" fill="#94a3b8" font-size="12">don't test every region for border</text>
+  <text x="710" y="188" fill="#94a3b8" font-size="12">contact &#8212; flood the border O's,</text>
+  <text x="710" y="206" fill="#94a3b8" font-size="12">flip whatever wasn't reached</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="500" viewBox="0 0 880 500" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="500" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">BACK EDGE = CYCLE</text>
+  <line x1="113" y1="115" x2="195" y2="115" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="233" y1="115" x2="315" y2="115" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <path d="M 322,128 C 270,185 160,185 106,130" fill="none" stroke="#f87171" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#arRed)"/>
+  <circle cx="95"  cy="115" r="17" fill="#f59e0b"/><text x="95"  y="120" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle">A</text>
+  <circle cx="215" cy="115" r="17" fill="#f59e0b"/><text x="215" y="120" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle">B</text>
+  <circle cx="335" cy="115" r="17" fill="#f59e0b"/><text x="335" y="120" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle">C</text>
+  <text x="40" y="212" fill="#f87171" font-size="12.5">C&#8594;A arrives while A is still GRAY (on the stack) &#8594; cycle</text>
+
+  <text x="500" y="45" fill="#f8fafc" font-size="14" font-weight="bold">DIAMOND &#8800; CYCLE</text>
+  <line x1="554" y1="105" x2="632" y2="83"  stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="667" y1="83"  x2="745" y2="105" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="554" y1="125" x2="632" y2="147" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="667" y1="147" x2="745" y2="125" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <circle cx="540" cy="115" r="17" fill="#f59e0b"/><text x="540" y="120" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle">A</text>
+  <circle cx="650" cy="75"  r="17" fill="#334155" stroke="#475569"/><text x="650" y="80"  fill="#e2e8f0" font-size="13" text-anchor="middle">B</text>
+  <circle cx="650" cy="155" r="17" fill="#f59e0b"/><text x="650" y="160" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle">C</text>
+  <circle cx="760" cy="115" r="17" fill="#334155" stroke="#475569"/><text x="760" y="120" fill="#e2e8f0" font-size="13" text-anchor="middle">D</text>
+  <text x="500" y="200" fill="#94a3b8" font-size="12.5">C&#8594;D's second arrival sees BLACK (finished) &#8212; no cycle.</text>
+  <text x="500" y="220" fill="#94a3b8" font-size="12.5">A plain visited set would falsely report one here.</text>
+
+  <line x1="40" y1="252" x2="840" y2="252" stroke="#1e293b"/>
+
+  <text x="40" y="290" fill="#f8fafc" font-size="14" font-weight="bold">FINISH TIMES &#8594; TOPOLOGICAL ORDER</text>
+  <line x1="119" y1="338" x2="82"  y2="378" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="141" y1="338" x2="178" y2="378" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="82"  y1="412" x2="119" y2="452" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <line x1="178" y1="412" x2="141" y2="452" stroke="#64748b" stroke-width="1.8" marker-end="url(#ar)"/>
+  <circle cx="130" cy="325" r="17" fill="#3b82f6"/><text x="130" y="330" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">0</text>
+  <circle cx="70"  cy="395" r="17" fill="#3b82f6"/><text x="70"  y="400" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">1</text>
+  <circle cx="190" cy="395" r="17" fill="#3b82f6"/><text x="190" y="400" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">2</text>
+  <circle cx="130" cy="465" r="17" fill="#3b82f6"/><text x="130" y="470" fill="#fff" font-size="13" font-weight="bold" text-anchor="middle">3</text>
+
+  <text x="320" y="322" fill="#94a3b8" font-size="12">edges = prerequisite &#8594; dependent</text>
+  <text x="320" y="352" fill="#e2e8f0" font-size="13.5" font-family="Consolas, monospace">DFS from 0: finish 3 &#8594; 1 &#8594; 2 &#8594; 0</text>
+  <text x="320" y="382" fill="#e2e8f0" font-size="13.5" font-family="Consolas, monospace">finish order = [3, 1, 2, 0]</text>
+  <text x="320" y="412" fill="#34d399" font-size="13.5" font-family="Consolas, monospace">reversed     = [0, 2, 1, 3]  &#10003; topo</text>
+  <text x="320" y="448" fill="#94a3b8" font-size="12.5">a node turns black only after everything it points to</text>
+  <text x="320" y="468" fill="#94a3b8" font-size="12.5">is already black &#8658; reversed finish order = dependencies first</text>
+</svg>

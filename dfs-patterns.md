@@ -18,6 +18,8 @@ The deeper way to see it: **DFS is recursion itself.** Any recursive function ex
 
 **The three colors — DFS's state vocabulary for graphs.** White = untouched; **Gray = currently on the stack** (discovery started, not finished); Black = fully explored. The gray set is DFS's superpower: it's the live path, and meeting a gray node means you've found a **back edge** — a cycle through your own ancestry. BFS has no analogue; this is why directed-cycle detection is DFS territory.
 
+![The two moments of DFS and the three-color state vocabulary](images/dfs-two-moments.svg)
+
 ---
 
 ## How to Recognize a DFS Problem
@@ -44,6 +46,10 @@ The deeper way to see it: **DFS is recursion itself.** Any recursive function ex
 **Logic:** DFS on graphs = recursion + a `visited` set (graphs have cycles; without the set you recurse forever). Connectivity: one DFS visits exactly one component; an outer scan counts them. Bipartiteness: replace the boolean with a 2-color assignment — neighbors must alternate, and a same-color neighbor is a proof of impossibility (an odd cycle).
 
 **Core insight — why it works:** For connectivity, the argument is the equivalence-class one: a DFS from any node visits exactly its component — no more, no less — so "number of DFS launches needed" *is* "number of components." For cloning, a `original → copy` map does double duty as the visited set: clone-on-first-visit, return the mapped copy on revisits — cycles are exactly why the map must be checked *before* recursing. For 2-coloring, DFS propagates a forced constraint: each edge forces its endpoints to differ, so colors are determined component-wide by the first choice, and any conflict found is a genuine odd cycle, not an artifact of traversal order.
+
+**Picture — one DFS launch per component; 2-coloring and the odd cycle:**
+
+![One DFS launch per component, and why odd cycles defeat 2-coloring](images/dfs-components-bipartite.svg)
 
 **Template (component counting):**
 ```cpp
@@ -81,6 +87,10 @@ void dfs(int u, vector<vector<int>>& adj) {
 
 **Core insight — why it works:** Flood fill is component-finding where the component is defined by cell values instead of an explicit edge list — the equivalence-class argument transfers verbatim. In-place marking is safe because region membership is monotone: once a cell is claimed by a region it can never belong to another, so destroying its original value costs nothing (and if the problem forbids mutation, say so and fall back to a visited array — noticing that constraint is part of the test). The pattern's second weapon is **inversion**: when the question is about regions *not* touching the border (130, 1020), don't test each region for border contact — flood *from the border inward* and whatever survives is the answer. Complementing the query is often the whole solution.
 
+**Picture — sinking in place, and the border inversion:**
+
+![Sinking an island in place, and flooding from the border for Surrounded Regions](images/dfs-flood-fill.svg)
+
 **Template (flood fill / sink the island):**
 ```cpp
 int m, n;
@@ -117,6 +127,10 @@ void dfs(vector<vector<char>>& g, int r, int c) {
 **Logic:** Directed-cycle detection: upgrade `visited` to three **colors** — meeting a **gray** (in-progress) node means a back edge into your own ancestry: a cycle. Topological sort falls out of the *same* DFS for free: append each node to a list at the moment it turns **black** (post-order finish), then reverse the list — that's a valid topological order.
 
 **Core insight — why it works:** Gray nodes are precisely the current recursion stack — your live ancestry. An edge into a *black* node points at a finished, cycle-free exploration (fine); an edge into a *gray* node closes a directed loop — and **every directed cycle must reveal itself this way** (consider the first cycle node the DFS enters; the cycle's edge back into it arrives while it's still gray). For topological order: a node turns black only after *everything it points to* is already black, so finish order is "dependencies first" — reversed, it's "prerequisites before dependents." One DFS, two products: cycle certificate or valid ordering, never both. Note the asymmetry: in *undirected* graphs a cycle is just reaching a visited node that isn't your immediate parent — colors unnecessary.
+
+**Picture — a back edge vs. a diamond, and finish times becoming topo order:**
+
+![Back edge into gray means cycle, a diamond does not, and reversed finish times are a topological order](images/dfs-cycle-topo.svg)
 
 **Template (three colors + topo order in one pass):**
 ```cpp
@@ -157,6 +171,10 @@ bool dfs(int u, vector<vector<int>>& adj) {     // returns false on cycle
 
 **Core insight — why it works:** In a tree there is exactly one path between any two nodes, so excluding the parent *provably* prevents revisits — no visited array needed, and the DFS visits each node once from its unique parent side. Rooting is free: any node works, and the rooted structure exposes subtree decomposition for DP. The advanced move is **rerooting**: compute subtree answers for one root in a first pass, then in a second pass "move" the root across each edge, updating answers in O(1) per move — turning n separate O(n) computations ("answer if rooted at v, for every v") into O(n) total. That two-pass structure is a genuinely different skill from single-root DP and a frequent hard-problem backbone.
 
+**Picture — rooting an edge list, and what rerooting recomputes:**
+
+![Top-two arms at the bend node, and the rerooting delta when the root moves across an edge](images/dfs-rerooting.svg)
+
 **Template (n-ary diameter — top-two child depths):**
 ```cpp
 int best = 0;
@@ -195,6 +213,10 @@ int dfs(int u, int parent, vector<vector<int>>& adj) {
 **Logic:** A recursive solution explores a decision space, but the same **subproblem** (same arguments) recurs across branches. Cache each result the first time (`memo[args]`); return the cached value on every revisit. The recursion is unchanged — only the redundancy is gone.
 
 **Core insight — why it works:** The exponential blowup of naive recursion comes from solving identical subproblems in different branch contexts — but if the function is **pure given its arguments** (the answer depends only on the args, not the path that produced them), recomputation is pure waste. Memoization collapses the recursion *tree* into the recursion *DAG* of distinct states: complexity drops from O(branches^depth) to O(states × work-per-state). The recognition skill is **counting states before coding**: word-break has n suffixes; target-sum has n × (sum range) pairs; grid longest-path has m·n cells — if the count is polynomial, memoize and you're done. And the purity test doubles as the *path-state boundary*: if the answer depends on choices carried in shared mutated state (the Backtracking guide's `path`), the function isn't pure in its args and plain memoization is illegal — that's exactly the line between backtracking and DP.
+
+**Picture — the recursion tree collapsing into the DAG of states:**
+
+![The exponential recursion tree collapsing into the DAG of distinct memoized states](images/dfs-memo-dag.svg)
 
 **Template (word break):**
 ```cpp
@@ -235,6 +257,10 @@ bool dfs(const string& s, int start, unordered_set<string>& dict) {
 **Logic:** Two famous algorithms that are "just DFS" with one twist each. **Hierholzer** (use every *edge* exactly once): DFS consuming edges as you go, and append each node to the answer in **post-order** — when it has no unused edges left — then reverse. **Tarjan bridges** (which edges, if removed, disconnect the graph): DFS recording discovery times `tin[u]` and low-links `low[u]` = earliest discovery time reachable from u's subtree; edge (u,v) is a bridge iff `low[v] > tin[u]`.
 
 **Core insight — why it works:** Hierholzer: a greedy walk from the start can only get stuck back where a vertex has odd remaining degree — and post-order insertion splices every detour cycle into the main path automatically; the "stuck" vertex is finished first and thus lands at the *end* of the reversed answer. The recognition test is the phrase "use every **edge** once" (vs. every node — that's Hamiltonian, which is NP-hard and means backtracking). Tarjan: `low[v] > tin[u]` says v's entire subtree, even using back edges, cannot climb above u — so the tree edge (u,v) is the *only* connection between v's world and the rest: cut it and the graph splits. One DFS, O(V+E), no edge-removal experiments needed. The same low-link machinery powers articulation points and SCCs — mention the family, code the bridge version.
+
+**Picture — Hierholzer's post-order splice, and what a bridge looks like:**
+
+![Hierholzer's stuck walk fixed by post-order output, and Tarjan bridges found by low-link vs discovery time](images/dfs-hierholzer-bridges.svg)
 
 **Template (Tarjan bridges — low-link):**
 ```cpp
