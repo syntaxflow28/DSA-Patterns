@@ -77,7 +77,7 @@ return count;
 | 303 / 304. Range Sum Query (1-D / 2-D) | Easy/Med | The precompute-then-O(1)-query foundation; 2-D uses inclusion-exclusion: `pre[r2][c2] − pre[r1][c2] − pre[r2][c1] + pre[r1][c1]`. Draw the rectangle once and the signs are obvious. |
 | 238. Product of Array Except Self | Medium | Prefix *products* meeting suffix products — two sweeps, no division. The prefix idea generalized beyond sums; an interview perennial. |
 | 1074. Number of Submatrices That Sum to Target | Hard | Fix a row pair (O(n²)), compress columns into a 1-D array, run 560 on it. The standard 2-D → 1-D reduction; 560 as a subroutine. |
-| 437. Path Sum III | Medium | 560 transplanted onto a tree via DFS with map-undo — cross-listed from the DFS guide as the crossover showcase. |
+| 437. Path Sum III | Medium | 560 transplanted onto a tree via DFS with map-undo — cross-listed from the Binary Tree guide as the crossover showcase. |
 | 862. Shortest Subarray with Sum ≥ K | Hard | Inequality (not equality) over signed prefixes: hashmap can't help; a **monotonic deque** over prefix sums can. The boundary post between this pattern and Pattern 1's machinery. |
 
 **Pitfalls:**
@@ -165,7 +165,7 @@ struct DSU {
 | 1971. Find if Path Exists | Easy | Connectivity query after offline edges — DSU or one BFS; articulate the static-vs-dynamic trade-off. |
 | 305. Number of Islands II | Hard | *The* dynamic version: land appears cell by cell; each addition unions with adjacent land, updating a live component count. The problem BFS fundamentally can't do efficiently. |
 | 128. Longest Consecutive Sequence | Medium | Solvable with DSU (union x with x+1), but the hashset start-of-run scan is simpler at the same O(n) — practice arguing *against* the fancier tool. |
-| 399. Evaluate Division | Medium | **Weighted** DSU: store ratio-to-parent, compose along find paths. Heavier bookkeeping; the DFS version (DFS guide P4) is interview-safer — know both exist. |
+| 399. Evaluate Division | Medium | **Weighted** DSU: store ratio-to-parent, compose along find paths. Heavier bookkeeping; the DFS version (DFS guide P1) is interview-safer — know both exist. |
 | 1202. Smallest String With Swaps | Medium | Union swap-pair indices; within each component, sort characters and positions independently and reassign — components as free-rearrangement zones. |
 | 947. Most Stones Removed | Medium | Union stones sharing a row or column (model rows/cols as nodes!); answer = stones − components. The modeling leap — rows as virtual nodes — is the entire problem. |
 
@@ -258,7 +258,7 @@ struct Trie {
 |---|---|---|
 | 208. Implement Trie | Medium | The template — write it cold; everything below assumes it as muscle memory. |
 | 211. Design Add and Search Words | Medium | `.` wildcard → DFS over all children at that position. Trie + backtracking; complexity honest-talk: worst case touches many nodes, and saying so is correct. |
-| 212. Word Search II | Hard | The flagship: board DFS and trie walk in lockstep, multi-word matching with shared-prefix pruning (DFS guide P6). Pro habits: store the word at end-nodes, null it after collection, optionally prune empty leaves. |
+| 212. Word Search II | Hard | The flagship: board DFS and trie walk in lockstep, multi-word matching with shared-prefix pruning (Backtracking guide P5). Pro habits: store the word at end-nodes, null it after collection, optionally prune empty leaves. |
 | 648. Replace Words | Medium | Walk each word, stop at the first isWord node — shortest-root replacement is a single trie descent. |
 | 677. Map Sum Pairs | Medium | Carry a running sum payload per node (with delta-updates on re-insert) — payload-bearing tries. |
 | 1268. Search Suggestions System | Medium | Autocomplete: keep up-to-3 lexicographically smallest words per node (or skip the trie: sort + binary search per prefix — present the trade-off). |

@@ -13,7 +13,7 @@ Both conditions matter, and each rules out a different impostor:
 - Overlap without needing every option → maybe **greedy** (if a local rule provably always leads to the optimum, you don't need the table at all — and proving that exchange argument is how you justify *skipping* DP).
 - Neither → search/backtracking territory.
 
-**DP = recursion + memory.** Top-down (memoized DFS — Pattern 7 of the DFS guide) and bottom-up (tables and loops) are the *same algorithm* with different bookkeeping: the recursion tree collapsed into a DAG of distinct states, each computed once. Complexity for both is **O(states × transition cost)** — count states *first*; it's simultaneously your feasibility check and your complexity analysis.
+**DP = recursion + memory.** Top-down (memoized DFS — Pattern 5 of the DFS guide) and bottom-up (tables and loops) are the *same algorithm* with different bookkeeping: the recursion tree collapsed into a DAG of distinct states, each computed once. Complexity for both is **O(states × transition cost)** — count states *first*; it's simultaneously your feasibility check and your complexity analysis.
 
 **The anatomy every DP shares — four questions, in order:**
 1. **State:** what does `dp[i]` (or `dp[i][j]`…) *mean, in one English sentence*? This sentence is the whole game. "dp[i] = the maximum money robbable from the first i houses" — precise, complete, unambiguous.
@@ -388,7 +388,7 @@ return dp[full - 1];
 
 ## Pattern 9: Tree DP — States on Subtrees
 
-**Logic:** DP where subproblems are **subtrees**: `dp[node][state]` computed post-order (children before parent), combining child answers. Covered operationally in the DFS guide (Pattern 2 — the return/record split); here, the DP-side view: states per node × O(1) combine = O(n).
+**Logic:** DP where subproblems are **subtrees**: `dp[node][state]` computed post-order (children before parent), combining child answers. Covered operationally in the Binary Tree guide (Pattern 2 — the return/record split); here, the DP-side view: states per node × O(1) combine = O(n).
 
 **Core insight — why it works:** Trees hand you the subproblem decomposition for free — every node's subtree is a self-contained instance, children's subtrees are disjoint, and post-order is the topological order. What makes it *DP* rather than plain recursion is the **multi-state cell**: when a node's best depends on a decision *about itself* (robbed or not; covered/has-camera/needs-camera), return one value per state and let the parent combine compatible child states. The disjointness of child subtrees is what makes the combine a clean sum/max with no double-counting — the property array DP never gets for free. Rerooting (computing answers for *every* node as root in O(n) via a second top-down pass) is the advanced move worth knowing by name.
 

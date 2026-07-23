@@ -1,6 +1,6 @@
 # Depth-First Search — The Complete Interview Pattern Guide (C++)
 
-DFS commits: it follows one path as deep as it can go, and only when stuck does it back up to the last choice point and try the next option. That commit-and-backtrack rhythm makes it the engine behind an enormous share of interview problems — every tree recursion, connectivity check, cycle detection, all of backtracking, and top-down DP are DFS wearing different costumes. This guide covers them all: the logic, the **core insight** (why it's correct), C++ templates, strong problem sets with descriptive notes, and the pitfalls.
+DFS commits: it follows one path as deep as it can go, and only when stuck does it back up to the last choice point and try the next option. That commit-and-backtrack rhythm makes it the engine behind an enormous share of interview problems — connectivity checks, cycle detection, topological ordering, exhaustive enumeration, and top-down DP are DFS wearing different costumes. This guide covers the graph and grid side of that territory: the logic, the **core insight** (why it's correct), C++ templates, strong problem sets with descriptive notes, and the pitfalls. Two DFS families have their own dedicated guides: binary-tree and BST recursion (the **Binary Tree** and **BST** guides), and enumeration over decision trees (the **Backtracking** guide) — this one stays off those except where general (adjacency-list) trees behave like graphs.
 
 ---
 
@@ -8,13 +8,13 @@ DFS commits: it follows one path as deep as it can go, and only when stuck does 
 
 > **DFS is a traversal that fully explores one branch before considering its siblings — equivalently, a stack-driven search where the most recently discovered node is expanded next.**
 
-The deeper way to see it: **DFS is recursion itself.** Any recursive function exploring a structure — trees, graphs, decision sequences, subproblem spaces — *is* a DFS, whether or not you call it that. Three consequences define everything below:
+The deeper way to see it: **DFS is recursion itself.** Any recursive function exploring a structure — graphs, grids, decision sequences, subproblem spaces — *is* a DFS, whether or not you call it that. Three consequences define everything below:
 
-- **Memory = one path.** At any moment, the call stack holds exactly the current root-to-here path: O(depth) memory, versus BFS's O(width) frontier. On deep-narrow structures DFS is light; on a 10⁵-node degenerate tree it overflows the call stack — know both edges of that blade.
-- **Two moments per node, and they are not interchangeable.** Each node is touched on the way **down** (pre-order: before its subtree) and on the way **up** (post-order: after its subtree). Pre-order is where *inherited* state flows down (the path so far, choices made). Post-order is where *synthesized* answers flow up (subtree size, height, best path below). **Choosing which moment your logic belongs to is 80% of designing a DFS** — most tree bugs are pre/post confusion.
-- **Backtracking is built in.** When a call returns, its local state vanishes — the algorithm has automatically "undone" the descent. Explicit backtracking (Patterns 5–6) just extends this to *shared* state: whatever you mutate on the way in, you restore on the way out, keeping the shared state in sync with the stack.
+- **Memory = one path.** At any moment, the call stack holds exactly the current root-to-here path: O(depth) memory, versus BFS's O(width) frontier. On deep-narrow structures DFS is light; on a 10⁵-cell snake-shaped grid it overflows the call stack — know both edges of that blade.
+- **Two moments per node, and they are not interchangeable.** Each node is touched on the way **down** (pre-order: before its descendants) and on the way **up** (post-order: after them). Pre-order is where *inherited* state flows down (the path so far, choices made). Post-order is where *synthesized* answers flow up — and in graphs, post-order finish times are what make topological sort and Tarjan's algorithms work. **Choosing which moment your logic belongs to is 80% of designing a DFS.**
+- **Backtracking is built in.** When a call returns, its local state vanishes — the algorithm has automatically "undone" the descent. Explicit backtracking (the Backtracking guide) extends this to *shared* state: whatever you mutate on the way in, you restore on the way out, keeping the shared state in sync with the stack.
 
-**DFS vs BFS — the decision rule** (mirror of the BFS guide's table): shortest path / fewest moves / per-level questions → BFS; existence, exhaustive enumeration, connectivity, anything needing the **path itself** or **subtree summaries** → DFS. The structural reason: BFS's frontier knows distances but no paths; DFS's stack *is* a path but knows nothing about minimality.
+**DFS vs BFS — the decision rule** (mirror of the BFS guide's table): shortest path / fewest moves / per-level questions → BFS; existence, exhaustive enumeration, connectivity, anything needing the **path itself** or **post-order finish times** → DFS. The structural reason: BFS's frontier knows distances but no paths; DFS's stack *is* a path but knows nothing about minimality.
 
 **The three colors — DFS's state vocabulary for graphs.** White = untouched; **Gray = currently on the stack** (discovery started, not finished); Black = fully explored. The gray set is DFS's superpower: it's the live path, and meeting a gray node means you've found a **back edge** — a cycle through your own ancestry. BFS has no analogue; this is why directed-cycle detection is DFS territory.
 
@@ -22,258 +22,179 @@ The deeper way to see it: **DFS is recursion itself.** Any recursive function ex
 
 ## How to Recognize a DFS Problem
 
-**1. Structural signals.** Any binary-tree problem (90%+ are DFS); "clone / serialize / validate" a structure; nested structures (parentheses, folders, JSON-like).
+**1. Structural signals.** Graphs given as adjacency lists/matrices or edge lists; grids where regions matter. Binary-tree problems → the Binary Tree guide (BSTs → the BST guide); "generate all …" decision-tree problems → the Backtracking guide; they're DFS too, but with their own pattern vocabulary.
 
 **2. Phrasing signals.**
-- "**All** paths / **all** combinations / **all** permutations / generate **every** valid …" — exhaustive enumeration = backtracking (Patterns 5–6).
-- "Does a path **exist**", "is it connected", "can A reach B" — plain graph DFS (Pattern 4).
-- "Detect a **cycle**" in a directed graph — gray-set DFS (Pattern 4).
-- "Diameter / max path sum / count subtrees with property" — post-order tree DP (Pattern 2).
-- "Root-to-leaf" anything — pre-order path DFS (Pattern 3).
-- "Number of ways / min cost" over choices with **overlapping subproblems** — DFS + memo (Pattern 7).
+- "Does a path **exist**", "is it connected", "can A reach B" — plain graph DFS (Pattern 1).
+- "Island / region / area / flood" on a grid — grid DFS (Pattern 2).
+- "Detect a **cycle**" in a directed graph, "order the tasks / courses" — gray-set DFS + topological sort (Pattern 3).
+- "A tree with n nodes and n−1 edges" given as an edge list — general-tree DFS (Pattern 4).
+- "Number of ways / min cost" over choices with **overlapping subproblems** — DFS + memo (Pattern 5).
+- "Use every **edge** once", "critical connection" — Eulerian path / bridges (Pattern 6).
+- "**All** paths / **all** combinations / generate **every** valid …" — the Backtracking guide.
 
-**3. Constraint arithmetic.** n ≤ ~20 with "all subsets/orderings" → 2ⁿ or n! enumeration is *intended*: backtracking. n ≤ 10⁵ with a tree → linear DFS. Exponential-looking recursion but the **distinct argument count is small** (n·k states) → memoize it.
+**3. Constraint arithmetic.** n ≤ 10⁵ with a graph or tree → linear DFS. Exponential-looking recursion but the **distinct argument count is small** (n·k states) → memoize it (Pattern 5). n ≤ ~20 with "all subsets/orderings" → enumeration is *intended*: the Backtracking guide.
 
 **4. The negative signal.** "Shortest / minimum number of moves" with unit steps — that's BFS; DFS finds *a* path, not the best one, and depth-first order gives no minimality guarantee.
 
 ---
 
-## Pattern 1: Tree Recursion Fundamentals
+## Pattern 1: Graph DFS — Connectivity, Cloning, Coloring
 
-**Logic:** Define the function's meaning *on a single node*, trust it on the children, combine. `maxDepth(node) = 1 + max(maxDepth(l), maxDepth(r))`, base case `nullptr → 0`. Every tree problem is: pick the right return value, the right base case, and the right combiner.
+**Logic:** DFS on graphs = recursion + a `visited` set (graphs have cycles; without the set you recurse forever). Connectivity: one DFS visits exactly one component; an outer scan counts them. Bipartiteness: replace the boolean with a 2-color assignment — neighbors must alternate, and a same-color neighbor is a proof of impossibility (an odd cycle).
 
-**Core insight — why it works:** Trees are recursively self-similar — every subtree is itself a tree — so structural induction applies directly: if the function is correct on all smaller trees (children), and the combine step is correct, it's correct everywhere. The practical discipline this buys you is the **recursive leap of faith**: never trace into the child calls; *assume* they return what the function's contract promises, and verify only the single-node logic. Tracing recursion three levels deep is how interviews are lost; stating the contract ("this returns the height of the subtree rooted here") is how they're won.
+**Core insight — why it works:** For connectivity, the argument is the equivalence-class one: a DFS from any node visits exactly its component — no more, no less — so "number of DFS launches needed" *is* "number of components." For cloning, a `original → copy` map does double duty as the visited set: clone-on-first-visit, return the mapped copy on revisits — cycles are exactly why the map must be checked *before* recursing. For 2-coloring, DFS propagates a forced constraint: each edge forces its endpoints to differ, so colors are determined component-wide by the first choice, and any conflict found is a genuine odd cycle, not an artifact of traversal order.
 
-**Template (the shape of all tree recursion):**
+**Template (component counting):**
 ```cpp
-int dfs(TreeNode* node) {
-    if (!node) return BASE;                 // contract for the empty tree
-    int left  = dfs(node->left);            // trust: left subtree's answer
-    int right = dfs(node->right);           // trust: right subtree's answer
-    return combine(left, right, node->val); // single-node logic — the only part to verify
+vector<bool> visited;
+void dfs(int u, vector<vector<int>>& adj) {
+    visited[u] = true;
+    for (int v : adj[u])
+        if (!visited[v]) dfs(v, adj);
 }
-```
-
-**Problems:**
-| Problem | Difficulty | Note |
-|---|---|---|
-| 104. Maximum Depth of Binary Tree | Easy | The hello-world: `1 + max(l, r)`. Write it as the template consciously — the shape recurs in fifty harder problems. |
-| 100. Same Tree | Easy | Recursion on *two* trees in lockstep: both null → true; one null or values differ → false; else recurse pairwise. The two-pointer of tree recursion. |
-| 101. Symmetric Tree | Easy | 100 with mirrored pairing: compare (a->left, b->right) and (a->right, b->left). The insight is that symmetry is sameness under reflection. |
-| 226. Invert Binary Tree | Easy | Swap children, recurse. Famous for being trivially recursive and famously failed under pressure — the leap of faith drill. |
-| 111. Minimum Depth | Easy | The trap: `min(l, r)` is wrong when one child is null (a one-child node is *not* a leaf). The base-case-precision lesson. |
-| 110. Balanced Binary Tree | Easy | Return height, but signal imbalance with −1 sentinel so the check is O(n) single-pass instead of O(n²) height-per-node. First taste of "return value carries two meanings." |
-| 617. Merge Two Binary Trees | Easy | Lockstep recursion that *builds*: structural recursion producing a structure. |
-| 572. Subtree of Another Tree | Easy | Recursion nested in recursion: isSame (100) tried at every node. O(n·m); mention the serialize+string-match or hash improvement as the follow-up. |
-| 98. Validate Binary Search Tree | Medium | Pass down (lo, hi) bounds — checking only parent-child locally is *the* classic wrong answer. Alternatively: in-order traversal must be strictly increasing. Both arguments matter. |
-
-**Pitfalls:**
-- Base case sloppiness: nullptr vs leaf are different bases (111 punishes conflating them). Decide which your contract uses and write it first.
-- Comparing only local parent-child relations when the property is global (98) — the bound must travel down.
-- `int` vs `long long` for accumulated sums/bounds (98 with INT_MIN/INT_MAX node values needs `long long` bounds or pointer sentinels).
-
----
-
-## Pattern 2: Post-Order Tree DP — Synthesize Up
-
-**Logic:** The parent's answer depends on its children's answers, so compute children first (post-order) and return a compact **summary** upward. The signature move of harder problems: the value you *return* (constrained to be combinable by the parent) differs from the value you *record* (the unconstrained global best, updated in a side variable).
-
-**Core insight — why it works:** Post-order *is* dynamic programming on the tree: children are strict subproblems, the post-order guarantees they're solved before the parent needs them, and each node is solved exactly once → O(n). The return/record split exists because of a real asymmetry: a parent can only extend a path that goes *straight down* through one child (a bent path can't be extended upward), so the return value must be the best *extendable* answer, while the best *overall* answer — which may bend at this very node — is recorded globally at the bend point. Diameter, max path sum, longest univalue path are all this one idea: **return the best straight line; record the best bend.**
-
-**Template (diameter — the return/record split):**
-```cpp
-int best = 0;
-int depth(TreeNode* node) {                  // RETURNS: longest downward path (extendable)
-    if (!node) return 0;
-    int l = depth(node->left);
-    int r = depth(node->right);
-    best = max(best, l + r);                 // RECORDS: best path bending at this node
-    return 1 + max(l, r);                    // parent can only extend one arm
-}
-```
-
-**Problems:**
-| Problem | Difficulty | Note |
-|---|---|---|
-| 543. Diameter of Binary Tree | Easy | The cleanest return/record specimen (template above). If this split isn't second nature, every problem below will fight you. |
-| 124. Binary Tree Maximum Path Sum | Hard | Diameter with values and negativity: return `node->val + max(0, max(l, r))` — clamping negative arms to 0 is "decline the child's contribution." Record `node->val + max(0,l) + max(0,r)`. The clamp placement is the entire problem. |
-| 687. Longest Univalue Path | Medium | Diameter where arms only count if child value matches. Conditional arm extension — practice for predicates inside the combine. |
-| 337. House Robber III | Medium | Return a **pair**: (best if this node robbed, best if not). Parent combines: robbed = val + skip_l + skip_r; skipped = max of each child's pair. Multi-state post-order DP in miniature. |
-| 968. Binary Tree Cameras | Hard | Return one of three states (covered-no-camera / has-camera / needs-coverage); greedy: place cameras at parents of needy nodes. State-machine post-order — the hardest common variant. |
-| 1245. Tree Diameter (general tree) | Medium | Diameter on an n-ary adjacency list: track the top-two child depths instead of left/right. Same idea unshackled from binary structure. |
-| 508. Most Frequent Subtree Sum | Medium | Return subtree sum, record frequencies in a map. The gentle on-ramp to return/record. |
-| 1110. Delete Nodes and Return Forest | Medium | Post-order deletion: decide children first so the parent can null its pointers safely, collecting orphaned subtrees as roots. Structural surgery needs post-order for the same reason `rm -r` does. |
-| 236. Lowest Common Ancestor | Medium | Return "found p, q, or their LCA below me": null/null → null, x/null → x, x/y → this node *is* the LCA. The most elegant post-order argument on LeetCode — be able to state *why* the both-sides-non-null case is conclusive. |
-
-**Pitfalls:**
-- Returning the recorded (bent) value instead of the extendable (straight) one — the parent then double-counts a bend. If your diameter is too big, this is why.
-- Forgetting to clamp negative contributions in 124-style sums — `max(0, child)` is a *decision* (take the arm or not), not a detail.
-- Multi-state returns (337, 968): define the states' meanings in comments before coding; off-by-one-state is unrecoverable mid-interview otherwise.
-
----
-
-## Pattern 3: Root-to-Leaf Path DFS — Inherit Down
-
-**Logic:** The mirror of Pattern 2: state accumulates on the way **down** (pre-order) — running sum, the path so far, max seen on the path — and conclusions are drawn at **leaves** (or at every node). Pass inherited state as parameters; parameters auto-rollback on return.
-
-**Core insight — why it works:** A root-to-leaf path corresponds exactly to one chain of recursive calls, so the call stack *is* the path — pass-by-value parameters give each branch its own copy of the inherited state for free, which is why simple path problems need no explicit undo. The pre/post choice is forced by information direction: "sum from root to here" is inherited (only ancestors determine it) → pre-order; "height below here" is synthesized (only descendants determine it) → post-order. Ask "who determines this value, ancestors or descendants?" and the traversal order picks itself. When the inherited state is heavy (a shared `path` vector), you switch to mutate-and-undo — which is Pattern 5's backtracking, revealing these as one family.
-
-**Template (path sum to leaves):**
-```cpp
-bool dfs(TreeNode* node, int remaining) {          // inherited state as parameter
-    if (!node) return false;
-    remaining -= node->val;
-    if (!node->left && !node->right)               // decide at the LEAF
-        return remaining == 0;
-    return dfs(node->left, remaining) || dfs(node->right, remaining);
-}
-```
-
-**Problems:**
-| Problem | Difficulty | Note |
-|---|---|---|
-| 112. Path Sum | Easy | The template. Leaf = both children null — testing at nullptr instead miscounts one-child nodes (111's trap again). |
-| 113. Path Sum II | Medium | Collect the actual paths: shared `vector<int> path` with push/recurse/pop — the explicit-undo bridge to backtracking. Copy the vector only on success. |
-| 129. Sum Root to Leaf Numbers | Easy | Inherited value transforms: `num = num*10 + val`. At leaves, add to the total. Inheritance with arithmetic. |
-| 257. Binary Tree Paths | Easy | String-building variant; pass-by-value strings make undo automatic (at an allocation cost worth mentioning). |
-| 1448. Count Good Nodes | Medium | Inherit the max on the path so far; a node is good iff `val >= pathMax`. Decision at *every* node, not just leaves — the per-node flavor. |
-| 437. Path Sum III | Medium | Paths start anywhere going down: inherit a **prefix-sum frequency map** — current count += freq[runningSum − target] — and undo the map entry post-recursion. The prefix-sum hashmap technique transplanted onto a tree; brilliant crossover problem. |
-| 988. Smallest String Starting From Leaf | Medium | Inherit the string, compare at leaves. Note the reversal (leaf→root reading) and why a greedy per-level choice fails — full enumeration is required. |
-| 1457. Pseudo-Palindromic Paths | Medium | Inherit a parity **bitmask** (`mask ^= 1 << digit`); at a leaf, palindromic iff `mask & (mask−1) == 0` (≤1 odd count). Path state compressed to one int — elegant and fast. |
-
-**Pitfalls:**
-- The shared-mutable trap: a `path` vector passed by reference **must** be popped after recursion — every push needs a structurally guaranteed pop (same scope, no early return skipping it).
-- 437's map undo: decrement `freq[runningSum]` after recursing, and seed `freq[0] = 1` — both omissions produce close-but-wrong counts.
-- Leaf definition, again: `!left && !right`. Null-based "leaf" tests are the most recycled bug in this whole guide.
-
----
-
-## Pattern 4: Graph DFS — Connectivity, Cloning, and the Gray Set
-
-**Logic:** DFS on graphs = tree DFS + a `visited` set (graphs have cycles; without the set you recurse forever). Connectivity: one DFS visits exactly one component; an outer scan counts them. Directed-cycle detection: upgrade visited to three **colors** — meeting a **gray** (in-progress) node means a back edge to your own ancestry: a cycle.
-
-**Core insight — why it works:** For connectivity, the argument is the equivalence-class one (a DFS from any node visits exactly its component — no more, no less). For cycles, the gray set is the magic: gray nodes are precisely the current recursion stack — your live ancestry. An edge into a *black* node points at a finished, cycle-free exploration (fine); an edge into a *gray* node points back into your own open path, closing a directed loop — and **every directed cycle must reveal itself this way** (consider the first cycle node the DFS enters; the cycle's edge back into it arrives while it's still gray). This is why two booleans (`visited`, `inStack`) suffice and why plain BFS can't detect directed cycles: BFS has no notion of "the current path." Note the asymmetry: in *undirected* graphs a cycle is just reaching a visited node that isn't your immediate parent — colors unnecessary.
-
-**Template (directed cycle detection, three colors):**
-```cpp
-vector<int> color;                      // 0 white, 1 gray, 2 black
-bool hasCycle(int u, vector<vector<int>>& adj) {
-    color[u] = 1;                       // gray: on the current path
-    for (int v : adj[u]) {
-        if (color[v] == 1) return true;             // back edge → cycle
-        if (color[v] == 0 && hasCycle(v, adj)) return true;
-    }
-    color[u] = 2;                       // black: finished, provably cycle-free below
-    return false;
-}
+// caller: components = number of i with !visited[i] that trigger a dfs(i)
 ```
 
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
 | 547. Number of Provinces | Medium | Component counting on an adjacency *matrix* — the canonical scan-plus-DFS. (Union-Find is the equal-credit alternative; offer both.) |
-| 200. Number of Islands (DFS flavor) | Medium | Grid components. DFS is shorter than BFS here; the caveat — recursion depth on snake-shaped islands — is the discussion point that distinguishes candidates. |
 | 841. Keys and Rooms | Medium | Pure reachability from node 0: can DFS touch everything? The minimal graph-DFS problem. |
-| 133. Clone Graph | Medium | DFS with a `original → copy` map doing double duty as the visited set — clone-on-first-visit, return the mapped copy on revisits. Cycles are exactly why the map must be checked *before* recursing. |
-| 207. Course Schedule (DFS flavor) | Medium | Cycle detection verbatim (template above). Pairs with the Kahn's/BFS version — be able to write both and say when you'd pick which (DFS gives the cycle path; Kahn gives the order incrementally). |
-| 802. Find Eventual Safe States | Medium | "Safe" = not on/leading-to a cycle = comes out **black** with no gray encounters. The three colors *are* the answer encoding — a beautiful re-read of the template. |
+| 133. Clone Graph | Medium | DFS with a `original → copy` map doing double duty as the visited set — clone-on-first-visit, return the mapped copy on revisits. |
 | 399. Evaluate Division | Medium | Weighted reachability: DFS from numerator to denominator multiplying edge ratios. Graph modeling (variables = nodes, equations = weighted edges) is the actual problem. |
-| 417. Pacific Atlantic (DFS flavor) | Medium | Two reverse-flow DFS sweeps from the borders, intersect. Same inversion as the BFS guide — the traversal is interchangeable, the inversion isn't. |
-| 332. Reconstruct Itinerary | Hard | Not plain DFS: **Hierholzer's** Eulerian-path algorithm — post-order push of airports after exhausting each one's (sorted) edges, then reverse. Knowing this is "use every *edge* once, not every node" is the recognition test. |
+| 785. Is Graph Bipartite? | Medium | 2-coloring DFS: color neighbors oppositely; a same-color edge = odd cycle = not bipartite. Remember disconnected graphs — launch from every uncolored node. |
+| 886. Possible Bipartition | Medium | 785 with a modeling step: "dislike" edges, then bipartiteness verbatim. Recognizing the reduction *is* the problem. |
+| 1319. Number of Operations to Make Network Connected | Medium | Components again, plus one observation: connecting c components needs c−1 spare cables; total edges ≥ n−1 or it's impossible. Counting + arithmetic. |
+| 721. Accounts Merge | Medium | Emails as nodes, accounts as cliques; components = merged accounts. DFS or DSU — the graph-construction step dominates the difficulty. |
+
+**Pitfalls:**
+- Forgetting to launch DFS from *every* unvisited node — reachability-from-0 problems (841) are the exception, not the rule; component and coloring problems need the outer scan.
+- Clone Graph: inserting into the map *after* recursing into neighbors → infinite loop on any cycle. Map-insert first, recurse second.
+- Bipartite check on a disconnected graph: an isolated clean component doesn't vouch for the others.
+
+---
+
+## Pattern 2: Grid DFS — Flood Fill & Islands
+
+**Logic:** A grid is a graph in disguise: cells are nodes, the 4-neighborhood is the edge set. DFS from a cell "floods" its entire region. The signature economy move: **mark visited in place** — sink the island (`'1' → '0'`), overwrite the color — so the grid itself is the visited set and no extra structure exists.
+
+**Core insight — why it works:** Flood fill is component-finding where the component is defined by cell values instead of an explicit edge list — the equivalence-class argument transfers verbatim. In-place marking is safe because region membership is monotone: once a cell is claimed by a region it can never belong to another, so destroying its original value costs nothing (and if the problem forbids mutation, say so and fall back to a visited array — noticing that constraint is part of the test). The pattern's second weapon is **inversion**: when the question is about regions *not* touching the border (130, 1020), don't test each region for border contact — flood *from the border inward* and whatever survives is the answer. Complementing the query is often the whole solution.
+
+**Template (flood fill / sink the island):**
+```cpp
+int m, n;
+void dfs(vector<vector<char>>& g, int r, int c) {
+    if (r < 0 || r >= m || c < 0 || c >= n || g[r][c] != '1') return;
+    g[r][c] = '0';                      // mark in place — the grid IS the visited set
+    dfs(g, r+1, c); dfs(g, r-1, c);
+    dfs(g, r, c+1); dfs(g, r, c-1);
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 733. Flood Fill | Easy | The literal pattern. One guard worth stating: if newColor == oldColor, return immediately or recurse forever. |
+| 200. Number of Islands | Medium | Scan + sink + count. DFS is shorter than BFS here; the caveat — recursion depth on snake-shaped islands — is the discussion point that distinguishes candidates. |
+| 695. Max Area of Island | Medium | The DFS *returns* the flooded size: `1 + sum of four directions`. Component counting upgraded to component measuring — post-order synthesis on a grid. |
+| 130. Surrounded Regions | Medium | The inversion flagship: flood from border 'O's, mark survivors safe, flip the rest. Testing each region for border contact is the clumsy version — say why inversion is better. |
+| 1020. Number of Enclaves | Medium | 130's counting twin: sink from borders, count what remains. Drill the inversion until it's reflexive. |
+| 417. Pacific Atlantic Water Flow | Medium | Two reverse-flow DFS sweeps from opposite borders, intersect the reachable sets. Same inversion as the BFS guide — the traversal is interchangeable, the inversion isn't. |
+| 1905. Count Sub Islands | Medium | Flood grid2's islands; a flood is a sub-island iff every cell sits on grid1 land. Careful: `&=` the check but *keep flooding* — early exit leaves half-sunk islands that double-count. |
+| 827. Making a Large Island | Hard | Two phases: label each island with an id and size map, then for each 0-cell sum the *distinct* neighboring ids + 1. Component labeling as a reusable product, not just a count. |
+
+**Pitfalls:**
+- Bounds-check order: test `r/c` in range *before* reading `g[r][c]` — the guard clause pattern in the template does this in one line; separate checks in the wrong order segfault.
+- Diagonal neighbors: read the problem — most islands are 4-directional, some (regions problems elsewhere) are 8. Assuming is a silent wrong answer.
+- 827-style double counting: a 0-cell touching the same island on two sides must count it once — collect neighbor ids in a small set first.
+- Recursion depth: a 300×300 all-land grid is 90,000 deep. Flag it and offer iterative/BFS — this is the most commonly probed DFS liability.
+
+---
+
+## Pattern 3: Cycle Detection & Topological Sort — The Gray Set and Finish Times
+
+**Logic:** Directed-cycle detection: upgrade `visited` to three **colors** — meeting a **gray** (in-progress) node means a back edge into your own ancestry: a cycle. Topological sort falls out of the *same* DFS for free: append each node to a list at the moment it turns **black** (post-order finish), then reverse the list — that's a valid topological order.
+
+**Core insight — why it works:** Gray nodes are precisely the current recursion stack — your live ancestry. An edge into a *black* node points at a finished, cycle-free exploration (fine); an edge into a *gray* node closes a directed loop — and **every directed cycle must reveal itself this way** (consider the first cycle node the DFS enters; the cycle's edge back into it arrives while it's still gray). For topological order: a node turns black only after *everything it points to* is already black, so finish order is "dependencies first" — reversed, it's "prerequisites before dependents." One DFS, two products: cycle certificate or valid ordering, never both. Note the asymmetry: in *undirected* graphs a cycle is just reaching a visited node that isn't your immediate parent — colors unnecessary.
+
+**Template (three colors + topo order in one pass):**
+```cpp
+vector<int> color, order;               // 0 white, 1 gray, 2 black
+bool dfs(int u, vector<vector<int>>& adj) {     // returns false on cycle
+    color[u] = 1;                       // gray: on the current path
+    for (int v : adj[u]) {
+        if (color[v] == 1) return false;            // back edge → cycle
+        if (color[v] == 0 && !dfs(v, adj)) return false;
+    }
+    color[u] = 2;                       // black: finished, provably cycle-free below
+    order.push_back(u);                 // finish time — everything u needs is already in
+    return true;
+}
+// run from every white node; reverse(order) = topological order
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 207. Course Schedule | Medium | Cycle detection verbatim (template above). Pairs with the Kahn's/BFS version — be able to write both and say when you'd pick which (DFS gives the cycle path; Kahn gives the order incrementally). |
+| 210. Course Schedule II | Medium | The template's `order` vector, reversed. If you wrote 207 with three colors, 210 is two extra lines — that's the argument for learning the DFS flavor first. |
+| 802. Find Eventual Safe States | Medium | "Safe" = not on/leading-to a cycle = comes out **black** with no gray encounters. The three colors *are* the answer encoding — a beautiful re-read of the template. |
+| 269. Alien Dictionary (premium) | Hard | Build edges from the first differing character of adjacent words, then topo-sort. The edge-extraction step (and the invalid case: word followed by its own prefix) is the real problem. |
+| 2360. Longest Cycle in a Graph | Hard | Functional graph (out-degree ≤ 1): DFS with per-node timestamps; on hitting a gray node, cycle length = time difference. The gray set upgraded from boolean to clock. |
+| 1857. Largest Color Value in a Directed Graph | Hard | Topo-order DP: count[node][color] maximized over predecessors, cycle → −1. The standard "DP over a DAG runs in topological order" showcase. |
 
 **Pitfalls:**
 - Two-boolean shortcut confusion: `visited` alone detects cycles in *undirected* graphs but gives false positives in directed ones (a diamond A→B→D, A→C→D is not a cycle). Directed needs the gray/in-stack distinction — this exact example is a common interview probe.
 - Forgetting to un-gray (mark black) on return — every node looks like a back edge forever after.
-- Clone Graph: inserting into the map *after* recursing into neighbors → infinite loop on any cycle. Map-insert first, recurse second.
+- Emitting topo order in pre-order ("push when first visiting") — that's just DFS order, and it's wrong; only *finish* order carries the guarantee. Push at black, reverse at the end.
 
 ---
 
-## Pattern 5: Backtracking — Enumerate by Choose / Explore / Unchoose
+## Pattern 4: DFS on General Trees — Adjacency Lists, No Pointers
 
-**Logic:** Generating all subsets / permutations / combinations / partitions = DFS over the **decision tree**: each level decides one element or position; each branch is one choice. Maintain one shared partial solution: **choose** (mutate it), **explore** (recurse), **unchoose** (restore it exactly). Leaves — or every node, for subsets — emit answers.
+**Logic:** A "tree" given as n nodes and n−1 undirected edges is a graph that happens to be acyclic — build an adjacency list, pick a root (usually 0), and DFS with a `parent` parameter instead of a visited set: the only way back is the edge you came from. All the post-order synthesis machinery (subtree sums, diameters, DP states) transfers from binary trees, generalized from left/right to "track the top-two among all children."
 
-**Core insight — why it works:** The decision tree's leaves correspond **bijectively** to the solution space — every solution is reached by exactly one choice sequence, so enumeration is complete and duplicate-free *by construction* (no generate-then-dedupe). The shared-buffer + undo discipline is what makes it cheap: one O(n) path buffer instead of copying partial solutions at every node, with the undo keeping the buffer perfectly synced to the recursion stack. The two structural levers to internalize: a **start index** makes order irrelevant (combinations/subsets — never look backward, killing permutation duplicates of the same set), and **sort + skip-equal-siblings** (`i > start && a[i] == a[i-1]`) kills duplicates from repeated *values* by canonicalizing which copy goes first. Branch count is exponential because the *answer* is exponential — backtracking is optimal for its job; pruning just trims branches provably empty of answers.
+**Core insight — why it works:** In a tree there is exactly one path between any two nodes, so excluding the parent *provably* prevents revisits — no visited array needed, and the DFS visits each node once from its unique parent side. Rooting is free: any node works, and the rooted structure exposes subtree decomposition for DP. The advanced move is **rerooting**: compute subtree answers for one root in a first pass, then in a second pass "move" the root across each edge, updating answers in O(1) per move — turning n separate O(n) computations ("answer if rooted at v, for every v") into O(n) total. That two-pass structure is a genuinely different skill from single-root DP and a frequent hard-problem backbone.
 
-**Template (subsets — the master shape):**
+**Template (n-ary diameter — top-two child depths):**
 ```cpp
-vector<vector<int>> res;
-vector<int> path;
-void dfs(int start, vector<int>& nums) {
-    res.push_back(path);                       // every node IS a subset
-    for (int i = start; i < (int)nums.size(); i++) {
-        // duplicates version: if (i > start && nums[i] == nums[i-1]) continue;
-        path.push_back(nums[i]);               // choose
-        dfs(i + 1, nums);                      // explore (i+1: never look back)
-        path.pop_back();                       // unchoose — restore exactly
+int best = 0;
+int dfs(int u, int parent, vector<vector<int>>& adj) {
+    int top1 = 0, top2 = 0;                        // two deepest child arms
+    for (int v : adj[u]) if (v != parent) {        // parent check replaces visited set
+        int d = dfs(v, u, adj) + 1;
+        if (d > top1) { top2 = top1; top1 = d; }
+        else if (d > top2) top2 = d;
     }
+    best = max(best, top1 + top2);                 // best path bending at u
+    return top1;                                   // best straight arm for the parent
 }
 ```
 
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
-| 78. Subsets | Medium | The master template above. Also know the include/exclude binary-branch formulation — interviewers ask for the "other way." |
-| 90. Subsets II | Medium | Sort + the skip-equal-siblings line. Understand *why* it works: among equal values, only "take the earliest available copy" branches survive — a canonical-form argument, not a hack. |
-| 46. Permutations | Medium | Order matters → no start index; a `used[]` array (or in-place swapping) marks taken elements. Compare with 78 to see exactly which lever changed. |
-| 47. Permutations II | Hard | Sort + `used` + skip rule `a[i]==a[i-1] && !used[i-1]` — forcing equal values to be consumed left-to-right. The subtlest dedupe rule; derive it, don't memorize it. |
-| 39. Combination Sum | Medium | Reuse allowed → recurse with `i`, not `i+1` — one character encodes "may pick again." Prune: break when the candidate exceeds the remaining target (requires sorting). |
-| 40. Combination Sum II | Medium | No reuse + duplicate values: `i+1` recursion plus the skip-siblings line. 39 and 40 differ by exactly two tokens — diff them consciously. |
-| 77. Combinations | Medium | Subsets constrained to size k, with the strong prune `n − i + 1 ≥ k − path.size()` (not enough elements left → abandon). Pruning arithmetic practice. |
-| 17. Letter Combinations of a Phone Number | Medium | Cartesian-product backtracking: level = digit, branches = its letters. The gentlest full-pattern problem — good first write. |
-| 22. Generate Parentheses | Medium | Constrained generation: branch on '(' if open < n, on ')' if close < open. The constraint *is* the pruning — invalid prefixes are never extended, so everything generated is valid. |
-| 131. Palindrome Partitioning | Medium | Level = "where does the next cut go"; branch only on palindromic prefixes. Partitioning problems all share this cut-position decision tree. |
+| 1245. Tree Diameter (premium) | Medium | The template. Same return/record split as binary-tree diameter, unshackled from binary structure — the bridge problem between this guide and the Binary Tree guide. |
+| 1443. Minimum Time to Collect All Apples | Medium | Post-order: a subtree is worth entering iff it contains an apple; cost += 2 per useful edge. Subtree predicates synthesized upward. |
+| 2246. Longest Path With Different Adjacent Characters | Hard | Diameter with a constraint: only extend arms whose child character differs. Top-two tracking + a predicate — the two levers of this pattern composed. |
+| 1519. Number of Nodes in the Sub-Tree With the Same Label | Medium | Return a 26-count frequency vector per subtree, combine at the parent. Heavier synthesized state; note the cost of copying vs merging counts. |
+| 834. Sum of Distances in Tree | Hard | The rerooting flagship: pass 1 computes subtree sizes and root-0 distances; pass 2 rolls the answer across each edge — `ans[child] = ans[parent] + (n − 2·size[child])`. Derive that formula, don't memorize it. |
+| 2467. Most Profitable Path in a Tree | Medium | Two DFS actors: precompute Bob's fixed path (timestamps to root), then DFS Alice comparing arrival times. Tree DFS as simulation infrastructure. |
 
 **Pitfalls:**
-- Pushing `path` into results without copying… is actually fine in C++ (`push_back(path)` copies) — the *real* C++ bug is keeping references/iterators into `path` across mutations. In any language: ensure results capture a snapshot, not the live buffer.
-- Asymmetric choose/unchoose: an early `return`/`continue` between push and pop corrupts every subsequent branch. Structure so undo is unskippable.
-- Dedupe at the wrong level: skip equal **siblings** (same tree depth, `i > start`), never equal parent-child — overskipping silently drops valid answers like {1,1,2}.
+- Building the adjacency list one-directional: edges are undirected — push both ways or half the tree is unreachable.
+- Using node 0 as `parent` sentinel: 0 is a real node — use −1.
+- Rerooting sign errors: moving the root toward a child makes `size[child]` nodes closer and `n − size[child]` nodes farther. Write the delta as a comment before coding pass 2.
+- Recursion depth: a path-shaped tree with 10⁵ nodes overflows the stack — the iterative fallback matters here more than anywhere.
 
 ---
 
-## Pattern 6: Constraint Search — Backtracking on Boards & Grids
-
-**Logic:** Backtracking where choices live on a 2-D board and constraints couple distant cells: word paths, queen placements, Sudoku digits. Same choose/explore/unchoose engine, plus two upgrades: **in-place marking** (mutate the board as the visited/choice record, restore on backtrack) and **constraint-aware pruning** (test legality *before* descending; track constraint sets incrementally so the test is O(1)).
-
-**Core insight — why it works:** Correctness is Pattern 5's bijection again — completeness comes from trying every legal choice at every step. What's new is the *economics*: raw search spaces here are astronomical (9^81 Sudoku grids), and feasibility comes entirely from **early pruning** — rejecting a partial solution discards its whole exponential subtree. The leverage compounds with depth: a violation caught at level 2 of N-Queens kills ~n⁶ descendants. So the engineering centerpiece is making legality checks O(1): three boolean sets (columns, diagonals r−c+n, anti-diagonals r+c) for queens; rows/cols/boxes sets for Sudoku — updated in choose, rolled back in unchoose, the same discipline as the path buffer. **Prune early, check cheap, undo exactly** is the whole pattern.
-
-**Template (word search — in-place marking):**
-```cpp
-bool dfs(vector<vector<char>>& b, int r, int c, const string& w, int k) {
-    if (k == (int)w.size()) return true;                  // matched everything
-    if (r < 0 || r >= m || c < 0 || c >= n || b[r][c] != w[k]) return false;
-    char saved = b[r][c];
-    b[r][c] = '#';                                        // choose: mark in place
-    bool found = dfs(b, r+1, c, w, k+1) || dfs(b, r-1, c, w, k+1)
-              || dfs(b, r, c+1, w, k+1) || dfs(b, r, c-1, w, k+1);
-    b[r][c] = saved;                                      // unchoose: restore exactly
-    return found;
-}
-```
-
-**Problems:**
-| Problem | Difficulty | Note |
-|---|---|---|
-| 79. Word Search | Medium | The template. Short-circuit `||` *is* the early exit; the restore must still run after it — note the template restores before returning. |
-| 212. Word Search II | Hard | Many words → walk the board and a **Trie simultaneously**, so one traversal matches all words and dead prefixes prune instantly. Big upgrade habits: collect at trie-end nodes, and *remove found words from the trie* to keep pruning sharp. |
-| 51. N-Queens | Hard | One queen per row → recursion level = row; legality = three O(1) lookups (cols, two diagonal families). The diagonal indexing (r−c offset, r+c) is the only real trick. |
-| 52. N-Queens II | Hard | Count-only version — same search, integer instead of board reconstruction. Use it to time yourself on the pure engine. |
-| 37. Sudoku Solver | Hard | Choose = next empty cell, branches = digits legal by row/col/box sets. The strong variant picks the **most-constrained cell first** (fewest legal digits) — order heuristics as pruning, worth mentioning. |
-| 489. Robot Room Cleaner | Hard | Backtracking with a *physical* undo: to backtrack the robot must turn 180°, move, and restore orientation. The undo discipline made literal — a memorable design question. |
-| 980. Unique Paths III | Hard | Hamiltonian-path counting on a grid: must cover every walkable cell. Track remaining count; prune when the end is reached early. Exhaustive coverage = no shortcuts exist, so backtracking is *the* tool. |
-| 473. Matchsticks to Square | Medium | Partition into 4 equal sides: sort descending (big items first → early failure), skip equal-failed branches. Pruning-order strategy as the difference between TLE and AC. |
-
-**Pitfalls:**
-- Restore-after-short-circuit: `return dfs(...) || dfs(...);` before restoring leaks the mark. Compute into a variable, restore, then return (as the template does).
-- N-Queens diagonal indexing: r−c is negative — offset by n (`diag[r−c+n]`). The +n is forgotten constantly.
-- Pruning that's *almost* sound: a heuristic that can reject a state containing solutions breaks completeness silently. Distinguish "provably empty subtree" (safe) from "looks unpromising" (unsafe) explicitly.
-
----
-
-## Pattern 7: DFS + Memoization — Top-Down DP
+## Pattern 5: DFS + Memoization — Top-Down DP
 
 **Logic:** A recursive solution explores a decision space, but the same **subproblem** (same arguments) recurs across branches. Cache each result the first time (`memo[args]`); return the cached value on every revisit. The recursion is unchanged — only the redundancy is gone.
 
-**Core insight — why it works:** The exponential blowup of naive recursion comes from solving identical subproblems in different branch contexts — but if the function is **pure given its arguments** (the answer depends only on the args, not the path that produced them), recomputation is pure waste. Memoization collapses the recursion *tree* into the recursion *DAG* of distinct states: complexity drops from O(branches^depth) to O(states × work-per-state). The recognition skill is **counting states before coding**: word-break has n suffixes; target-sum has n × (sum range) pairs; grid longest-path has m·n cells — if the count is polynomial, memoize and you're done. And the purity test doubles as the *path-state boundary*: if the answer depends on choices carried in shared mutated state (Patterns 5–6's `path`), the function isn't pure in its args and plain memoization is illegal — that's exactly the line between backtracking and DP.
+**Core insight — why it works:** The exponential blowup of naive recursion comes from solving identical subproblems in different branch contexts — but if the function is **pure given its arguments** (the answer depends only on the args, not the path that produced them), recomputation is pure waste. Memoization collapses the recursion *tree* into the recursion *DAG* of distinct states: complexity drops from O(branches^depth) to O(states × work-per-state). The recognition skill is **counting states before coding**: word-break has n suffixes; target-sum has n × (sum range) pairs; grid longest-path has m·n cells — if the count is polynomial, memoize and you're done. And the purity test doubles as the *path-state boundary*: if the answer depends on choices carried in shared mutated state (the Backtracking guide's `path`), the function isn't pure in its args and plain memoization is illegal — that's exactly the line between backtracking and DP.
 
 **Template (word break):**
 ```cpp
@@ -298,13 +219,54 @@ bool dfs(const string& s, int start, unordered_set<string>& dict) {
 | 140. Word Break II | Hard | Memoize *lists of sentences* per suffix. Honest caveat: worst cases are exponential in output size — saying "memoization can't beat the size of the answer" is exactly the right boundary statement. |
 | 312. Burst Balloons | Hard | The famous reframe: recurse on which balloon bursts **last** in (i, j) — making subintervals independent. Memo on the interval. The reframe, not the memo, is the problem. |
 | 1143. Longest Common Subsequence (top-down) | Medium | States = (i, j) pairs. Write it top-down first, then convert to the table — the conversion drill that demystifies bottom-up DP generally. |
-| 698. Partition to K Equal Sum Subsets | Medium | Memo on a **bitmask** of used elements — state-space DP where DFS+memo is far more natural than a table. Bridges Patterns 5 and 7. |
+| 698. Partition to K Equal Sum Subsets | Medium | Memo on a **bitmask** of used elements — state-space DP where DFS+memo is far more natural than a table. Sits exactly on the backtracking/DP border (cross-listed in the Backtracking guide). |
 | 87. Scramble String | Hard | Memo on (i, j, length) triples over a wild branching recursion — the "memo rescues an absurd-looking recursion" showcase. |
+| 851. Loud and Rich | Medium | DFS+memo on an explicit DAG: quietest person among all richer-or-equal, memoized per node. The graph flavor of the pattern — memo works because DAGs, like strict increase in 329, guarantee no cycles. |
 
 **Pitfalls:**
 - Memoizing impure functions: if shared path state influences the answer, the cache poisons later branches with answers from different contexts. Run the purity test first, always.
 - Caching only `true` (139-style searches): negative results recur just as much — cache both or keep the exponential blowup on unbreakable inputs.
 - Map-key cost: encode multi-field states into one integer (`i * W + j`) or use arrays over `unordered_map` when ranges are dense — the difference between AC and TLE on tight limits.
+
+---
+
+## Pattern 6: Advanced Graph DFS — Eulerian Paths & Bridges
+
+**Logic:** Two famous algorithms that are "just DFS" with one twist each. **Hierholzer** (use every *edge* exactly once): DFS consuming edges as you go, and append each node to the answer in **post-order** — when it has no unused edges left — then reverse. **Tarjan bridges** (which edges, if removed, disconnect the graph): DFS recording discovery times `tin[u]` and low-links `low[u]` = earliest discovery time reachable from u's subtree; edge (u,v) is a bridge iff `low[v] > tin[u]`.
+
+**Core insight — why it works:** Hierholzer: a greedy walk from the start can only get stuck back where a vertex has odd remaining degree — and post-order insertion splices every detour cycle into the main path automatically; the "stuck" vertex is finished first and thus lands at the *end* of the reversed answer. The recognition test is the phrase "use every **edge** once" (vs. every node — that's Hamiltonian, which is NP-hard and means backtracking). Tarjan: `low[v] > tin[u]` says v's entire subtree, even using back edges, cannot climb above u — so the tree edge (u,v) is the *only* connection between v's world and the rest: cut it and the graph splits. One DFS, O(V+E), no edge-removal experiments needed. The same low-link machinery powers articulation points and SCCs — mention the family, code the bridge version.
+
+**Template (Tarjan bridges — low-link):**
+```cpp
+int timer = 0;
+vector<int> tin, low;                          // init to -1 / 0
+vector<pair<int,int>> bridges;
+void dfs(int u, int parent, vector<vector<int>>& adj) {
+    tin[u] = low[u] = timer++;
+    for (int v : adj[u]) {
+        if (v == parent) continue;             // don't climb the tree edge you came down
+        if (tin[v] == -1) {                    // tree edge
+            dfs(v, u, adj);
+            low[u] = min(low[u], low[v]);
+            if (low[v] > tin[u]) bridges.push_back({u, v});  // v's subtree can't reach above u
+        } else low[u] = min(low[u], tin[v]);   // back edge — a rope to an ancestor
+    }
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 332. Reconstruct Itinerary | Hard | Hierholzer verbatim: multiset/sorted adjacency for lexical order, consume edges, post-order push airports, reverse. Knowing this is "every *edge* once, not every node" is the recognition test. |
+| 1192. Critical Connections in a Network | Hard | Tarjan bridges verbatim (template above). The `low[v] > tin[u]` inequality — strict, not ≥ — is the line to be able to justify. |
+| 753. Cracking the Safe | Hard | De Bruijn sequence = Eulerian circuit on the graph of (k−1)-length states. The modeling leap (passwords as edges) is the entire problem; Hierholzer finishes it. |
+| 2097. Valid Arrangement of Pairs | Hard | Eulerian path with explicit start selection: start where out-degree − in-degree = 1. The degree-condition bookkeeping that 332 lets you skip. |
+
+**Pitfalls:**
+- Hierholzer with pre-order output: appending airports when first *reaching* them produces invalid itineraries on graphs with detour cycles — post-order + reverse is not optional.
+- 332 edge consumption: erase the edge (or advance an iterator) *before* recursing, or the walk reuses it; with multiset adjacency, erase by iterator, not by value (parallel edges exist).
+- Tarjan parent-edge handling: skipping `v == parent` by *vertex* breaks on parallel edges between the same pair — skip by edge id when the graph allows multi-edges.
+- Confusing bridges (`low[v] > tin[u]`) with articulation points (`low[v] >= tin[u]`, plus the root special case) — related but not interchangeable.
 
 ---
 
@@ -314,13 +276,13 @@ bool dfs(const string& s, int start, unordered_set<string>& dict) {
 |---|---|---|
 | Shortest path / fewest moves, unit edges | DFS finds *a* path; depth order ≠ distance order | BFS |
 | Weighted shortest path | Same, worse | Dijkstra |
-| Recursion depth ~10⁵+ (deep lists/grids/skewed trees) | Call-stack overflow | Iterative DFS with explicit stack, or BFS |
-| Exponential space, no overlapping subproblems, need optimum only | Enumeration is hopeless | Greedy with proof, or problem-specific structure |
-| Overlapping subproblems but you didn't notice | Exponential when polynomial existed | Add the memo (Pattern 7) — count states! |
+| Recursion depth ~10⁵+ (deep lists/grids/path-shaped trees) | Call-stack overflow | Iterative DFS with explicit stack, or BFS |
+| Overlapping subproblems but you didn't notice | Exponential when polynomial existed | Add the memo (Pattern 5) — count states! |
 | Per-level / ring-structured questions | DFS has no level notion | BFS level loop |
 | Dynamic connectivity (edges added over time) | Re-running DFS per query is O(V) each | Union-Find |
+| "Visit every **node** exactly once" (Hamiltonian) | No polynomial algorithm exists — don't reach for Hierholzer | Backtracking/bitmask DP (small n only) |
 
-One-sentence litmus test: **DFS is the answer when you need the path itself, the subtree's summary, or every solution — and the wrong tool whenever "shortest" or "level" appears with unit steps.**
+One-sentence litmus test: **DFS is the answer when you need the path itself, post-order finish times, or every solution — and the wrong tool whenever "shortest" or "level" appears with unit steps.**
 
 ---
 
@@ -328,46 +290,51 @@ One-sentence litmus test: **DFS is the answer when you need the path itself, the
 
 | Phrase in the problem | Pattern |
 |---|---|
-| any binary-tree computation (depth, validate, mirror) | Tree recursion (P1) |
-| "diameter / max path sum / best value over subtrees" | Post-order DP, return/record split (P2) |
-| "root-to-leaf" sums, paths, counts | Pre-order path DFS (P3) |
-| "connected components / can reach / clone the graph" | Graph DFS (P4) |
-| "detect cycle" in a **directed** graph | Three-color DFS, gray = stack (P4) |
-| "all subsets / permutations / combinations / partitions" | Backtracking (P5) |
-| "place queens / solve the board / find the word in grid" | Constraint search + in-place marking (P6) |
-| "number of ways / longest / can it be done" + overlapping subproblems | DFS + memo (P7) |
-| "use every edge exactly once / itinerary" | Hierholzer (P4, advanced) |
+| "connected components / can reach / clone the graph" | Graph DFS (P1) |
+| "split into two groups / no conflict pairs" | 2-coloring / bipartite DFS (P1) |
+| "islands / regions / flood / area" on a grid | Grid DFS + in-place marking (P2) |
+| "not connected to the border" | Inversion: flood from the border (P2) |
+| "detect cycle" in a **directed** graph / "order the courses" | Three-color DFS + finish times (P3) |
+| "n nodes, n−1 edges" as an edge list | General-tree DFS, parent parameter (P4) |
+| "answer for **every** node as root" | Rerooting, two passes (P4) |
+| "number of ways / longest / can it be done" + overlapping subproblems | DFS + memo (P5) |
+| "use every **edge** exactly once / itinerary" | Hierholzer (P6) |
+| "critical connection / removing it disconnects" | Tarjan bridges, low-link (P6) |
+| "all subsets / permutations / place queens / solve the board" | NOT here — the Backtracking guide |
+| any binary-tree computation | NOT here — the Binary Tree guide |
+| any BST computation (validate, kth, insert/delete) | NOT here — the BST guide |
 | "shortest / minimum moves" | NOT DFS — go to the BFS guide |
 
 ---
 
 ## Complexity Summary
 
-- Tree DFS / graph DFS: **O(V + E)** time; **O(depth)** stack (worst O(V) on degenerate shapes).
-- Subsets: **O(n · 2ⁿ)**. Permutations: **O(n · n!)**. Output-bound — optimal by necessity.
-- Backtracking with pruning: still exponential worst-case; pruning changes the constant universe, not the class.
+- Graph / grid DFS: **O(V + E)** time (grids: O(m·n)); **O(depth)** stack (worst O(V) on degenerate shapes).
+- Three-color cycle detection / topo sort: **O(V + E)** — one pass, both products.
 - DFS + memo: **O(states × work-per-state)** — the whole point; count states first.
-- Word Search: O(m·n · 3^L) (3, not 4 — no immediate backstep). N-Queens: ~O(n!).
+- Rerooting: **O(n)** total for all n roots — that's its entire reason to exist.
+- Hierholzer / Tarjan: **O(V + E)** — one pass, no retries.
+- Enumeration complexities (subsets 2ⁿ, permutations n!): the Backtracking guide.
 - Iterative conversion: same complexity; trades call stack for an explicit one.
 
 ---
 
 ## Interview Tips
 
-1. **State the function's contract before writing it.** "Returns the height of the subtree rooted here" — then take the recursive leap of faith and verify only single-node logic. Tracing into children out loud reads as not trusting recursion.
-2. **Pre or post? Ask who determines the value.** Ancestors → pre-order parameter flowing down. Descendants → post-order return flowing up. Both (124, diameter) → the return/record split, and *say* you're splitting them.
-3. **Narrate choose/explore/unchoose** as you write backtracking, and make the undo structurally unskippable. The symmetry is what interviewers are watching for.
-4. **The gray set is your cycle vocabulary:** "visited alone fails on directed graphs — a diamond isn't a cycle; I need in-stack marking." That one sentence is a known checkpoint.
-5. **Before accepting exponential, count the states.** "Branches look exponential, but only n·k distinct (i, sum) pairs exist — memoize." The habit converts half of 'hard backtracking' into routine DP.
-6. **Flag recursion-depth risk yourself** on big inputs (10⁵-node trees, long lists, snake grids) and offer the iterative or BFS fallback — it's a senior-signal exactly because it bites in production, not just on judges.
+1. **State the function's contract before writing it.** "Returns the size of the flooded region from this cell" — then take the recursive leap of faith and verify only single-step logic. Tracing into recursive calls out loud reads as not trusting recursion.
+2. **The gray set is your cycle vocabulary:** "visited alone fails on directed graphs — a diamond isn't a cycle; I need in-stack marking." That one sentence is a known checkpoint.
+3. **Topo order = reversed finish order.** Say it before coding 210 and the interviewer knows you understand *why*, not just how.
+4. **Before accepting exponential, count the states.** "Branches look exponential, but only n·k distinct (i, sum) pairs exist — memoize." The habit converts half of 'hard backtracking' into routine DP.
+5. **Edge vs node coverage decides everything advanced:** every edge once → Hierholzer, polynomial; every node once → Hamiltonian, exponential. Confusing them is a hard fail on 332-class problems.
+6. **Flag recursion-depth risk yourself** on big inputs (10⁵-node graphs, long path-trees, snake grids) and offer the iterative or BFS fallback — it's a senior-signal exactly because it bites in production, not just on judges.
 
 ---
 
 ## Suggested Practice Order
 
-**Week 1 — tree recursion:** 104 → 226 → 100 → 101 → 111 → 110 → 98 → 112 → 129
-**Week 2 — tree DP & paths:** 543 → 687 → 337 → 124 → 236 → 1448 → 113 → 437
-**Week 3 — graphs & backtracking:** 547 → 841 → 133 → 207 → 802 → 78 → 90 → 46 → 39 → 22
-**Week 4 — boss fights:** 51 → 79 → 212 → 37 → 131 → 139 → 494 → 329 → 968 → 312
+**Week 1 — graphs:** 547 → 841 → 133 → 399 → 785 → 886 → 1319 → 721
+**Week 2 — grids:** 733 → 200 → 695 → 130 → 1020 → 417 → 1905 → 827
+**Week 3 — cycles, topo & general trees:** 207 → 210 → 802 → 2360 → 1245 → 1443 → 1519 → 2246
+**Week 4 — boss fights:** 139 → 494 → 329 → 698 → 312 → 834 → 332 → 1192 → 753
 
 Good luck with the interviews!

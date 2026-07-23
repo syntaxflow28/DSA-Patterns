@@ -211,7 +211,7 @@ for (int u : topo)
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
-| 329. Longest Increasing Path in a Matrix | Hard | "Strictly increasing" makes the implicit move-graph a DAG → longest path is legal; the DFS+memo solution (DFS guide P7) *is* topological relaxation in recursive clothing. Connecting those two views is the insight. |
+| 329. Longest Increasing Path in a Matrix | Hard | "Strictly increasing" makes the implicit move-graph a DAG → longest path is legal; the DFS+memo solution (DFS guide P5) *is* topological relaxation in recursive clothing. Connecting those two views is the insight. |
 | 1136. Parallel Courses | Medium | Minimum semesters = longest chain in the prerequisite DAG = Kahn's with the level loop. Cross-listed from BFS; re-read it as a longest-path problem. |
 | 2050. Parallel Courses III | Hard | Weighted version: finish[v] = max over prerequisites of finish[u], + duration[v] — the **critical path method** (CPM) verbatim, as used in real project scheduling. The flagship DAG-longest-path problem. |
 | 1857. Largest Color Value in a Graph | Hard | DP over topological order carrying per-color counts; cycle (Kahn pops < n) ⇒ −1. Topo order as the backbone for arbitrary per-node DP. |
