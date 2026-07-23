@@ -16,6 +16,8 @@ Everything else follows from how that guarantee is engineered:
 - **Why first arrival = shortest path** (the proof interviewers want): induction on distance. All distance-d nodes are dequeued before any distance-(d+1) node — true at d = 0; and a distance-(d+1) node can only be discovered while processing a distance-d node, so it enters the queue after all d's and before any (d+2) can exist. Since a node is discovered the moment *any* neighbor at one-less distance is processed, it cannot be first-reached by a longer route.
 - **The load-bearing assumption: every edge costs exactly 1.** The rings are "number of edges" rings. Give edges different weights and ring k no longer means cost k — the guarantee dies, and you need Dijkstra (or the 0-1 BFS trick when weights are only 0 and 1 — Pattern 7).
 
+![Distance rings around the source, and the queue's two-layer invariant with the mark-at-enqueue rule](images/bfs-rings.svg)
+
 **The mindset shift that unlocks hard problems:** BFS doesn't need a graph data structure — it needs a **state** and a way to generate **neighboring states**. The "graph" can be implicit and astronomically large: lock combinations ("0000" → 8 neighbors by turning one wheel), words (one-letter mutations), puzzle configurations, or composite states like *(position, keys collected)*. If you can define a state and its transitions, BFS finds the minimum number of moves between any two states. Half of all hard BFS problems are really *state-design* problems (Pattern 4).
 
 **BFS vs DFS vs Dijkstra — the one-line decision rule:**
@@ -69,6 +71,10 @@ Corollaries:
 **Logic:** BFS on a tree, but you need to know **where one level ends and the next begins**. The trick: at the top of each round, snapshot `sz = q.size()` — that's exactly the current level — and process precisely `sz` pops before touching the next level.
 
 **Core insight — why it works:** This is the two-layer invariant made operational. At the moment a round begins, the queue contains *all* of level d and *nothing else* (level d+1 hasn't been generated yet; level d−1 is fully drained). So `q.size()` is a perfect census of the level, and the inner `for` loop is a clean level boundary — no sentinels, no (node, depth) pairs needed. Every "per-level" question (sum, max, rightmost, zigzag direction) becomes trivial bookkeeping inside the inner loop.
+
+**Picture — the snapshot moment:**
+
+![At round start the queue holds exactly one level; sz pops later it holds exactly the next](images/bfs-level-loop.svg)
 
 **Template:**
 ```cpp
@@ -157,6 +163,10 @@ return -1;                                            // unreachable
 
 **Core insight — why it works:** Imagine a virtual **super-source** S with zero-cost edges to every real source. BFS from S gives `dist(S, v) = min over sources s of dist(s, v)` — and seeding all sources at 0 *is* BFS from S with the trivial first layer skipped. All the layer-ordering proofs go through untouched because the two-layer invariant never cared how many nodes started in layer 0. The payoff is dramatic: "for each of n cells, distance to nearest of k sources" looks like k separate BFS runs (O(k·V)) but is **one** BFS (O(V + E)). The inverted-perspective cue: when the naive loop is "for every empty cell, BFS to find the nearest gate," flip it — BFS *from all gates at once*.
 
+**Picture — one flood from all sources at once:**
+
+![Multi-source BFS: every source seeded at distance 0, each cell gets distance to its nearest source](images/bfs-multisource.svg)
+
 **Template (distance to nearest 0 — LC 542):**
 ```cpp
 queue<pair<int,int>> q;
@@ -200,6 +210,10 @@ while (!q.empty()) {                       // ordinary BFS from here on
 **Logic:** When position alone doesn't determine what you can do next, the BFS node must be the **full state**: (position, keys held), (pattern of the puzzle board), (node, bitmask of visited nodes), (position, direction), (word). Transitions define an implicit graph; BFS finds the minimum number of moves. The art is choosing a state that is *sufficient* (captures everything affecting future moves) and *minimal* (no irrelevant fields exploding the space).
 
 **Core insight — why it works:** BFS's guarantee is about *nodes*, and a node is whatever you say it is. If two situations have the same state, BFS treats them as identical — so the state must encode **exactly** the information that affects future options: holding a key changes which doors open → keys belong in the state; the path you took to get here doesn't change anything ahead → it stays out. Sufficiency makes the answer correct; minimality makes it computable (each extra bit doubles the space). The discipline: before coding, *compute the state count* — 4ⁿ lock states, n·2ᵏ position-keys pairs, 12!/2 puzzle boards — and multiply by branching factor. Fits in ~10⁷? BFS away. Doesn't? You need bidirectional BFS, A*, or a smaller state.
+
+**Picture — a node is whatever you define:**
+
+![The lock state 0000 and its eight generated neighbors — the graph never exists in memory](images/bfs-state-space.svg)
 
 **Template (BFS over encoded states):**
 ```cpp
@@ -296,6 +310,10 @@ for (int r = 0; r < m; r++)
 
 **Core insight — why it works:** A node is safe to schedule exactly when all its prerequisites are done — i.e., when its *remaining* indegree is 0. Peeling such a node can only *reduce* others' indegrees, never create new blockage, so the process is monotone and never needs backtracking. The cycle test falls out for free: nodes on a cycle wait on each other forever, so none ever reaches indegree 0 — they're precisely the never-popped nodes, hence `popped < n ⇔ cycle`. Bonus structure: if you run it with the level-size loop, layer k = "tasks startable in round k given unlimited parallelism" — the longest chain / minimum semesters question answered by the same code.
 
+**Picture — peeling zero-indegree layers:**
+
+![Kahn's algorithm peels the zero-indegree layer round by round; a leftover node means a cycle](images/bfs-kahn.svg)
+
 **Template (course schedule):**
 ```cpp
 vector<vector<int>> adj(n);
@@ -343,6 +361,10 @@ return (int)order.size() == n ? order : vector<int>{};       // short = cycle
 
 **Core insight — why it works:** BFS's whole correctness rests on the queue holding non-decreasing distances. A 0-edge neighbor has the *same* distance as the node being processed — appending it to the back (behind d+1 nodes) would break the ordering, but prepending keeps the deque sorted: it still reads as "some d's, then d+1's." The invariant survives, so first-pop is still optimal — Dijkstra's guarantee at queue prices: **O(V + E)** instead of O(E log V), no heap. The recognition cue is sharp: the moment a shortest-path problem has exactly two move costs and one of them is zero, the deque trick applies. (Three or more distinct weights? The invariant can't be patched — that's Dijkstra's job.)
 
+**Picture — front for free, back for costly:**
+
+![0-edges push to the deque's front, 1-edges to the back — the sorted invariant survives](images/bfs-01.svg)
+
 **Template:**
 ```cpp
 deque<pair<int,int>> dq;
@@ -382,6 +404,10 @@ while (!dq.empty()) {
 **Logic:** When start *and* target are both known, run BFS from both ends simultaneously, always expanding the **smaller frontier** one full layer. The moment any newly generated state appears in the other side's visited set, the shortest path is (steps from start) + (steps from target) + 1.
 
 **Core insight — why it works:** Search volume in a branching-factor-b space grows as b^d — exponential in depth. Two half-depth searches cost 2·b^(d/2), and √(b^d) vs b^d is the difference between 10³ and 10⁶ explored states. Correctness holds because each side independently maintains the BFS layer guarantee, so when the frontiers first touch, both half-distances are minimal and their sum is the true shortest path — *provided* you check for the meeting at **generation time** and expand layer-by-layer (mixing layers breaks the "first touch = optimal" argument). Always expanding the smaller frontier keeps both balls balanced, which is where the √ savings actually comes from.
+
+**Picture — why two half-depth balls are exponentially cheaper:**
+
+![Two frontiers of radius d/2 meeting in the middle, versus one ball of radius d](images/bfs-bidirectional.svg)
 
 **Template (sketch):**
 ```cpp

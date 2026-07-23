@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">RINGS: NODES VISITED IN DISTANCE ORDER</text>
+  <!-- 5x5 grid, source center, colored by manhattan distance -->
+  <g font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="70"  width="34" height="34" rx="6" fill="#1e293b"/><text x="57"  y="92"  fill="#64748b">4</text>
+    <rect x="78"  y="70"  width="34" height="34" rx="6" fill="#312e81"/><text x="95"  y="92"  fill="#a5b4fc">3</text>
+    <rect x="116" y="70"  width="34" height="34" rx="6" fill="#4c1d95"/><text x="133" y="92"  fill="#c4b5fd">2</text>
+    <rect x="154" y="70"  width="34" height="34" rx="6" fill="#312e81"/><text x="171" y="92"  fill="#a5b4fc">3</text>
+    <rect x="192" y="70"  width="34" height="34" rx="6" fill="#1e293b"/><text x="209" y="92"  fill="#64748b">4</text>
+    <rect x="40"  y="108" width="34" height="34" rx="6" fill="#312e81"/><text x="57"  y="130" fill="#a5b4fc">3</text>
+    <rect x="78"  y="108" width="34" height="34" rx="6" fill="#4c1d95"/><text x="95"  y="130" fill="#c4b5fd">2</text>
+    <rect x="116" y="108" width="34" height="34" rx="6" fill="#1e3a8a"/><text x="133" y="130" fill="#93c5fd">1</text>
+    <rect x="154" y="108" width="34" height="34" rx="6" fill="#4c1d95"/><text x="171" y="130" fill="#c4b5fd">2</text>
+    <rect x="192" y="108" width="34" height="34" rx="6" fill="#312e81"/><text x="209" y="130" fill="#a5b4fc">3</text>
+    <rect x="40"  y="146" width="34" height="34" rx="6" fill="#4c1d95"/><text x="57"  y="168" fill="#c4b5fd">2</text>
+    <rect x="78"  y="146" width="34" height="34" rx="6" fill="#1e3a8a"/><text x="95"  y="168" fill="#93c5fd">1</text>
+    <rect x="116" y="146" width="34" height="34" rx="6" fill="#f59e0b"/><text x="133" y="168" fill="#0f172a">S</text>
+    <rect x="154" y="146" width="34" height="34" rx="6" fill="#1e3a8a"/><text x="171" y="168" fill="#93c5fd">1</text>
+    <rect x="192" y="146" width="34" height="34" rx="6" fill="#4c1d95"/><text x="209" y="168" fill="#c4b5fd">2</text>
+    <rect x="40"  y="184" width="34" height="34" rx="6" fill="#312e81"/><text x="57"  y="206" fill="#a5b4fc">3</text>
+    <rect x="78"  y="184" width="34" height="34" rx="6" fill="#4c1d95"/><text x="95"  y="206" fill="#c4b5fd">2</text>
+    <rect x="116" y="184" width="34" height="34" rx="6" fill="#1e3a8a"/><text x="133" y="206" fill="#93c5fd">1</text>
+    <rect x="154" y="184" width="34" height="34" rx="6" fill="#4c1d95"/><text x="171" y="206" fill="#c4b5fd">2</text>
+    <rect x="192" y="184" width="34" height="34" rx="6" fill="#312e81"/><text x="209" y="206" fill="#a5b4fc">3</text>
+    <rect x="40"  y="222" width="34" height="34" rx="6" fill="#1e293b"/><text x="57"  y="244" fill="#64748b">4</text>
+    <rect x="78"  y="222" width="34" height="34" rx="6" fill="#312e81"/><text x="95"  y="244" fill="#a5b4fc">3</text>
+    <rect x="116" y="222" width="34" height="34" rx="6" fill="#4c1d95"/><text x="133" y="244" fill="#c4b5fd">2</text>
+    <rect x="154" y="222" width="34" height="34" rx="6" fill="#312e81"/><text x="171" y="244" fill="#a5b4fc">3</text>
+    <rect x="192" y="222" width="34" height="34" rx="6" fill="#1e293b"/><text x="209" y="244" fill="#64748b">4</text>
+  </g>
+  <text x="40" y="295" fill="#34d399" font-size="12.5">ring k is fully drained before ring k+1 begins &#8658;</text>
+  <text x="40" y="315" fill="#34d399" font-size="12.5">the FIRST arrival anywhere is via a shortest path</text>
+
+  <text x="330" y="45" fill="#f8fafc" font-size="14" font-weight="bold">THE QUEUE: AT MOST TWO DISTANCES</text>
+  <text x="330" y="80" fill="#94a3b8" font-size="11.5">front</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="330" y="90" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="358" y="112" fill="#93c5fd">d</text>
+    <rect x="392" y="90" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="420" y="112" fill="#93c5fd">d</text>
+    <rect x="454" y="90" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="482" y="112" fill="#c4b5fd">d+1</text>
+    <rect x="516" y="90" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="544" y="112" fill="#c4b5fd">d+1</text>
+    <rect x="578" y="90" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="606" y="112" fill="#c4b5fd">d+1</text>
+  </g>
+  <text x="640" y="80" fill="#94a3b8" font-size="11.5">back</text>
+  <text x="330" y="155" fill="#e2e8f0" font-size="12.5">distances never decrease front&#8594;back &#8212; processing a d</text>
+  <text x="330" y="175" fill="#e2e8f0" font-size="12.5">node can only append d+1's: the invariant sustains itself</text>
+  <text x="330" y="215" fill="#f59e0b" font-size="12.5" font-weight="bold">the sacred rule: mark visited at ENQUEUE, not dequeue &#8212;</text>
+  <text x="330" y="235" fill="#f59e0b" font-size="12.5">a queued-but-unmarked node gets pushed by every neighbor</text>
+  <text x="330" y="255" fill="#f59e0b" font-size="12.5">that sees it: duplicate snowball, TLE with correct output</text>
+  <text x="330" y="295" fill="#f87171" font-size="12">load-bearing assumption: every edge costs exactly 1 &#8212;</text>
+  <text x="330" y="315" fill="#f87171" font-size="12">weighted edges kill the ring meaning (&#8594; Dijkstra / 0-1 BFS)</text>
+</svg>

@@ -16,12 +16,16 @@ Three facts define everything below:
 
 **Recognition signals:** the words "**all** / **every** / **generate**" (subsets, permutations, combinations, partitions, boards); n ≤ ~20 (2ⁿ or n! is *intended*); "return the solutions themselves," not just a count. **The negative signal:** if only a count/optimum is asked *and* subproblems repeat with pure arguments — that's DP; count the states and memoize instead (see the boundary section at the end).
 
+![The decision tree for subsets of [1,2], with the choose/explore/unchoose buffer discipline](images/back-choose-unchoose.svg)
+
 ---
 
 ## The Two Dedupe Levers — Learn Once, Use Everywhere
 
 1. **Start index** — makes order irrelevant. Passing `i + 1` (or `i` for reuse) means "never look backward": each subset/combination is generated in exactly one (sorted-position) order, killing the n! permutation duplicates of the same set. Presence of a start index = combination problem; absence = permutation problem. That one parameter is the diff between problem families.
 2. **Sort + skip equal siblings** — kills duplicates from repeated *values*: `if (i > start && a[i] == a[i-1]) continue;`. Among equal values, only "take the earliest available copy" branches survive — a canonical-form argument, not a hack. Skip **siblings** (same tree depth), never parent-child: overskipping silently drops valid answers like {1,1,2}.
+
+![The two dedupe levers: the start index kills ordering duplicates, skip-equal-siblings kills value duplicates](images/back-dedupe-levers.svg)
 
 ---
 
@@ -69,6 +73,10 @@ void dfs(int start, vector<int>& nums) {
 
 **Core insight — why it works:** Without a start index, the decision tree's leaves are orderings — n choices, then n−1, then n−2: exactly n! leaves, the bijection again. The duplicate-values rule is subtler than the subsets one: `a[i]==a[i-1] && !used[i-1]` skips a value when its equal predecessor is *not yet used*, forcing equal values to be consumed strictly left-to-right — one canonical ordering per multiset arrangement. Derive it, don't memorize it: if the earlier copy is unused, some other branch already covers "later copy first," and that branch is the one being killed. The swap formulation (`swap(a[level], a[i])`, recurse, swap back) trades the `used[]` array for O(1) space but loses sortedness — which is why it can't dedupe; pick per problem.
 
+**Picture — every level scans all unused, and the duplicate rule:**
+
+![Permutation levels scan all unused elements; equal values are forced left-to-right](images/back-permutations.svg)
+
 **Template (permutations with used[]):**
 ```cpp
 vector<vector<int>> res;
@@ -108,6 +116,10 @@ void dfs(vector<int>& nums) {
 
 **Core insight — why it works:** For generation problems, validity is usually a *prefix-closed* property: every prefix of a valid string is "still viable" by some measurable condition (open ≥ close for parentheses; ≤ 4 segments each ≤ 255 for IPs). Branching only on viability-preserving extensions means every leaf reached is valid — zero wasted leaves, which turns "generate and filter 2²ⁿ strings" into "walk exactly the Catalan-many valid ones." State the viability condition first (e.g. "open < n allows '('; close < open allows ')'"), and the code writes itself; the condition, not the recursion, is the interview content.
 
+**Picture — invalid prefixes are never constructed:**
+
+![The n=2 generation tree: only viability-preserving branches exist, every leaf is valid](images/back-parentheses.svg)
+
 **Template (generate parentheses — the constraint is the pruning):**
 ```cpp
 vector<string> res;
@@ -140,6 +152,10 @@ void dfs(int open, int close, int n) {
 **Logic:** Level = "where does the current segment end," branch = every legal end position; recurse on the remainder. The path holds segments, not elements. Grouping variants (698, 473) partition a *set* into k buckets instead of a string into pieces — level = "which bucket does this element join."
 
 **Core insight — why it works:** A partition corresponds bijectively to a set of cut positions, so enumerating cut positions *is* enumerating partitions — same bijection, different decision. Legality tests (palindromic prefix, sum ≤ side length) prune before descending as always. The bucket variants add a symmetry problem: buckets are interchangeable, so identical bucket states are explored k! times unless canonicalized — the two standard breaks are "place each element in at most one *empty* bucket" and "skip a bucket whose sum equals a previously tried bucket's sum." Sorting descending first amplifies pruning (big items fail early, cheaply). Symmetry-breaking is *the* skill this pattern adds to the family.
+
+**Picture — the cut-position tree on "aab":**
+
+![Each level chooses where the current segment ends; illegal pieces prune whole subtrees](images/back-partition.svg)
 
 **Template (palindrome partitioning — cut positions):**
 ```cpp
@@ -178,6 +194,10 @@ void dfs(const string& s, int start) {
 **Logic:** Backtracking where choices live on a 2-D board and constraints couple distant cells: word paths, queen placements, Sudoku digits. Same choose/explore/unchoose engine, plus two upgrades: **in-place marking** (mutate the board as the visited/choice record, restore on backtrack) and **constraint-aware pruning** (test legality *before* descending; track constraint sets incrementally so the test is O(1)).
 
 **Core insight — why it works:** Correctness is the same bijection — completeness comes from trying every legal choice at every step. What's new is the *economics*: raw search spaces here are astronomical (9^81 Sudoku grids), and feasibility comes entirely from **early pruning** — rejecting a partial solution discards its whole exponential subtree, and the leverage compounds with depth: a violation caught at level 2 of N-Queens kills ~n⁶ descendants. So the engineering centerpiece is making legality checks O(1): three boolean sets (columns, diagonals r−c+n, anti-diagonals r+c) for queens; rows/cols/boxes sets for Sudoku — updated in choose, rolled back in unchoose, the same discipline as the path buffer. **Prune early, check cheap, undo exactly** is the whole pattern.
+
+**Picture — the board is the choice record:**
+
+![Path cells marked '#' in place during exploration, restored on backtrack](images/back-word-search.svg)
 
 **Template (word search — in-place marking):**
 ```cpp

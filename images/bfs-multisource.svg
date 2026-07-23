@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="320" viewBox="0 0 880 320" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="320" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">MULTI-SOURCE: SEED EVERY SOURCE AT d = 0 (542-style)</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="70"  width="40" height="40" rx="6" fill="#f59e0b"/><text x="60"  y="95"  fill="#0f172a">0</text>
+    <rect x="86"  y="70"  width="40" height="40" rx="6" fill="#1e3a8a"/><text x="106" y="95"  fill="#93c5fd">1</text>
+    <rect x="132" y="70"  width="40" height="40" rx="6" fill="#4c1d95"/><text x="152" y="95"  fill="#c4b5fd">2</text>
+    <rect x="178" y="70"  width="40" height="40" rx="6" fill="#1e3a8a"/><text x="198" y="95"  fill="#93c5fd">1</text>
+    <rect x="40"  y="116" width="40" height="40" rx="6" fill="#1e3a8a"/><text x="60"  y="141" fill="#93c5fd">1</text>
+    <rect x="86"  y="116" width="40" height="40" rx="6" fill="#4c1d95"/><text x="106" y="141" fill="#c4b5fd">2</text>
+    <rect x="132" y="116" width="40" height="40" rx="6" fill="#1e3a8a"/><text x="152" y="141" fill="#93c5fd">1</text>
+    <rect x="178" y="116" width="40" height="40" rx="6" fill="#f59e0b"/><text x="198" y="141" fill="#0f172a">0</text>
+    <rect x="40"  y="162" width="40" height="40" rx="6" fill="#4c1d95"/><text x="60"  y="187" fill="#c4b5fd">2</text>
+    <rect x="86"  y="162" width="40" height="40" rx="6" fill="#312e81"/><text x="106" y="187" fill="#a5b4fc">3</text>
+    <rect x="132" y="162" width="40" height="40" rx="6" fill="#4c1d95"/><text x="152" y="187" fill="#c4b5fd">2</text>
+    <rect x="178" y="162" width="40" height="40" rx="6" fill="#1e3a8a"/><text x="198" y="187" fill="#93c5fd">1</text>
+  </g>
+  <text x="40" y="245" fill="#94a3b8" font-size="12.5">every cell's value = distance to its NEAREST source &#8212;</text>
+  <text x="40" y="265" fill="#94a3b8" font-size="12.5">the two flood fronts meet and stop, never overwrite</text>
+
+  <text x="440" y="90" fill="#e2e8f0" font-size="13" font-weight="bold">enqueue ALL sources before the loop &#8212; it's one BFS</text>
+  <text x="440" y="110" fill="#e2e8f0" font-size="13" font-weight="bold">from a virtual super-source sitting above them</text>
+  <text x="440" y="150" fill="#34d399" font-size="12.5">O(V + E) once &#8212; versus running a separate BFS</text>
+  <text x="440" y="170" fill="#34d399" font-size="12.5">per source: O(k &#183; (V + E)) for the same field</text>
+  <text x="440" y="210" fill="#f59e0b" font-size="12.5">recognition: &#8220;nearest X for EVERY cell&#8221; &#8212; invert it:</text>
+  <text x="440" y="230" fill="#f59e0b" font-size="12.5">flood FROM the X's, not from each query cell</text>
+  <text x="440" y="270" fill="#94a3b8" font-size="12">rotting oranges (994): same field, but the answer is the</text>
+  <text x="440" y="288" fill="#94a3b8" font-size="12">maximum distance reached &#8212; the last ring's timestamp</text>
+</svg>

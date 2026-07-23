@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="300" viewBox="0 0 880 300" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="300" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">0-1 BFS: THE DEQUE KEEPS ITSELF SORTED</text>
+  <text x="40" y="95" fill="#94a3b8" font-size="11.5">front</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="90"  y="75" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="118" y="97" fill="#93c5fd">d</text>
+    <rect x="152" y="75" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="180" y="97" fill="#93c5fd">d</text>
+    <rect x="214" y="75" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="242" y="97" fill="#c4b5fd">d+1</text>
+    <rect x="276" y="75" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="304" y="97" fill="#c4b5fd">d+1</text>
+  </g>
+  <text x="345" y="95" fill="#94a3b8" font-size="11.5">back</text>
+  <line x1="70"  y1="150" x2="105" y2="115" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <line x1="360" y1="150" x2="320" y2="115" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="30"  y="175" fill="#34d399" font-size="12.5" font-weight="bold">0-edge &#8594; push FRONT</text>
+  <text x="30"  y="195" fill="#94a3b8" font-size="11.5">same distance d &#8212; belongs</text>
+  <text x="30"  y="211" fill="#94a3b8" font-size="11.5">with the current layer</text>
+  <text x="290" y="175" fill="#f59e0b" font-size="12.5" font-weight="bold">1-edge &#8594; push BACK</text>
+  <text x="290" y="195" fill="#94a3b8" font-size="11.5">distance d+1 &#8212; joins</text>
+  <text x="290" y="211" fill="#94a3b8" font-size="11.5">the next layer</text>
+
+  <text x="510" y="90" fill="#e2e8f0" font-size="12.5">appending a 0-edge neighbor to the BACK would put a</text>
+  <text x="510" y="110" fill="#e2e8f0" font-size="12.5">d behind the d+1's &#8212; ordering broken; prepending keeps</text>
+  <text x="510" y="130" fill="#e2e8f0" font-size="12.5">the deque reading &#8220;some d's, then d+1's&#8221;</text>
+  <text x="510" y="170" fill="#34d399" font-size="12.5" font-weight="bold">invariant survives &#8658; first pop still optimal:</text>
+  <text x="510" y="190" fill="#34d399" font-size="12.5" font-weight="bold">Dijkstra's guarantee at O(V + E), no heap</text>
+  <text x="510" y="230" fill="#f87171" font-size="12">exactly two costs, one of them zero &#8212; that's the cue;</text>
+  <text x="510" y="248" fill="#f87171" font-size="12">three or more distinct weights &#8594; Dijkstra, the</text>
+  <text x="510" y="266" fill="#f87171" font-size="12">invariant can't be patched</text>
+</svg>
