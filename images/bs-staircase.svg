@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">STAIRCASE SEARCH &#8212; THE TOP-RIGHT CORNER IS THE ONLY PIVOT</text>
+
+  <text x="239" y="82" fill="#f59e0b" font-size="11" text-anchor="middle">start here: row 0, col n&#8722;1</text>
+
+  <g font-size="12.5" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="60"  y="90"  width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="83"  y="114" fill="#64748b">1</text>
+    <rect x="112" y="90"  width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="135" y="114" fill="#64748b">4</text>
+    <rect x="164" y="90"  width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="187" y="114" fill="#64748b">7</text>
+    <rect x="216" y="90"  width="46" height="38" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="239" y="114" fill="#0f172a">11</text>
+
+    <rect x="60"  y="134" width="46" height="38" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="83"  y="158" fill="#93c5fd">2</text>
+    <rect x="112" y="134" width="46" height="38" rx="6" fill="#1e293b" stroke="#34d399"/><text x="135" y="158" fill="#34d399">5</text>
+    <rect x="164" y="134" width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="187" y="158" fill="#64748b">8</text>
+    <rect x="216" y="134" width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="239" y="158" fill="#64748b">12</text>
+
+    <rect x="60"  y="178" width="46" height="38" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="83"  y="202" fill="#93c5fd">3</text>
+    <rect x="112" y="178" width="46" height="38" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="135" y="202" fill="#93c5fd">6</text>
+    <rect x="164" y="178" width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="187" y="202" fill="#64748b">9</text>
+    <rect x="216" y="178" width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="239" y="202" fill="#64748b">16</text>
+
+    <rect x="60"  y="222" width="46" height="38" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="83"  y="246" fill="#93c5fd">10</text>
+    <rect x="112" y="222" width="46" height="38" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="135" y="246" fill="#93c5fd">13</text>
+    <rect x="164" y="222" width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="187" y="246" fill="#64748b">14</text>
+    <rect x="216" y="222" width="46" height="38" rx="6" fill="#1e293b" stroke="#64748b"/><text x="239" y="246" fill="#64748b">17</text>
+  </g>
+
+  <rect x="160" y="86" width="106" height="178" rx="8" fill="#f87171" opacity="0.10" stroke="#f87171" stroke-opacity="0.45" stroke-dasharray="4 4"/>
+  <rect x="56"  y="86" width="106" height="46"  rx="8" fill="#f87171" opacity="0.10" stroke="#f87171" stroke-opacity="0.45" stroke-dasharray="4 4"/>
+
+  <text x="40" y="284" fill="#94a3b8" font-size="11.5">probes for target 5: 11 &#8594; 7 &#8594; 4 &#8594; 5 &#183; two columns and one row deleted</text>
+
+  <line x1="110" y1="302" x2="60" y2="302" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="125" y="306" fill="#f59e0b" font-size="12">cell &#62; target &#8658; col&#8722;&#8722;, a whole column dies</text>
+
+  <line x1="85" y1="318" x2="85" y2="340" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="125" y="334" fill="#f59e0b" font-size="12">cell &#60; target &#8658; row++, a whole row dies</text>
+
+  <text x="510" y="90" fill="#e2e8f0" font-size="12.5">rows sorted AND columns sorted &#8212; but the rows overlap</text>
+  <text x="510" y="110" fill="#e2e8f0" font-size="12.5">in range, so this matrix does NOT flatten (LC 240)</text>
+
+  <text x="510" y="148" fill="#f59e0b" font-size="12.5" font-weight="bold">the top-right cell is the only corner where a single</text>
+  <text x="510" y="166" fill="#f59e0b" font-size="12.5" font-weight="bold">comparison kills a full row or a full column</text>
+
+  <text x="510" y="204" fill="#34d399" font-size="12.5" font-weight="bold">everything to its left is smaller and everything below</text>
+  <text x="510" y="222" fill="#34d399" font-size="12.5" font-weight="bold">is larger &#8212; so the losing side is provably dead, the</text>
+  <text x="510" y="240" fill="#34d399" font-size="12.5" font-weight="bold">same elimination argument binary search runs on</text>
+
+  <text x="510" y="278" fill="#94a3b8" font-size="12">at most m + n steps, O(1) space &#8212; linear, not log, but</text>
+  <text x="510" y="296" fill="#94a3b8" font-size="12">it also doubles as the counter inside Pattern 6</text>
+
+  <text x="510" y="322" fill="#f87171" font-size="12">if row i&#8217;s last &#8804; row i+1&#8217;s first (LC 74), flatten instead</text>
+  <text x="510" y="340" fill="#f87171" font-size="12">and get O(log mn) &#8212; always check which guarantee you have</text>
+</svg>

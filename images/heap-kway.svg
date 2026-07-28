@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="330" viewBox="0 0 880 330" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="330" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">K-WAY MERGE: ONE CANDIDATE PER LIST IS A COMPLETE FRONTIER</text>
+
+  <g font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="70"  y="72"  width="34" height="28" rx="5" fill="#1e3a8a" stroke="#f59e0b" stroke-width="2"/><text x="87"  y="91"  fill="#f59e0b">1</text>
+    <rect x="108" y="72"  width="34" height="28" rx="5" fill="#1e3a8a" stroke="#3b82f6"/><text x="125" y="91"  fill="#93c5fd">4</text>
+    <rect x="146" y="72"  width="34" height="28" rx="5" fill="#1e3a8a" stroke="#3b82f6"/><text x="163" y="91"  fill="#93c5fd">9</text>
+
+    <rect x="70"  y="118" width="34" height="28" rx="5" fill="#4c1d95" stroke="#f59e0b" stroke-width="2"/><text x="87"  y="137" fill="#f59e0b">3</text>
+    <rect x="108" y="118" width="34" height="28" rx="5" fill="#4c1d95" stroke="#a78bfa"/><text x="125" y="137" fill="#c4b5fd">5</text>
+    <rect x="146" y="118" width="34" height="28" rx="5" fill="#4c1d95" stroke="#a78bfa"/><text x="163" y="137" fill="#c4b5fd">8</text>
+
+    <rect x="70"  y="164" width="34" height="28" rx="5" fill="#312e81" stroke="#f59e0b" stroke-width="2"/><text x="87"  y="183" fill="#f59e0b">2</text>
+    <rect x="108" y="164" width="34" height="28" rx="5" fill="#312e81" stroke="#a5b4fc"/><text x="125" y="183" fill="#a5b4fc">6</text>
+    <rect x="146" y="164" width="34" height="28" rx="5" fill="#312e81" stroke="#a5b4fc"/><text x="163" y="183" fill="#a5b4fc">7</text>
+  </g>
+  <g fill="#64748b" font-size="11.5" font-family="Consolas, monospace">
+    <text x="40" y="91">L1</text>
+    <text x="40" y="137">L2</text>
+    <text x="40" y="183">L3</text>
+    <text x="184" y="91">...</text>
+    <text x="184" y="137">...</text>
+    <text x="184" y="183">...</text>
+  </g>
+  <text x="70" y="63" fill="#f59e0b" font-size="11" font-weight="bold">heads only</text>
+
+  <g stroke="#34d399" stroke-width="2" marker-end="url(#arGreen)" opacity="0.9">
+    <line x1="212" y1="88"  x2="248" y2="112"/>
+    <line x1="212" y1="134" x2="248" y2="130"/>
+    <line x1="212" y1="180" x2="248" y2="150"/>
+  </g>
+
+  <rect x="252" y="70" width="180" height="140" rx="10" fill="#0f172a" stroke="#1e293b"/>
+  <text x="342" y="90" fill="#94a3b8" font-size="11.5" text-anchor="middle">min-heap frontier: size k</text>
+  <g stroke="#334155" stroke-width="1.5">
+    <line x1="342" y1="146" x2="304" y2="166"/>
+    <line x1="342" y1="146" x2="380" y2="166"/>
+  </g>
+  <circle cx="342" cy="126" r="20" fill="#f59e0b" stroke="#f59e0b"/>
+  <text x="342" y="131" fill="#0f172a" font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">1</text>
+  <circle cx="298" cy="180" r="18" fill="#4c1d95" stroke="#a78bfa"/>
+  <text x="298" y="185" fill="#c4b5fd" font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">3</text>
+  <circle cx="386" cy="180" r="18" fill="#312e81" stroke="#a5b4fc"/>
+  <text x="386" y="185" fill="#a5b4fc" font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">2</text>
+
+  <line x1="342" y1="212" x2="342" y2="238" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="40" y="262" fill="#f59e0b" font-size="12.5" font-weight="bold">pop the smallest head &#8594; emit it &#8594; push L1's next (4)</text>
+  <text x="40" y="282" fill="#94a3b8" font-size="11.5">exactly one list advances; the heap holds k, never n</text>
+  <text x="40" y="308" fill="#34d399" font-size="12" font-weight="bold">nothing behind a head can leapfrog it &#8212; that is the proof</text>
+
+  <text x="510" y="88" fill="#e2e8f0" font-size="12.5">each list is sorted, so every unseen element of a list</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">is &#8805; that list's current head.</text>
+  <text x="510" y="140" fill="#34d399" font-size="12.5" font-weight="bold">&#8658; the k heads form a COMPLETE candidate set:</text>
+  <text x="510" y="160" fill="#34d399" font-size="12.5" font-weight="bold">the global next-smallest is already on the frontier</text>
+  <text x="510" y="192" fill="#f59e0b" font-size="12.5" font-weight="bold">O(N log k), not O(N log N) &#8212; the heap is sized by the</text>
+  <text x="510" y="212" fill="#f59e0b" font-size="12.5" font-weight="bold">number of lists, so the whole input never enters it</text>
+  <text x="510" y="244" fill="#94a3b8" font-size="11.5">the lists can be VIRTUAL and never materialized:</text>
+  <text x="510" y="264" fill="#94a3b8" font-size="11.5">matrix rows, the pairs (a_i, b_0), (a_i, b_1), ...,</text>
+  <text x="510" y="284" fill="#94a3b8" font-size="11.5">fractions sharing a denominator</text>
+  <text x="510" y="312" fill="#f87171" font-size="12">advance along ONE axis per pop, or you re-push states</text>
+</svg>

@@ -56,6 +56,10 @@ pred:    F   F   F   F   T   T   T   T   T
                   the boundary = the answer
 ```
 
+The same picture with the pointer mechanics drawn in — every probe deletes one side, and the two pointers can only meet on the boundary:
+
+![The F F F F T T T T predicate line, how lo and hi move each probe, and why lo == hi lands on the first T](images/bs-predicate-line.svg)
+
 Every binary search in this guide is one of exactly two searches on this picture:
 
 - **First true** (most common): minimum feasible answer, lower_bound, first bad version. Branches: `pred(mid) → hi = mid` (mid might be the answer — keep it), `!pred(mid) → lo = mid + 1` (mid is certified useless — discard it).
@@ -89,6 +93,10 @@ Read constraints like a cipher. `n ≤ 10⁵` but values up to `10⁹`: looping 
 
 **4. The reverse check — you have a checker but not a finder.**
 Sometimes you notice: "verifying a *given* answer would be easy — I just can't construct the optimal one." That asymmetry (easy verification, hard construction) is precisely the shape binary search exploits, *provided* feasibility is monotone. When you catch yourself thinking "if someone told me the answer was 7, I could confirm it in one pass," try searching for the 7.
+
+Once a problem trips one of those signals, the routing question is only ever *what am I searching over*:
+
+![Search domain — array indices, candidate answer values, a sorted matrix, an unbounded range, or a split across two arrays — routing to Patterns 1 through 10](images/bs-routing.svg)
 
 ---
 
@@ -144,6 +152,10 @@ return -1;
 
 **Core insight — why it works:** Exact-match search has three outcomes per probe; boundary search has **two** — and that's a feature. Any question you can phrase as a monotonic predicate gets the same loop: no special cases, no equality branch, no duplicates headache. `lower_bound` is just first-T under `nums[i] >= target`; `upper_bound` is first-T under `nums[i] > target`; "first bad version" is first-T under `isBad(i)`. When the loop ends, `lo == hi` = the boundary, and the invariant *is* the proof of correctness. Mastering this single template makes Patterns 4–7 fall out as corollaries: they only change what the predicate is and what domain it's evaluated over.
 
+On a duplicate-heavy array the two classic boundaries are the *same loop with a different comparison operator* — which is why duplicates need no special handling at all:
+
+![lower_bound and upper_bound landing on a run of duplicate 5s, and the LC 34 count that falls out of the gap](images/bs-bounds.svg)
+
 **Template (first index where predicate is true):**
 ```cpp
 int lo = 0, hi = n;                 // half-open [lo, hi); hi = n means "no T exists"
@@ -179,6 +191,10 @@ return lo;                          // first T, or n if none
 **Logic:** A sorted array rotated at an unknown pivot is two sorted runs glued together. At every probe, compare `nums[mid]` against an endpoint (usually `nums[hi]` or `nums[lo]`): **at least one half of the interval is guaranteed to be properly sorted**, and you can check in O(1) whether the target lies inside that sorted half. If yes, recurse into it; if no, the target must be in the other (messy) half.
 
 **Core insight — why it works:** Plain binary search needs the whole interval sorted; rotation seems to destroy that. The save: one comparison (`nums[mid]` vs `nums[hi]`) *classifies* the halves — if `nums[mid] < nums[hi]`, the right half `[mid, hi]` is sorted; otherwise the left half `[lo, mid]` is. A sorted half supports an exact range-membership test (`nums[mid] < target <= nums[hi]`), and a definitive yes/no about one half is logically a definitive answer about the other. So you still discard half the interval per probe with certainty — the certainty just comes from a two-step argument instead of one comparison.
+
+The shape to keep in your head is two sorted runs split at the pivot, with every element of the left run above every element of the right — one comparison against `nums[hi]` tells you which run `mid` fell into:
+
+![Two sorted runs joined at the pivot, with the nums[mid] versus nums[hi] test naming which half is fully sorted](images/bs-rotated.svg)
 
 **Template (find minimum in rotated array — also locates the pivot):**
 ```cpp
@@ -230,7 +246,7 @@ return lo;
 | 852. Peak Index in a Mountain Array | Easy | Strict mountain guarantee makes the same template even cleaner; the answer is the unique peak. |
 | 1095. Find in Mountain Array | Hard | Peak search splits the array into an ascending and a descending sorted half; then two exact searches. Limited API calls force you to make each probe count. |
 | 374 / 658-style "closest" variants | — | Once you can find the boundary/peak, "k closest to x" (658) follows by expanding or window-shrinking around the found position — search locates, two pointers harvest. |
-| 4. Median of Two Sorted Arrays | Hard | Honorary member: binary search on *how many elements the first array contributes to the left half*. The certificate is the cross-pair test `a[i−1] <= b[j] && b[j−1] <= a[i]` — a valid partition proves the median's location. The hardest standard interview binary search; learn the partition invariant, not the code. |
+| 4. Median of Two Sorted Arrays | Hard | Honorary member: binary search on *how many elements the first array contributes to the left half*. The certificate is the cross-pair test `a[i−1] <= b[j] && b[j−1] <= a[i]` — a valid partition proves the median's location. The hardest standard interview binary search; see **Pattern 10** for the full treatment. |
 
 **Pitfall:** Accessing `nums[mid + 1]` requires `mid < n − 1` — the `lo < hi` loop guarantees it (mid never equals hi), which is precisely why this pattern uses the Pattern-2-style loop rather than `lo <= hi`. Swap loops carelessly and you read out of bounds.
 
@@ -241,6 +257,10 @@ return lo;
 **Logic:** Forget the array — binary search the **space of candidate answers**. Define `feasible(x)`: "can the task be done with budget/speed/capacity x?" If feasibility is monotonic in x, the optimal answer is the boundary between infeasible and feasible, found with first-true search over `[loAnswer, hiAnswer]`. The feasibility check is usually a greedy O(n) simulation.
 
 **Core insight — why it works:** The problem asks to *optimize*, which feels like search-over-strategies — intractable. The reframe: don't search strategies, search **outcomes**. For a fixed candidate outcome x, checking feasibility is easy (greedy simulation), and feasibility is monotonic for a structural reason you should articulate per problem (e.g., "anything a slower eater can finish, a faster eater can too — same schedule, finish earlier"). Monotonicity means the answer space is `F F F F T T T T`, so Pattern 2's template applies verbatim with domain = answer values. You've converted one hard optimization into O(log range) easy decision problems. **"Minimize the maximum" / "maximize the minimum" phrasing is this pattern's signature** — when you see it, your first question should be "what's the predicate?"
+
+The whole pattern in one picture — the axis is *feasibility*, not data, and the bracket must be wide enough to contain the flip:
+
+![The monotone feasibility axis: lo, the infeasible F region, the first T that is the answer, the feasible T region, hi, and the two branch actions](images/bs-answer-space.svg)
 
 **Template (minimum feasible answer):**
 ```cpp
@@ -358,6 +378,10 @@ return lo;
 
 **Core insight — why it works:** Problem 74's matrix (each row sorted, each row's first element > previous row's last) is a sorted 1-D array wearing a matrix costume: index arithmetic `mid / cols, mid % cols` recovers the bijection, and ordinary binary search applies to the virtual flat array. Problem 240's weaker guarantee (rows sorted, columns sorted, but no inter-row relation) is **not** flattenable — instead, the top-right corner is a pivot where one comparison eliminates a full row or full column (everything left is smaller, everything below is bigger), giving the O(m+n) staircase. Knowing *which* guarantee you have — and therefore which tool applies — is the actual interview question.
 
+When the matrix is *not* flattenable, the top-right corner is the only cell where a single comparison kills an entire row or an entire column — that is what makes the staircase a legitimate elimination argument:
+
+![Staircase search from the top-right corner of a row- and column-sorted matrix, deleting a full column or a full row per probe in O(m+n)](images/bs-staircase.svg)
+
 **Template (74 — fully ordered matrix as virtual flat array):**
 ```cpp
 int lo = 0, hi = rows * cols - 1;
@@ -383,6 +407,97 @@ return false;
 
 ---
 
+## Pattern 9: Exponential / Galloping Search (Unbounded Domains)
+
+**Logic:** Binary search needs a bracket, and sometimes you don't have one — the array's length is hidden behind an API, the stream is conceptually infinite, or the answer's upper bound isn't obvious. Fix it in two phases: **gallop** — start at 1 and double the probe (`1, 2, 4, 8, …`) until the predicate first turns true; then **search** — run an ordinary first-true search inside the last bracket `(lo, hi]`, which is guaranteed to contain the flip.
+
+**Core insight — why it works:** The doubling phase is itself a binary search on the *magnitude* of the answer. If the boundary sits at position p, doubling reaches or passes it after ⌈log₂ p⌉ probes, and the surviving bracket `[p/2, p]` has width ≤ p — so the inner search costs another ⌈log₂ p⌉ probes. Total **O(log p)**, independent of the domain's true size, which may be infinite. Two properties make it safe: the predicate must still be monotone (so overshooting is detectable and never skips the flip), and out-of-range probes must be *answerable* — LC 702's reader returns `2^31 − 1` for out-of-bounds, which conveniently reads as "too big", i.e. as a `T`. This is also the honest fix for a search-on-answer problem whose `hi` you can only bound loosely: rather than guessing `1e18` and hoping the predicate doesn't overflow, double from a known-infeasible value until feasible.
+
+**Template:**
+```cpp
+// Phase 1 — gallop: find any hi with pred(hi) == true.
+long long lo = 0, hi = 1;
+while (!pred(hi)) {                       // pred must be safe to call past the "end"
+    lo = hi + 1;                          // hi was F, so everything up to hi is F
+    hi <<= 1;                             // guard against overflow if the range is huge
+}
+// Phase 2 — ordinary first-true search in [lo, hi], which now brackets the boundary.
+while (lo < hi) {
+    long long mid = lo + (hi - lo) / 2;
+    if (pred(mid)) hi = mid;
+    else lo = mid + 1;
+}
+return lo;
+
+// LC 702 shape: pred(i) = (reader.get(i) >= target), since out-of-range returns INT_MAX.
+// Answer exists iff reader.get(lo) == target.
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 702. Search in a Sorted Array of Unknown Size | Medium | The canonical instance. Double `hi` while `reader.get(hi) < target`, then boundary-search `[lo, hi]`. The trick is realizing the sentinel `2^31 − 1` returned past the end *preserves monotonicity*, so out-of-bounds probes need no special casing at all. |
+| Search in an infinite sorted stream | — | The interview-only phrasing of 702, usually asked without an API hint. Say "O(log p) where p is the target's position, not O(log n)" — that complexity statement is what's being tested. |
+| 1201. Ugly Number III | Medium | `hi` is genuinely awkward to bound by hand (inclusion–exclusion over three divisors). Doubling from 1 until `count(hi) >= n` gets you a valid bracket without any arithmetic argument, then search inside. |
+| 878. Nth Magical Number | Hard | Same story with lcm-based counting, plus a modulo on the *output only* — never inside the predicate, or monotonicity dies. Textbook case of "the answer range is unknown, so build it". |
+| 349 / 350. Intersection of Two Arrays | Easy | When one sorted array is far shorter than the other, gallop from the previous match position instead of restarting each search: O(m log(n/m)) beats both the O(m log n) per-element search and the O(m+n) merge. This is exactly why real merge routines gallop. |
+| 1539. Kth Missing Positive Number | Easy | Bounded, but the same reflex applies: the predicate `missingBefore(i) >= k` is monotone, and the answer can exceed the array — a good drill for "the answer lives outside the data". |
+
+**Pitfalls:**
+- Overflow in the doubling phase: `hi <<= 1` on a `long long` that's already near the top silently goes negative and the loop never terminates. Cap it (`hi = min(hi * 2, LIMIT)`) whenever a hard limit exists.
+- Setting `lo = hi` instead of `lo = hi + 1` (or vice versa) after a failed probe. `hi` was evaluated F, so it's certified dead — but if you gallop *without* evaluating (pure doubling), the bracket is `[hi/2, hi]` and `lo` must stay at the previous `hi`. Pick one and comment which.
+- Assuming out-of-range probes are free. If the API throws or the predicate is undefined past the end, you must guard the probe *before* calling it; 702's sentinel is a gift, not a rule.
+- Galloping when a bound is already obvious. If `hi = sum(weights)` is one line, use it — exponential search is for when the bound costs real thought, not for showing off.
+
+---
+
+## Pattern 10: Partition Search Across Two Sorted Arrays
+
+**Logic:** Given two sorted arrays, you want a statistic defined on their *merged* order — the median, or the k-th smallest — without merging. Binary search **the number of elements the shorter array contributes to the left part**. Fixing that count `i` forces the other array's count `j = k − i`, so one number determines an entire candidate partition of both arrays into a "left part" and a "right part" of the right sizes. Search for the `i` that makes the partition valid.
+
+**Core insight — why it works:** A partition is correct exactly when *every element on the left is ≤ every element on the right*, and because each array is already sorted internally, that reduces to just two cross-comparisons: `a[i−1] <= b[j]` and `b[j−1] <= a[i]`. That's the certificate — O(1), no merging. Monotonicity comes free: if `a[i−1] > b[j]`, array A donated too many elements and *every* larger `i` is also wrong, so you move `hi` left; if `b[j−1] > a[i]`, A donated too few. The validity test is therefore cleanly directional over `i ∈ [0, m]` — no `F F T F F` surprises. Always binary search the **shorter** array — that bounds the loop at O(log min(m, n)) *and* keeps `j` in range. The ±∞ sentinels for `i = 0`, `i = m`, `j = 0`, `j = n` are not defensive coding; they are what makes the empty-side cases obey the same two inequalities as everything else, which is what collapses a dozen edge cases into zero.
+
+**Template (median of two sorted arrays; the k-th variant is the same loop with a different `half`):**
+```cpp
+double findMedian(vector<int>& a, vector<int>& b) {
+    if (a.size() > b.size()) return findMedian(b, a);   // always search the shorter one
+    int m = a.size(), n = b.size(), half = (m + n + 1) / 2;   // size of the left part
+    int lo = 0, hi = m;                                  // i = elements A puts on the left
+    while (lo <= hi) {
+        int i = lo + (hi - lo) / 2;
+        int j = half - i;                                // forced by i
+        long long aL = (i == 0) ? LLONG_MIN : a[i - 1];
+        long long aR = (i == m) ? LLONG_MAX : a[i];
+        long long bL = (j == 0) ? LLONG_MIN : b[j - 1];
+        long long bR = (j == n) ? LLONG_MAX : b[j];
+        if (aL <= bR && bL <= aR) {                      // valid partition — done
+            if ((m + n) % 2) return (double)max(aL, bL); // odd: left part holds the median
+            return (max(aL, bL) + min(aR, bR)) / 2.0;
+        }
+        if (aL > bR) hi = i - 1;                         // A donated too many
+        else         lo = i + 1;                         // A donated too few
+    }
+    return 0.0;                                          // unreachable for valid input
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 4. Median of Two Sorted Arrays | Hard | The flagship. Required complexity O(log(m+n)) is the tell that merging is off the table. Learn the **partition invariant** (`aL <= bR && bL <= aR`) rather than memorizing the code — under pressure the invariant regenerates the code, but memorized code doesn't regenerate the invariant. Recursing on the shorter array in line 1 removes half the edge cases for free. |
+| 88. Merge Sorted Array | Easy | The O(m+n) baseline you should state *first* in the interview ("merge and index — linear; now let me beat it"). Also the sanity oracle: brute-force merge on random small inputs is how you unit-test a partition search. |
+| K-th element of two sorted arrays | — | The generalization: set `half = k` and return `max(aL, bL)` when the partition validates. Classic phone-screen follow-up to 4; if you wrote 4 with `half` as a named variable, this is a one-line change. |
+| 2387. Median of a Row Wise Sorted Matrix | Medium | The trap: partition search does **not** extend to m arrays — the cross-comparisons blow up combinatorially. Switch to Pattern 6 (binary search the value, count elements ≤ v across all rows). Knowing where this pattern stops is worth as much as knowing it. |
+| 378. Kth Smallest in a Sorted Matrix | Medium | Cross-listed contrast: counting-based rank search costs O(n log range) and generalizes to any number of sorted sequences; partition search costs O(log min(m,n)) but only works for two. Pick by the arity of the input. |
+
+**Pitfalls:**
+- Searching the longer array: `j = half − i` can go negative or exceed `n`, and you'll paper over it with clamps that quietly return wrong medians. The `if (a.size() > b.size()) swap` line is load-bearing.
+- Using `INT_MIN` / `INT_MAX` as sentinels while comparing against values that can equal them. Promote to `long long` (as above) so the sentinels are strictly outside the value range.
+- `half = (m + n + 1) / 2` (not `(m + n) / 2`): the `+1` makes the left part hold the extra element on odd totals, so the odd case is `max(aL, bL)` with no second branch.
+- Using `lo < hi` with `hi = m`: this search terminates on *finding a valid partition*, not on interval collapse, so it wants the inclusive `lo <= hi` form. Mixing it with the Pattern 2 loop is the standard way people break this problem.
+
+---
+
 ## When Binary Search FAILS — Know the Boundary
 
 | Situation | Why it breaks | Use instead |
@@ -391,7 +506,7 @@ return false;
 | Unsorted data, no certificate at mid | A probe proves nothing about either half | Hashing, sorting first, selection algorithms |
 | "K-th smallest" but you need *all* top-k, not just the value | Counting search yields one value, not a set | Heap / quickselect / partial sort |
 | Unimodal real function, want the max (not a boundary) | First-true search needs a flip, not a peak | **Ternary search** or derivative + binary search |
-| Answer space bounds unknown or unbounded | Can't bracket the search | Exponential search first (double `hi` until feasible), then binary search inside |
+| Answer space bounds unknown or unbounded | Can't bracket the search | **Exponential search** (Pattern 9): double `hi` until feasible, then binary search inside |
 
 One-sentence litmus test: **binary search applies iff you can state a yes/no question about a single candidate, prove its answer flips exactly once across an ordered domain, and evaluate it quickly.** No monotone predicate → no binary search, no matter how sorted things look.
 
@@ -410,6 +525,8 @@ One-sentence litmus test: **binary search applies iff you can state a yes/no que
 | "k-th smallest pair/entry/fraction" | Value-space search + counting |
 | answer is a real number to given precision | Real-valued search, fixed iterations |
 | "m × n matrix, rows and columns sorted" | Flatten (74) vs staircase (240) — check the guarantee |
+| "array of unknown size", "infinite stream", no bound on the answer | Exponential bracket, then boundary search |
+| "median / k-th element **of two sorted arrays**", O(log(m+n)) demanded | Partition search across the two arrays |
 | O(log n) demanded, data looks unsorted | Hunt for the hidden monotone predicate (540, 162) |
 
 ---
@@ -421,7 +538,8 @@ One-sentence litmus test: **binary search applies iff you can state a yes/no que
 - Search on answer: **O(n log R)** — R = answer range, n = cost of one feasibility check.
 - K-th smallest counting: **O(C log R)** — C = counter cost (O(n) staircase, O(n) window, …).
 - Real-valued: **O(n · iterations)**, iterations ≈ 100 or log₂(range/eps).
-- Median of two sorted arrays: **O(log min(m, n))**.
+- Exponential / galloping: **O(log p)** — p = position of the boundary, *not* the size of the domain; the bracket phase and the search phase each cost ≈ log₂ p probes.
+- Partition search across two sorted arrays (4, k-th of two): **O(log min(m, n))**, O(1) space — always search the shorter array.
 
 ---
 
@@ -439,8 +557,8 @@ One-sentence litmus test: **binary search applies iff you can state a yes/no que
 ## Suggested Practice Order
 
 **Week 1 — templates cold:** 704 → 35 → 278 → 34 → 69 → 367 → 744
-**Week 2 — structural variants:** 153 → 33 → 81 → 162 → 852 → 540 → 74 → 240
-**Week 3 — search on answer:** 1283 → 875 → 1011 → 410 → 1482 → 1552 → 2064 → 1231
-**Week 4 — boss fights:** 378 → 719 → 668 → 786 → 644 → 774 → 1095 → 4 (Median of Two Sorted Arrays)
+**Week 2 — structural variants:** 153 → 33 → 81 → 162 → 852 → 540 → 74 → 240 → 702
+**Week 3 — search on answer:** 1283 → 875 → 1011 → 410 → 1482 → 1552 → 2064 → 1231 → 1201
+**Week 4 — boss fights:** 378 → 719 → 668 → 786 → 644 → 774 → 878 → 1095 → 4 (Median of Two Sorted Arrays) → k-th element of two sorted arrays
 
 Good luck with the interviews!

@@ -15,6 +15,10 @@ Ask yourself:
 
 If yes to any → two pointers is probably the intended solution.
 
+Once a problem passes that filter, the only remaining question is *which geometry* the two pointers should have — same direction, opposite directions, or one per sequence:
+
+![Routing from the shape of the input, then the goal, to each of the nine two-pointer patterns](images/tp-routing.svg)
+
 ---
 
 ## Pattern 1: Converging Pointers (Opposite Ends)
@@ -22,6 +26,8 @@ If yes to any → two pointers is probably the intended solution.
 **Logic:** Place `left = 0` and `right = n-1`. At each step, evaluate the pair `(nums[left], nums[right])` against your condition. Based on the result, move exactly one pointer inward. The loop ends when they cross, having examined the array in a single pass.
 
 **Core insight — why it works:** The brute force checks all O(n²) pairs. Converging pointers gets away with O(n) because **sortedness makes one of the two possible moves provably useless**. Take pair sum: if `nums[left] + nums[right] < target`, then `nums[left]` paired with *anything* to the left of `right` is even smaller (those values are ≤ `nums[right]`). So `nums[left]` can never be part of the answer — we've eliminated `left` and all (right − left) pairs involving it in one comparison. Every step permanently discards one index along with every pair it could have formed. n indices → n steps → O(n). The technique is really a *search-space pruning* argument: you're not checking fewer pairs by luck, you're proving entire rows of the pair-matrix can't contain the answer.
+
+![On sorted 2 3 5 8 11 14 with target 13, a too-big sum kills the whole column of 14 and a too-small sum kills the whole row of the left value](images/tp-converging.svg)
 
 **Template (pair sum in sorted array):**
 ```cpp
@@ -67,6 +73,8 @@ while (left < right) {
 
 **Core insight — why it works:** The trick is the invariant the two pointers maintain together: **`[0, slow)` is always the correct, finished output for the prefix `[0, fast)` of the input.** Since `slow ≤ fast` at all times, the writer never overwrites data the reader hasn't consumed yet — that single inequality is what makes "build the output inside the input" safe with zero extra memory. Conceptually you're streaming the array through a filter and writing results back into the same buffer, which is exactly why it's O(n) time, O(1) space, and one pass.
 
+![The read pointer visits every cell while the write pointer trails; the gap equals the number of dropped elements and slow ≤ fast keeps in-place writing safe](images/tp-read-write.svg)
+
 **Template (remove duplicates from sorted array):**
 ```cpp
 int slow = 0;
@@ -102,6 +110,8 @@ return slow;   // length of the deduped prefix
 **Core insight — why it works:** Once both pointers are inside the cycle, look at the gap between them. Each step, fast gains exactly 1 on slow (relative speed 2 − 1 = 1). A gap that shrinks by exactly 1 each step **must pass through 0** — fast can never "jump over" slow. So a meeting is guaranteed within one cycle length, giving O(n) detection with two pointers' worth of memory instead of a hash set of visited nodes.
 
 **Finding the cycle entry (problem 142):** Let the head→entry distance be `a`, and the meeting point be `b` nodes into the cycle of length `c`. Slow traveled `a + b`; fast traveled `2(a + b)`. Fast's extra distance `a + b` must be whole laps: `a + b = kc`, so `a = kc − b ≡ (c − b) mod c`. But `c − b` is exactly the distance from the meeting point forward to the entry. So: reset one pointer to head, advance both 1 step at a time — they collide precisely at the entry.
+
+![The rho-shaped list with a tail nodes, the entrance, a meeting point b nodes in, and the a = c − b (mod c) argument for why both phase-2 walks collide at the entrance](images/tp-floyd.svg)
 
 **Template:**
 ```cpp
@@ -243,6 +253,8 @@ for (int right = 0; right < n; right++) {
 
 **Core insight — why it works:** A palindrome is defined by symmetry around its center, and **every palindrome has exactly one center** — either a character (odd length) or the gap between two characters (even length). A string of length n has exactly `2n − 1` such centers. So instead of testing O(n²) substrings for palindromicity (O(n³) total), you enumerate O(n) centers and grow each one maximally in O(n) — and crucially, the maximal palindrome at a center *contains* all shorter palindromes at that center, so one expansion captures them all.
 
+![Odd centers sit on a character and even centers in a gap, giving 2n−1 centers, with the length read off as r − l − 1 after the loop overshoots](images/tp-expand-center.svg)
+
 **Template:**
 ```cpp
 int expand(const string& s, int l, int r) {
@@ -274,6 +286,8 @@ for (int i = 0; i < n; i++) {
 **Logic:** Use 2–3 pointers to divide one array into labeled regions and maintain those regions as you scan. Sort Colors uses three pointers and four regions: `[0, low)` = 0s, `[low, mid)` = 1s, `[mid, high]` = unexplored, `(high, n)` = 2s. `mid` walks through the unexplored zone, dispatching each element to its region via swaps.
 
 **Core insight — why it works:** Correctness rests entirely on the **region invariants** holding after every single operation. Each case is designed to preserve them: a 0 swapped to position `low` lands in the 0-region and what comes back (always a 1, since `[low, mid)` is the 1-region) is already classified — so `mid` may advance. A 2 swapped to `high` lands correctly, but what comes back is from the *unexplored* region — so `mid` must **not** advance. When `mid` passes `high`, the unexplored region is empty and the invariants *are* the proof of a fully sorted array. This invariant-first way of thinking is exactly how quicksort/quickselect partitions are proven correct too.
+
+![The four regions — zeros, ones, unclassified, twos — and the three dispatch rules, including why swapping with high must not advance mid](images/tp-dutch-flag.svg)
 
 **Template (Sort Colors):**
 ```cpp
@@ -318,6 +332,24 @@ Not a separate mechanic, but a crucial *recognition* pattern: many problems aren
 | 2563. Count Fair Pairs | Medium | Count pairs with sum in `[lo, hi]` = (pairs with sum < hi+1) − (pairs with sum < lo), each counted in O(n) with converging pointers on the sorted array. |
 
 **Counting trick worth memorizing:** in a sorted array with converging pointers, if `nums[left] + nums[right] < target`, then **all** of `(left, left+1), …, (left, right)` are valid → add `right - left` in one step and advance `left`. This is how pair-counting problems run in O(n) after the sort, and it shows up constantly (259, 2563, 611).
+
+---
+
+## When Two Pointers FAILS — Know the Boundary
+
+Every pattern above buys O(n) by *deleting* candidates without inspecting them. That deletion is only legal when some ordering or monotonicity guarantees the deleted candidates were losers. Remove the guarantee and the technique silently returns wrong answers:
+
+| Situation | Why it breaks | Use instead |
+|---|---|---|
+| Unsorted input you can't sort (original indices required) | No ordering invariant → neither `left++` nor `right--` can be justified, so every move risks discarding the answer | Hashmap of complements (1. Two Sum), or sort `(value, index)` pairs if indices can be carried along |
+| Subarray-sum windows containing negative numbers | Growing the window can *shrink* the sum → validity is no longer monotone, so "shrink until valid" is unsound | Prefix sums + hashmap (560), prefix sums + monotonic deque (862) |
+| Enumerate **all** pairs/triplets, not just existence or a count | Each pointer move deletes a whole row of pairs unexamined — those pairs can never be reported, and the output itself is Θ(n²) | Nested loops / hashing; two pointers only survives here when the answer is a *count* that can be added in bulk (259, 611) |
+| Non-contiguous **subsequence** objectives (LIS, LCS, edit distance) | A forward walk commits greedily with no way to backtrack; the optimal choice at position i depends on choices you already discarded | DP (300, 1143, 72). The exception is *checking* a fixed subsequence (392), where greedy earliest-match is provably safe |
+| Counting that needs cross-position bookkeeping (inversions, "smaller elements to the right") | The count isn't a function of the current pair — it depends on the entire prefix, which two scalars can't summarize | Merge sort with a merge-time counter (493, 315), or a BIT / order-statistic tree |
+| More than two sorted sequences to merge | Pointers grow linearly with k, and picking the minimum costs O(k) per emission | Min-heap of k heads (23. Merge k Sorted Lists) |
+| Window state needs max / min / median rather than a sum or count | Two indices can't maintain an extremum under removal — the leaving element may have *been* the extremum | Window + monotonic deque (239) or multiset |
+
+The litmus test in one sentence: **two pointers works iff, at every step, the current pair certifies that one entire side of the search space is worthless.** If you can't state that certificate, you don't have a two-pointer problem.
 
 ---
 

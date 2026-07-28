@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+    <marker id="arDim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">STATE MACHINE: THE DIAGRAM IS THE RECURRENCE (LC 309)</text>
+
+  <path d="M 84 108 A 26 26 0 1 1 136 108" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arDim)"/>
+  <path d="M 304 108 A 26 26 0 1 1 356 108" fill="none" stroke="#64748b" stroke-width="2.5" marker-end="url(#arDim)"/>
+  <text x="110" y="74"  fill="#64748b" font-size="11" text-anchor="middle">rest: 0</text>
+  <text x="330" y="74"  fill="#64748b" font-size="11" text-anchor="middle">rest: 0</text>
+
+  <line x1="160" y1="126" x2="280" y2="126" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arBlue)"/>
+  <text x="220" y="118" fill="#93c5fd" font-size="11" text-anchor="middle" font-weight="bold">buy: - price</text>
+
+  <line x1="316" y1="156" x2="264" y2="244" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="330" y="208" fill="#34d399" font-size="11" font-weight="bold">sell: + price</text>
+
+  <line x1="178" y1="250" x2="124" y2="158" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="170" y="208" fill="#f59e0b" font-size="11" font-weight="bold" text-anchor="end">cooldown day</text>
+
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="66"  y="110" width="88" height="42" rx="21" fill="#1e3a8a" stroke="#3b82f6"/><text x="110" y="137" fill="#93c5fd">Free</text>
+    <rect x="286" y="110" width="88" height="42" rx="21" fill="#4c1d95" stroke="#a78bfa"/><text x="330" y="137" fill="#c4b5fd">Hold</text>
+    <rect x="176" y="248" width="88" height="42" rx="21" fill="#831843" stroke="#f472b6"/><text x="220" y="275" fill="#f9a8d4">Sold</text>
+  </g>
+
+  <text x="40" y="318" fill="#f59e0b" font-size="12" font-weight="bold">no arrow from Sold back to Hold &#8212; that absence IS the cooldown</text>
+  <text x="40" y="338" fill="#94a3b8" font-size="11.5">each state's new value = best over its INCOMING arrows</text>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">when the legal next moves depend on a small categorical</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">MODE and not just on position, promote the mode into the</text>
+  <text x="510" y="128" fill="#e2e8f0" font-size="12.5">state and the machine draws itself</text>
+
+  <text x="510" y="160" fill="#f59e0b" font-size="12.5" font-weight="bold">transcription rule: new[s] = best over the arrows</text>
+  <text x="510" y="180" fill="#f59e0b" font-size="12.5" font-weight="bold">entering s, each arrow's label added as its cost</text>
+
+  <text x="510" y="212" fill="#34d399" font-size="12.5" font-weight="bold">one drawing dissolves the whole stock series: 122 is the</text>
+  <text x="510" y="232" fill="#34d399" font-size="12.5" font-weight="bold">2-state machine, 309 adds Sold, 714 puts a fee on the</text>
+  <text x="510" y="252" fill="#34d399" font-size="12.5" font-weight="bold">sell arrow, 123 and 188 stack k copies of it</text>
+
+  <text x="510" y="284" fill="#f87171" font-size="12">update aliasing: computing Hold from an ALREADY-updated</text>
+  <text x="510" y="302" fill="#f87171" font-size="12">Free lets two actions happen on one day &#8212; snapshot the</text>
+  <text x="510" y="320" fill="#f87171" font-size="12">previous values (the prevSold temp) before overwriting</text>
+
+  <text x="510" y="346" fill="#64748b" font-size="11.5">impossible states start at a large negative, never at 0</text>
+</svg>

@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arPink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f472b6"/></marker>
+    <marker id="arRose" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f9a8d4"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">CONVERGING POINTERS: EVERY STEP DELETES A ROW OR A COLUMN</text>
+
+  <text x="40" y="72" fill="#94a3b8" font-size="11.5">step 1 &#183; sorted input, target 13</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="80" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="68"  y="102" fill="#93c5fd">2</text>
+    <rect x="102" y="80" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="130" y="102" fill="#93c5fd">3</text>
+    <rect x="164" y="80" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="192" y="102" fill="#93c5fd">5</text>
+    <rect x="226" y="80" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="254" y="102" fill="#93c5fd">8</text>
+    <rect x="288" y="80" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="316" y="102" fill="#93c5fd">11</text>
+    <rect x="350" y="80" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="378" y="102" fill="#93c5fd">14</text>
+  </g>
+  <line x1="68"  y1="134" x2="68"  y2="120" stroke="#f472b6" stroke-width="2.5" marker-end="url(#arPink)"/>
+  <line x1="378" y1="134" x2="378" y2="120" stroke="#f9a8d4" stroke-width="2.5" marker-end="url(#arRose)"/>
+  <text x="68"  y="150" fill="#f472b6" font-size="11.5" font-weight="bold" text-anchor="middle">left</text>
+  <text x="378" y="150" fill="#f9a8d4" font-size="11.5" font-weight="bold" text-anchor="middle">right</text>
+  <text x="40" y="172" fill="#f87171" font-size="12">2 + 14 = 16 &gt; 13 &#8212; too big</text>
+  <text x="40" y="190" fill="#94a3b8" font-size="11.5">2 is the smallest partner 14 will ever meet, so kill the</text>
+  <text x="40" y="206" fill="#94a3b8" font-size="11.5">whole COLUMN of 14 and pull right inward</text>
+
+  <text x="40" y="234" fill="#94a3b8" font-size="11.5">step 2</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="242" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="68"  y="264" fill="#0f172a">2</text>
+    <rect x="102" y="242" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="130" y="264" fill="#93c5fd">3</text>
+    <rect x="164" y="242" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="192" y="264" fill="#93c5fd">5</text>
+    <rect x="226" y="242" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="254" y="264" fill="#93c5fd">8</text>
+    <rect x="288" y="242" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="316" y="264" fill="#0f172a">11</text>
+    <rect x="350" y="242" width="56" height="34" rx="6" fill="#1e293b" stroke="#334155"/><text x="378" y="264" fill="#475569">14</text>
+  </g>
+  <text x="40" y="298" fill="#34d399" font-size="12" font-weight="bold">2 + 11 = 13 &#8212; found, and the dead column was never revisited</text>
+  <text x="40" y="318" fill="#64748b" font-size="11.5">had the sum come out too small, the row of 2 would have died instead</text>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">each comparison retires an INDEX, not a single pair:</text>
+  <text x="510" y="112" fill="#e2e8f0" font-size="12.5">sum too small &#8658; nums[left] just failed with its</text>
+  <text x="510" y="130" fill="#e2e8f0" font-size="12.5">largest possible partner, so it fails with every</text>
+  <text x="510" y="148" fill="#e2e8f0" font-size="12.5">smaller one &#8212; the entire ROW of left is dead</text>
+  <text x="510" y="172" fill="#e2e8f0" font-size="12.5">sum too big &#8658; symmetrically, the COLUMN of right</text>
+
+  <text x="510" y="206" fill="#34d399" font-size="12.5" font-weight="bold">n indices, one killed per step &#8658; O(n), yet all</text>
+  <text x="510" y="226" fill="#34d399" font-size="12.5" font-weight="bold">n(n-1)/2 pairs are provably accounted for</text>
+
+  <text x="510" y="262" fill="#f87171" font-size="12">the certificate is sortedness: the current pair is</text>
+  <text x="510" y="280" fill="#f87171" font-size="12">EXTREMAL for that index. unsorted input &#8658; no</text>
+  <text x="510" y="298" fill="#f87171" font-size="12">extremal claim &#8658; the pointer move is unjustified</text>
+  <text x="510" y="316" fill="#f87171" font-size="12">and silently discards the answer</text>
+</svg>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">TOP-K: THE SIZE-K GATEKEEPER (A MIN-HEAP FOR THE K LARGEST)</text>
+
+  <text x="40" y="92" fill="#94a3b8" font-size="11.5">next from the stream</text>
+  <rect x="40" y="102" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/>
+  <text x="68" y="124" fill="#93c5fd" font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">8</text>
+  <line x1="102" y1="119" x2="142" y2="119" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="100" y="152" fill="#34d399" font-size="11.5" font-weight="bold">push</text>
+
+  <rect x="150" y="72" width="250" height="152" rx="10" fill="#0f172a" stroke="#1e293b"/>
+  <text x="275" y="92" fill="#94a3b8" font-size="11.5" text-anchor="middle">MIN-heap, capped at k = 3</text>
+  <g stroke="#334155" stroke-width="1.5">
+    <line x1="275" y1="152" x2="228" y2="176"/>
+    <line x1="275" y1="152" x2="322" y2="176"/>
+  </g>
+  <circle cx="275" cy="130" r="22" fill="#f59e0b" stroke="#f59e0b"/>
+  <text x="275" y="135" fill="#0f172a" font-size="14" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">5</text>
+  <circle cx="220" cy="190" r="20" fill="#1e3a8a" stroke="#3b82f6"/>
+  <text x="220" y="195" fill="#93c5fd" font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">9</text>
+  <circle cx="330" cy="190" r="20" fill="#1e3a8a" stroke="#3b82f6"/>
+  <text x="330" y="195" fill="#93c5fd" font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">7</text>
+  <text x="275" y="218" fill="#64748b" font-size="11" text-anchor="middle">the club: the k largest seen so far</text>
+
+  <line x1="272" y1="228" x2="186" y2="252" stroke="#f87171" stroke-width="2.5" marker-end="url(#arRed)"/>
+  <text x="40" y="274" fill="#f87171" font-size="12.5" font-weight="bold">size &gt; k &#8658; pop the root</text>
+  <text x="40" y="294" fill="#f87171" font-size="12">the weakest club member leaves, and it can never</text>
+  <text x="40" y="312" fill="#f87171" font-size="12">re-enter the top k &#8212; k bigger values already exist</text>
+  <text x="40" y="334" fill="#64748b" font-size="11.5">k smallest? mirror it: a MAX-heap of size k</text>
+
+  <text x="510" y="88" fill="#f59e0b" font-size="12.5" font-weight="bold">you want the k LARGEST, so you build a MIN-heap</text>
+  <text x="510" y="108" fill="#94a3b8" font-size="11.5">the inversion is the whole trick &#8212; say it out loud first</text>
+  <text x="510" y="140" fill="#e2e8f0" font-size="12.5">you never need the k largest organized. You only need</text>
+  <text x="510" y="160" fill="#e2e8f0" font-size="12.5">their BOUNDARY defended, and the boundary of</text>
+  <text x="510" y="180" fill="#e2e8f0" font-size="12.5">&#8220;k largest&#8221; is the smallest member of the club.</text>
+  <text x="510" y="212" fill="#34d399" font-size="12.5" font-weight="bold">the root is the gatekeeper every newcomer must beat:</text>
+  <text x="510" y="232" fill="#34d399" font-size="12.5" font-weight="bold">O(1) to see the eviction, O(log k) to execute it</text>
+  <text x="510" y="262" fill="#e2e8f0" font-size="12">that same root is the answer to &#8220;k-th largest&#8221;</text>
+  <text x="510" y="292" fill="#93c5fd" font-size="12" font-weight="bold">O(n log k) time &#183; O(k) space &#8212; you never hold more</text>
+  <text x="510" y="310" fill="#93c5fd" font-size="12" font-weight="bold">than k elements, so the stream may be unbounded</text>
+  <text x="510" y="332" fill="#64748b" font-size="11.5">if k &#8776; n the advantage evaporates &#8212; sorting is honest</text>
+</svg>

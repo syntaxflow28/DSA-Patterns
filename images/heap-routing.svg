@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">ROUTING: IS IT A HEAP, AND IF SO WHICH PATTERN</text>
+
+  <rect x="40" y="72" width="390" height="62" rx="8" fill="#312e81" stroke="#a5b4fc"/>
+  <text x="235" y="98" fill="#a5b4fc" font-size="12.5" font-weight="bold" text-anchor="middle">does the BEST element change dynamically,</text>
+  <text x="235" y="118" fill="#a5b4fc" font-size="12.5" font-weight="bold" text-anchor="middle">and do you need it again and again?</text>
+
+  <line x1="430" y1="103" x2="466" y2="103" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <line x1="150" y1="134" x2="150" y2="176" stroke="#f87171" stroke-width="2.5" marker-end="url(#arRed)"/>
+
+  <rect x="40" y="182" width="390" height="118" rx="8" fill="#0f172a" stroke="#f87171"/>
+  <text x="56" y="206" fill="#f87171" font-size="12.5" font-weight="bold">no &#8658; NOT a heap problem</text>
+  <text x="56" y="230" fill="#94a3b8" font-size="11.5">static data, one k-th query &#8594; quickselect, O(n) avg</text>
+  <text x="56" y="250" fill="#94a3b8" font-size="11.5">every element in order &#8594; just sort</text>
+  <text x="56" y="270" fill="#94a3b8" font-size="11.5">extreme of a sliding window &#8594; monotonic deque, O(n)</text>
+  <text x="56" y="290" fill="#94a3b8" font-size="11.5">search / erase / neighbors too &#8594; multiset or BST</text>
+  <text x="40" y="324" fill="#64748b" font-size="11.5">choosing against the heap correctly scores just as highly</text>
+
+  <text x="470" y="82" fill="#f59e0b" font-size="12.5" font-weight="bold">yes &#8658; now: what exactly are you asking it for?</text>
+  <g font-size="11.5">
+    <text x="470" y="112" fill="#a5b4fc" font-weight="bold" font-family="Consolas, monospace">P1</text>
+    <text x="502" y="112" fill="#e2e8f0">k largest / closest / most frequent &#8594; size-k gatekeeper</text>
+    <text x="470" y="136" fill="#a5b4fc" font-weight="bold" font-family="Consolas, monospace">P2</text>
+    <text x="502" y="136" fill="#e2e8f0">merge k sorted lists, real or virtual &#8594; frontier heap</text>
+    <text x="470" y="160" fill="#a5b4fc" font-weight="bold" font-family="Consolas, monospace">P3</text>
+    <text x="502" y="160" fill="#e2e8f0">median or any maintained cut point &#8594; two heaps</text>
+    <text x="470" y="184" fill="#a5b4fc" font-weight="bold" font-family="Consolas, monospace">P4</text>
+    <text x="502" y="184" fill="#e2e8f0">take the best available each round &#8594; greedy scheduling</text>
+    <text x="470" y="208" fill="#a5b4fc" font-weight="bold" font-family="Consolas, monospace">P5</text>
+    <text x="502" y="208" fill="#e2e8f0">entries expire or priorities change &#8594; lazy deletion</text>
+    <text x="470" y="232" fill="#a5b4fc" font-weight="bold" font-family="Consolas, monospace">P6</text>
+    <text x="502" y="232" fill="#e2e8f0">cheapest unsettled node in a graph &#8594; Dijkstra / Prim</text>
+    <text x="470" y="256" fill="#a5b4fc" font-weight="bold" font-family="Consolas, monospace">P7</text>
+    <text x="502" y="256" fill="#e2e8f0">commit now, undo the worst when stuck &#8594; regret greedy</text>
+    <text x="470" y="280" fill="#a5b4fc" font-weight="bold" font-family="Consolas, monospace">P8</text>
+    <text x="502" y="280" fill="#e2e8f0">state of everything alive at each x &#8594; sweep line</text>
+  </g>
+  <text x="470" y="312" fill="#34d399" font-size="12" font-weight="bold">P1&#8211;P3 ask WHICH element; P4&#8211;P7 ask WHICH ACTION;</text>
+  <text x="470" y="330" fill="#34d399" font-size="12" font-weight="bold">P8 asks what the whole live set looks like right now</text>
+</svg>

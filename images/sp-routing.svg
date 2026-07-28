@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arSlate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">ROUTING: THE INPUT PICKS THE ALGORITHM, NOT THE DIFFICULTY</text>
+
+  <g font-size="11.5" font-weight="bold" fill="#a5b4fc">
+    <rect x="40" y="68"  width="200" height="30" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="52" y="87">how many source-target pairs?</text>
+    <rect x="40" y="116" width="200" height="30" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="52" y="135">is the graph acyclic?</text>
+    <rect x="40" y="164" width="200" height="30" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="52" y="183">a budget: at most k stops?</text>
+    <rect x="40" y="212" width="200" height="30" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="52" y="231">any negative weight?</text>
+    <rect x="40" y="260" width="200" height="30" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="52" y="279">what do the weights look like?</text>
+  </g>
+
+  <g stroke="#64748b" stroke-width="2.5" marker-end="url(#arSlate)">
+    <line x1="130" y1="98"  x2="130" y2="113"/>
+    <line x1="130" y1="146" x2="130" y2="161"/>
+    <line x1="130" y1="194" x2="130" y2="209"/>
+    <line x1="130" y1="242" x2="130" y2="257"/>
+  </g>
+  <g font-size="10.5" fill="#64748b">
+    <text x="140" y="111">no</text>
+    <text x="140" y="159">no</text>
+    <text x="140" y="207">no</text>
+    <text x="140" y="255">no</text>
+  </g>
+
+  <g font-size="11.5" fill="#93c5fd">
+    <text x="256" y="82">all pairs and V &#8804; 400</text>
+    <text x="256" y="96" font-weight="bold">&#8658; Floyd-Warshall (P7)</text>
+    <text x="256" y="130">yes, a DAG</text>
+    <text x="256" y="144" font-weight="bold">&#8658; topological relaxation (P6)</text>
+    <text x="256" y="178">yes &#8658; Bellman-Ford capped</text>
+    <text x="256" y="192">at k passes, or Dijkstra</text>
+    <text x="256" y="206">over (node, stops) states</text>
+    <text x="256" y="226">yes &#8658; Bellman-Ford,</text>
+    <text x="256" y="240">V - 1 passes; an extra pass</text>
+    <text x="256" y="254">that still relaxes = neg. cycle</text>
+  </g>
+
+  <g font-size="11.5">
+    <text x="56" y="308" fill="#93c5fd">every edge costs 1 &#8594; BFS (layer order is cost order)</text>
+    <text x="56" y="326" fill="#93c5fd">only 0 and 1 &#8594; 0-1 BFS, deque: 0 to the front, 1 to the back</text>
+    <text x="56" y="344" fill="#f59e0b" font-weight="bold">arbitrary non-negative &#8594; Dijkstra, settle on pop</text>
+    <text x="56" y="362" fill="#c4b5fd">a max / min / product, not a sum &#8594; modified combiner or binary search</text>
+  </g>
+  <line x1="46" y1="298" x2="46" y2="366" stroke="#f59e0b" stroke-width="2.5"/>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">read the four answers straight off the constraints before</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">writing anything: pair count, acyclicity, budget, sign</text>
+
+  <text x="510" y="140" fill="#f59e0b" font-size="12.5" font-weight="bold">every branch asks about the INPUT &#8212; never about</text>
+  <text x="510" y="160" fill="#f59e0b" font-size="12.5" font-weight="bold">how hard the problem feels</text>
+
+  <text x="510" y="194" fill="#34d399" font-size="12.5" font-weight="bold">each leaf is the algorithm whose ordering proof still</text>
+  <text x="510" y="214" fill="#34d399" font-size="12.5" font-weight="bold">holds on that input: BFS needs layers = cost, Dijkstra</text>
+  <text x="510" y="234" fill="#34d399" font-size="12.5" font-weight="bold">needs non-negativity, Bellman-Ford needs nothing,</text>
+  <text x="510" y="254" fill="#34d399" font-size="12.5" font-weight="bold">and a DAG hands you the order for free</text>
+
+  <text x="510" y="288" fill="#f87171" font-size="12">Dijkstra on an &#8220;at most k stops&#8221; problem is the classic</text>
+  <text x="510" y="306" fill="#f87171" font-size="12">20-minute loss &#8212; settling a node discards the pricier-</text>
+  <text x="510" y="324" fill="#f87171" font-size="12">but-shorter route that was the only legal one</text>
+
+  <text x="510" y="356" fill="#64748b" font-size="11.5">augment the state (P8) and any branch above becomes re-enterable</text>
+</svg>

@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+    <marker id="arDim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">GRID DP: TWO PREDECESSORS, AND ROW-MAJOR IS THEIR TOPOLOGICAL ORDER</text>
+
+  <line x1="60" y1="66" x2="420" y2="66" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arAmber)"/>
+  <line x1="440" y1="84" x2="440" y2="326" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arAmber)"/>
+
+  <g font-size="11" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="60"  y="80"  width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="88"  y="101" fill="#a5b4fc">base</text>
+    <rect x="136" y="80"  width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="164" y="101" fill="#a5b4fc">base</text>
+    <rect x="212" y="80"  width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="240" y="101" fill="#a5b4fc">base</text>
+    <rect x="288" y="80"  width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="316" y="101" fill="#a5b4fc">base</text>
+    <rect x="364" y="80"  width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="392" y="101" fill="#a5b4fc">base</text>
+
+    <rect x="60"  y="134" width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="88"  y="155" fill="#a5b4fc">base</text>
+    <rect x="136" y="134" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="164" y="155" fill="#93c5fd">&#183;</text>
+    <rect x="212" y="134" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#34d399"/><text x="240" y="155" fill="#34d399">i-1,j</text>
+    <rect x="288" y="134" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="316" y="155" fill="#93c5fd">&#183;</text>
+    <rect x="364" y="134" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="392" y="155" fill="#93c5fd">&#183;</text>
+
+    <rect x="60"  y="188" width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="88"  y="209" fill="#a5b4fc">base</text>
+    <rect x="136" y="188" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#34d399"/><text x="164" y="209" fill="#34d399">i,j-1</text>
+    <rect x="212" y="188" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="240" y="209" fill="#0f172a">i,j</text>
+    <rect x="288" y="188" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="316" y="209" fill="#93c5fd">&#183;</text>
+    <rect x="364" y="188" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="392" y="209" fill="#93c5fd">&#183;</text>
+
+    <rect x="60"  y="242" width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="88"  y="263" fill="#a5b4fc">base</text>
+    <rect x="136" y="242" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="164" y="263" fill="#93c5fd">&#183;</text>
+    <rect x="212" y="242" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="240" y="263" fill="#93c5fd">&#183;</text>
+    <rect x="288" y="242" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="316" y="263" fill="#93c5fd">&#183;</text>
+    <rect x="364" y="242" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="392" y="263" fill="#93c5fd">&#183;</text>
+
+    <rect x="60"  y="296" width="56" height="34" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="88"  y="317" fill="#a5b4fc">base</text>
+    <rect x="136" y="296" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="164" y="317" fill="#93c5fd">&#183;</text>
+    <rect x="212" y="296" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="240" y="317" fill="#93c5fd">&#183;</text>
+    <rect x="288" y="296" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="316" y="317" fill="#93c5fd">&#183;</text>
+    <rect x="364" y="296" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="392" y="317" fill="#93c5fd">&#183;</text>
+  </g>
+
+  <line x1="240" y1="170" x2="240" y2="186" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <line x1="194" y1="205" x2="210" y2="205" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <line x1="270" y1="205" x2="286" y2="205" stroke="#64748b" stroke-width="2.5" marker-end="url(#arDim)"/>
+  <line x1="240" y1="224" x2="240" y2="240" stroke="#64748b" stroke-width="2.5" marker-end="url(#arDim)"/>
+
+  <text x="40" y="352" fill="#f59e0b" font-size="12" font-weight="bold">fill order: rows top to bottom, each row left to right</text>
+  <text x="40" y="370" fill="#94a3b8" font-size="11.5">green = read this round &#183; grey = written later &#183; base = one predecessor only</text>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">restricted moves make the grid a DAG: you can never</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">re-enter a cell, so the position ALONE is a sufficient</text>
+  <text x="510" y="128" fill="#e2e8f0" font-size="12.5">state &#8212; how you reached (i, j) changes nothing ahead</text>
+
+  <text x="510" y="160" fill="#f59e0b" font-size="12.5" font-weight="bold">every path into (i, j) arrives from above or from the</text>
+  <text x="510" y="180" fill="#f59e0b" font-size="12.5" font-weight="bold">left &#8212; disjoint and exhaustive, so those two reads</text>
+  <text x="510" y="200" fill="#f59e0b" font-size="12.5" font-weight="bold">partition every solution exactly once</text>
+
+  <text x="510" y="232" fill="#34d399" font-size="12.5" font-weight="bold">row-major IS a topological order of that DAG, so both</text>
+  <text x="510" y="252" fill="#34d399" font-size="12.5" font-weight="bold">predecessors are already final when you read them</text>
+
+  <text x="510" y="284" fill="#f87171" font-size="12">row 0 and column 0 have ONE predecessor, not two &#8212; folded</text>
+  <text x="510" y="302" fill="#f87171" font-size="12">into the main loop they read INT_MAX and overflow on the</text>
+  <text x="510" y="320" fill="#f87171" font-size="12">add; seed them as running sums before the sweep</text>
+
+  <text x="510" y="348" fill="#64748b" font-size="11.5">a row needs only the row above &#8658; roll the table to O(cols);</text>
+  <text x="510" y="366" fill="#64748b" font-size="11.5">a future constraint (Dungeon Game) &#8658; flip the direction</text>
+</svg>

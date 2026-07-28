@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+    <marker id="arPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">FLOYD-WARSHALL: ONE YES/NO QUESTION PER PAIR, PER k</text>
+
+  <text x="255" y="68" fill="#f59e0b" font-size="11.5" font-weight="bold" text-anchor="middle">k &#8212; the newly allowed intermediate</text>
+
+  <line x1="107" y1="169" x2="231" y2="112" stroke="#3b82f6"  stroke-width="2.5" marker-end="url(#arBlue)"/>
+  <line x1="279" y1="112" x2="403" y2="169" stroke="#3b82f6"  stroke-width="2.5" marker-end="url(#arBlue)"/>
+  <line x1="111" y1="184" x2="399" y2="184" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#arPurple)"/>
+
+  <circle cx="85"  cy="180" r="24" fill="#1e3a8a" stroke="#3b82f6"/>
+  <circle cx="255" cy="100" r="24" fill="#f59e0b" stroke="#f59e0b"/>
+  <circle cx="425" cy="180" r="24" fill="#1e3a8a" stroke="#3b82f6"/>
+  <g font-size="15" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <text x="85"  y="186" fill="#93c5fd">i</text>
+    <text x="255" y="106" fill="#0f172a">k</text>
+    <text x="425" y="186" fill="#93c5fd">j</text>
+  </g>
+
+  <g font-size="11.5" fill="#93c5fd">
+    <text x="152" y="112" text-anchor="end">best i to k</text>
+    <text x="152" y="126" text-anchor="end">over {0..k-1}</text>
+    <text x="358" y="112">best k to j</text>
+    <text x="358" y="126">over {0..k-1}</text>
+  </g>
+  <text x="255" y="214" fill="#c4b5fd" font-size="11.5" text-anchor="middle">old d[i][j] &#8212; the route that ignores k entirely</text>
+
+  <text x="40" y="252" fill="#f59e0b" font-size="13" font-weight="bold" font-family="Consolas, monospace">d[i][j] = min( d[i][j] , d[i][k] + d[k][j] )</text>
+  <text x="40" y="276" fill="#94a3b8" font-size="11.5">all three inputs are values from step k - 1</text>
+  <text x="40" y="308" fill="#34d399" font-size="12.5" font-weight="bold">that dependency is exactly why k is the OUTERMOST loop</text>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">it is interval DP over the SET of allowed intermediates:</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">a shortest i-to-j path using {0..k} either skips k &#8212; the</text>
+  <text x="510" y="128" fill="#e2e8f0" font-size="12.5">old value stands &#8212; or passes through k exactly once,</text>
+  <text x="510" y="148" fill="#e2e8f0" font-size="12.5">splitting into two halves already solved for {0..k-1}</text>
+
+  <text x="510" y="182" fill="#f59e0b" font-size="12.5" font-weight="bold">&#8220;exactly once&#8221; is what makes the case split exhaustive:</text>
+  <text x="510" y="202" fill="#f59e0b" font-size="12.5" font-weight="bold">with no negative cycle, revisiting k can never help</text>
+
+  <text x="510" y="236" fill="#34d399" font-size="12.5" font-weight="bold">the combiner is pluggable &#8212; OR/AND gives transitive</text>
+  <text x="510" y="256" fill="#34d399" font-size="12.5" font-weight="bold">closure (1462), multiply gives path products (399);</text>
+  <text x="510" y="276" fill="#34d399" font-size="12.5" font-weight="bold">only the k-outermost order is load-bearing</text>
+
+  <text x="510" y="308" fill="#f87171" font-size="12">move k into the middle or the inside and the invariant</text>
+  <text x="510" y="326" fill="#f87171" font-size="12">breaks &#8212; on tiny tests the wrong version still looks right</text>
+</svg>

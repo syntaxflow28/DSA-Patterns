@@ -1,12 +1,14 @@
 # Heap / Priority Queue — The Complete Interview Pattern Guide (C++)
 
-A heap answers one question, extremely fast, forever: **"what is the current best element?"** — minimum or maximum — in O(log n) per insert/remove, with the best always readable in O(1). That single capability powers a surprising range of patterns: top-k selection, merging k streams, running medians, greedy scheduling, and the priority frontier inside Dijkstra and Prim. This guide covers them all: the logic, the **core insight** (why it's correct), C++ templates, strong problem sets with descriptive notes, and the pitfalls.
+A heap answers one question, extremely fast, forever: **"what is the current best element?"** — minimum or maximum — in O(log n) per insert/remove, with the best always readable in O(1). That single capability powers a surprising range of patterns: top-k selection, merging k streams, running medians, greedy scheduling, sweep lines over intervals, and the priority frontier inside Dijkstra and Prim. This guide covers them all: the logic, the **core insight** (why it's correct), C++ templates, strong problem sets with descriptive notes, and the pitfalls.
 
 ---
 
 ## What a Heap Actually Is (and Isn't)
 
 A binary heap is a complete binary tree (stored as a flat array — children of index i live at 2i+1 and 2i+2) maintaining one invariant: **every parent beats its children** (≥ for max-heap, ≤ for min-heap). That's it. Two consequences define everything a heap can and cannot do:
+
+![The heap 9/7 8/3 5 2 as a tree and as the flat array behind it, with the parent-beats-children invariant and the three things a heap refuses to do](images/heap-structure.svg)
 
 - **The root is always the global best** — readable in O(1). Insertion and removal repair the invariant along a single root-to-leaf path → O(log n).
 - **There is no order *between* siblings or across subtrees.** A heap is *not* sorted; it's the bare minimum structure needed to keep the best on top. This is why a heap of n elements builds in O(n) (`make_heap` / constructor-from-vector) while sorting costs O(n log n) — the heap maintains strictly less information.
@@ -39,6 +41,8 @@ A binary heap is a complete binary tree (stored as a flat array — children of 
 
 The litmus test: **a heap earns its keep when the "best" element changes dynamically — through arrivals, removals, or modifications — and you need it again and again.**
 
+![The gate question that decides whether a heap applies at all, then the routing from the phrasing of the question to Patterns 1 through 8, with the not-a-heap escape hatches](images/heap-routing.svg)
+
 ## C++ `std::priority_queue` Survival Kit
 
 ```cpp
@@ -69,6 +73,8 @@ Gotchas that cost interview minutes: the default is a **max**-heap (Python's `he
 **Logic:** To track the k **largest** elements of a stream/array, keep a **min**-heap (yes, inverted!) capped at size k. For each element: push it; if size exceeds k, pop the minimum. Whatever survives is the top k, and the heap's root is the k-th largest — the *gatekeeper* every newcomer must beat.
 
 **Core insight — why it works:** The inversion is the whole trick. You don't need the k largest *organized* — you need to defend their boundary, and the boundary of "k largest" is the **smallest member of the club**. A min-heap puts exactly that member on top, making the eviction decision O(1) to identify and O(log k) to execute. The payoff is in the complexity: O(n log k) time and O(k) memory instead of sort's O(n log n)/O(n) — decisive when n is huge or streaming (you never hold more than k elements), and when k ≪ n (log k vs log n). The same inversion mirrored: k smallest elements → max-heap of size k.
+
+![A size-k min-heap whose root is the gatekeeper every arriving element must beat, with the pop-when-size-exceeds-k rule and the O(n log k) / O(k) payoff](images/heap-topk.svg)
 
 **Template (k largest / k-th largest):**
 ```cpp
@@ -104,6 +110,8 @@ for (int x : nums) {
 **Logic:** Given k sorted lists, the next element of the merged output is always the smallest among the k current *heads*. Keep those heads in a min-heap: pop the winner, emit it, and push its successor from the same list. Repeat until empty.
 
 **Core insight — why it works:** Sortedness within each list means each list's unseen elements are all ≥ its head — so the k heads form a complete **candidate frontier**: the global next-smallest *must* be one of them, and nothing behind a head can leapfrog it. The heap maintains this k-element frontier at O(log k) per emission instead of O(k) linear scanning. Total: O(N log k) for N total elements — and the same frontier idea generalizes beautifully to *implicit* lists: in a sorted matrix, each row is a list; in "k smallest pairs (a,b)", row i is the virtual sorted list (a_i, b_0), (a_i, b_1), … that you never materialize. Recognizing hidden sorted lists is the pattern's real skill.
+
+![Three sorted lists each contributing exactly one head to a size-k min-heap, with pop-emit-advance and the argument that nothing behind a head can leapfrog it](images/heap-kway.svg)
 
 **Template (merge k sorted linked lists):**
 ```cpp
@@ -143,6 +151,8 @@ return dummy.next;
 **Logic:** Split the stream into halves by value: a **max**-heap `lo` holds the smaller half (its top = the largest small element), a **min**-heap `hi` holds the larger half (its top = the smallest large element). Keep them size-balanced (|lo| − |hi| ∈ {0, 1}). The median is then `lo.top()` (odd count) or the average of the two tops (even).
 
 **Core insight — why it works:** The median is an *order statistic in the middle* — a full sort maintains far more order than needed, and a single heap maintains order around the wrong place (the extremes). Two heaps facing each other maintain order **exactly at the cut point**: every element in `lo` ≤ every element in `hi` (enforced by always routing through a top: push onto `lo`, move `lo`'s top to `hi`, rebalance), and the size constraint pins the cut at the middle. You've arranged O(1) access to precisely the two elements adjacent to the median, at O(log n) per insertion — the general principle being that **paired heaps give you a maintained boundary anywhere in the distribution**, not just at the ends (the same trick maintains any percentile by changing the size ratio).
+
+![Max-heap lo holding the smaller half and min-heap hi holding the larger half, their tops straddling the cut where the median is read, with the ordering invariant and the balance rule](images/heap-two-heaps.svg)
 
 **Template (median of a stream):**
 ```cpp
@@ -220,6 +230,8 @@ return ends.size();                                      // peak concurrency
 **Logic:** `std::priority_queue` can't erase arbitrary elements — but most problems don't need *immediate* removal, only that removed elements never get *used*. So: record deletions in a hashmap (`toDelete[x]++` or "valid if version matches"), and purge at the only place it matters — the top. Before trusting `top()`, pop while it's stale.
 
 **Core insight — why it works:** A stale element buried mid-heap is **harmless** — it influences no decision until it surfaces at the root. So deletion can be deferred until the exact moment the element would have mattered, where it's an O(log n) pop like any other. Amortized accounting stays clean: every element is pushed once and popped once, ever, so total work is O((pushes) log n) regardless of how long stale entries linger. The pattern is also the standard substitute for **decrease-key**: instead of updating a stored priority, push a fresh (better) copy and let the old one die at the top — this is exactly why C++ Dijkstra implementations push duplicates and check `if (d > dist[u]) continue;` at pop.
+
+![Tombstoned entries sitting buried in the heap where they decide nothing, the purge loop that runs only at top(), and the amortized accounting of one push and one pop per element](images/heap-lazy-deletion.svg)
 
 **Template (heap with deferred removals):**
 ```cpp
@@ -330,6 +342,59 @@ return stops;
 
 ---
 
+## Pattern 8: Heap Sweep Line — The Active Set at Every Coordinate
+
+**Logic:** Sort every item by its start coordinate and sweep left to right. A heap holds the **active set** — items that have started and not yet ended — keyed by end coordinate (or by the attribute you must report, with the end coordinate carried inside the entry). At each sweep stop: admit everything starting here, pop everything already ended, then read the answer off the heap top or off a running aggregate maintained alongside.
+
+**Core insight — why it works:** The active set can only change at an endpoint, so a continuum of coordinates collapses to 2n discrete events — between consecutive events nothing changes, so sampling at events is exact, not an approximation. The heap is what makes departures cheap: items leave in **end-coordinate order, not arrival order**, and a min-heap by end coordinate is exactly a queue sorted by departure. Pop-while-expired is O(1) amortized per item, because each item can expire only once. This is Pattern 5's lazy deletion made structural — you never search for what to remove; the sweep coordinate itself tells you what is dead. The distinction from Pattern 4 is worth stating out loud: there the heap answers *which resource do I hand out*; here it answers *what is the state of everything currently alive* — the max height, the passengers on board, the smallest interval covering this query.
+
+**Template (skyline — max height of the active set at every event x):**
+```cpp
+vector<vector<int>> getSkyline(vector<vector<int>>& buildings) {
+    vector<array<int,3>> events;                   // {x, height, endX}; height 0 = stop marker
+    for (auto& b : buildings) {
+        events.push_back({b[0], b[2], b[1]});      // building becomes active
+        events.push_back({b[1], 0, 0});            // force a sweep stop at its right edge
+    }
+    sort(events.begin(), events.end(),
+         [](const array<int,3>& a, const array<int,3>& b) { return a[0] < b[0]; });
+
+    priority_queue<pair<int,int>> live;            // max-heap of {height, endX}
+    vector<vector<int>> res;
+    for (size_t i = 0; i < events.size(); ) {
+        int x = events[i][0];
+        while (i < events.size() && events[i][0] == x) {              // admit ALL starts at x
+            if (events[i][1] > 0) live.push({events[i][1], events[i][2]});
+            ++i;
+        }
+        while (!live.empty() && live.top().second <= x) live.pop();   // expire at the surface
+        int h = live.empty() ? 0 : live.top().first;                  // current skyline height
+        if (res.empty() || res.back()[1] != h) res.push_back({x, h}); // emit only on change
+    }
+    return res;
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 218. The Skyline Problem | Hard | The flagship (template above). Two ideas carry it: events at every left *and* right edge so the sweep never skips a change point, and a max-heap of (height, endX) where dead buildings are only purged when they surface. The `multiset<int>` variant with true erase is the alternative — name both, then write the one you've drilled. |
+| 1094. Car Pooling | Medium | Sort trips by start; min-heap of (dropoff, passengers); before boarding, pop everyone whose dropoff ≤ current start and subtract them from a running `onboard` total. The answer is an aggregate, not an extreme — the heap only sequences departures. (The difference-array solution is O(n + range) and worth mentioning.) |
+| 253. Meeting Rooms II | Medium | The same machinery seen from Pattern 4: because a room is only ever created when every existing one is busy, the final heap size *is* the peak concurrency. Solving it twice — as resource assignment and as a sweep — is what makes the two patterns separable in your head. |
+| 2251. Number of Flowers in Full Bloom | Medium | Sort flowers by start and queries by position, then sweep queries: admit blooms that started, expire those that ended, answer = active-set size. Sorting the *queries* to reuse one sweep is the reframe that turns O(q·n) into O(n log n). |
+| 1851. Minimum Interval to Include Each Query | Hard | Sort intervals by left, queries ascending; heap keyed by interval **length** with the right endpoint stored inside; before answering, pop intervals whose right endpoint fell behind the query. Reporting one attribute while expiring on another is the pattern's sharpest form. |
+| 2054. Two Best Non-Overlapping Events | Medium | Sweep by start, heap of (end, value) for finished events, and carry the best value among everything already expired — a sweep with memory. Shows that "popped" doesn't have to mean "forgotten". |
+| 759. Employee Free Time | Hard | Merge all schedules with a k-way merge frontier (Pattern 2), sweeping for coordinate gaps: free time is any point where the active set is empty between two events. Patterns 2 and 8 are the same sorted sweep with different bookkeeping. |
+
+**Pitfalls:**
+- Keying the heap only by the reported attribute (height, length, value) makes expiry impossible — the end coordinate must be **stored inside every entry**, even when you never order by it.
+- Endpoint convention is load-bearing: `end <= x` treats an item ending at x as already gone (right-open, what 218/253/1094 want), `end < x` keeps it alive through x. Get it backwards and every touching pair becomes a spurious overlap.
+- With duplicate coordinates, admit *all* events at that x **before** reading the answer; interleaving admit and read emits phantom points in the skyline and off-by-one concurrency counts.
+- When the answer is a sum rather than an extreme, maintain the running total yourself and decrement on every pop — the heap tracks order, never aggregates.
+- `live.size()` is the live count **only when the heap is keyed by end coordinate** — then popping while `top <= x` removes exactly the expired items. When you key by another attribute (height in 218, length in 1851), expired entries stay buried under live ones and the size lies; track the count yourself or derive the answer from the top alone.
+
+---
+
 ## When a Heap FAILS — Know the Boundary
 
 | Situation | Why the heap breaks | Use instead |
@@ -358,6 +423,8 @@ Litmus test in one sentence: **a heap is the right tool when you repeatedly need
 | "schedule tasks with cooldown / no two adjacent" | Max-heap by frequency + hold-out |
 | "shortest path / minimize the maximum along a path" | Dijkstra-style frontier heap |
 | "maximum events / courses before deadlines", "minimum refuels" | Regret greedy (sort + heap of undo options) |
+| "skyline height / passengers on board / flowers in bloom at every point" | Sweep line + heap of the active set keyed by end coordinate |
+| "smallest interval covering each query" | Sweep line + heap keyed by one attribute, expired by another |
 | "sliding window maximum" | **Not** a heap — monotonic deque |
 
 ---
@@ -370,6 +437,7 @@ Litmus test in one sentence: **a heap is the right tool when you repeatedly need
 - K-way merge of N total elements, k lists: **O(N log k)**.
 - Two-heap median: **O(log n)** per insert, **O(1)** per query.
 - Dijkstra / Prim with binary heap: **O(E log V)**.
+- Heap sweep line over n intervals: **O(n log n)** — dominated by the sort; each item is admitted once and expired once.
 - Lazy deletion: amortized free — every element still pushed once, popped once.
 
 ---
@@ -389,7 +457,7 @@ Litmus test in one sentence: **a heap is the right tool when you repeatedly need
 
 **Week 1 — top-k fluency:** 1046 → 703 → 215 → 973 → 347 → 692 → 451
 **Week 2 — merge & two heaps:** 23 → 373 → 378 → 264 → 295 → 1825
-**Week 3 — greedy scheduling:** 253 → 621 → 767 → 1405 → 1834 → 1942 → 2402
-**Week 4 — boss fights:** 743 → 1631 → 1584 → 407 → 871 → 630 → 502 → 1642 → 480
+**Week 3 — greedy scheduling & sweeps:** 253 → 621 → 767 → 1405 → 1834 → 1942 → 2402 → 1094 → 2251
+**Week 4 — boss fights:** 743 → 1631 → 1584 → 407 → 871 → 630 → 502 → 1642 → 1851 → 218 → 480
 
 Good luck with the interviews!

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">LAZY DELETION: CORPSES ARE HARMLESS UNTIL THEY SURFACE</text>
+
+  <text x="40" y="80" fill="#64748b" font-size="11.5" font-family="Consolas, monospace">stale = {9:1, 8:1}</text>
+  <circle cx="52" cy="106" r="9" fill="#0f172a" stroke="#f87171" stroke-dasharray="3 3"/>
+  <text x="70" y="111" fill="#f87171" font-size="11.5">tombstoned</text>
+  <circle cx="52" cy="136" r="9" fill="#1e3a8a" stroke="#3b82f6"/>
+  <text x="70" y="141" fill="#93c5fd" font-size="11.5">live</text>
+
+  <g stroke="#334155" stroke-width="1.5">
+    <line x1="300" y1="132" x2="248" y2="162"/>
+    <line x1="300" y1="132" x2="352" y2="162"/>
+    <line x1="235" y1="200" x2="203" y2="228"/>
+    <line x1="235" y1="200" x2="272" y2="228"/>
+  </g>
+  <g text-anchor="middle" font-family="Consolas, monospace" font-weight="bold">
+    <circle cx="300" cy="112" r="23" fill="#0f172a" stroke="#f87171" stroke-width="2" stroke-dasharray="4 3"/><text x="300" y="117" fill="#f87171" font-size="14">9</text>
+    <circle cx="235" cy="180" r="21" fill="#1e3a8a" stroke="#3b82f6"/><text x="235" y="185" fill="#93c5fd" font-size="13">7</text>
+    <circle cx="365" cy="180" r="21" fill="#0f172a" stroke="#f87171" stroke-width="2" stroke-dasharray="4 3"/><text x="365" y="185" fill="#f87171" font-size="13">8</text>
+    <circle cx="195" cy="244" r="19" fill="#1e3a8a" stroke="#3b82f6"/><text x="195" y="249" fill="#93c5fd" font-size="13">3</text>
+    <circle cx="278" cy="244" r="19" fill="#1e3a8a" stroke="#3b82f6"/><text x="278" y="249" fill="#93c5fd" font-size="13">5</text>
+  </g>
+  <text x="398" y="184" fill="#64748b" font-size="11">buried: decides nothing</text>
+  <line x1="278" y1="96" x2="212" y2="72" stroke="#f87171" stroke-width="2.5" marker-end="url(#arRed)"/>
+  <text x="60" y="68" fill="#f87171" font-size="12" font-weight="bold">purge ONLY here, at the surface</text>
+
+  <text x="40" y="292" fill="#f59e0b" font-size="12.5" font-weight="bold" font-family="Consolas, monospace">top(): while (stale[pq.top()]) { stale--; pq.pop(); }</text>
+  <text x="40" y="312" fill="#94a3b8" font-size="11.5">one helper, one call site &#8212; a forgotten purge is the bug</text>
+  <text x="40" y="338" fill="#34d399" font-size="12" font-weight="bold">every element is pushed once and popped once: amortized free</text>
+
+  <text x="510" y="88" fill="#e2e8f0" font-size="12.5">priority_queue has no erase and no decrease-key. But</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">you never needed immediate removal &#8212; only the promise</text>
+  <text x="510" y="128" fill="#e2e8f0" font-size="12.5">that a dead entry is never USED.</text>
+  <text x="510" y="160" fill="#f59e0b" font-size="12.5" font-weight="bold">a stale entry buried mid-heap influences no decision</text>
+  <text x="510" y="180" fill="#f59e0b" font-size="12.5" font-weight="bold">until it reaches the root &#8212; so defer the work to then,</text>
+  <text x="510" y="200" fill="#f59e0b" font-size="12.5" font-weight="bold">where it costs one ordinary O(log n) pop</text>
+  <text x="510" y="232" fill="#34d399" font-size="12.5" font-weight="bold">accounting: n pushes &#8658; at most n pops, however long</text>
+  <text x="510" y="252" fill="#34d399" font-size="12.5" font-weight="bold">the corpses linger &#8658; total O(pushes &#183; log n)</text>
+  <text x="510" y="284" fill="#94a3b8" font-size="11.5">this IS the decrease-key substitute: push a better copy</text>
+  <text x="510" y="304" fill="#94a3b8" font-size="11.5">and let the old one die on arrival. Dijkstra's</text>
+  <text x="510" y="324" fill="#94a3b8" font-size="11.5" font-family="Consolas, monospace">if (d &gt; dist[u]) continue;</text>
+  <text x="510" y="346" fill="#f87171" font-size="12">pq.size() now counts corpses &#8212; track valid counts yourself</text>
+</svg>

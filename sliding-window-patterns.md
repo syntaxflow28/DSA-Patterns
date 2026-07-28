@@ -16,6 +16,8 @@ If the first two are yes but monotonicity fails (negative numbers in sum constra
 
 **The universal mental model:** a window is a *state machine*. `add(x)` and `remove(x)` update the state; a `valid()` predicate reads it. Every pattern below is just a different policy for *when* to expand and *when* to shrink.
 
+![Routing a problem to its window pattern: contiguous or not, k given or hunted, then longest, shortest, counting, in-window extremes, or no legal shrink rule at all](images/sw-routing.svg)
+
 ---
 
 ## Pattern 1: Fixed-Size Window
@@ -23,6 +25,8 @@ If the first two are yes but monotonicity fails (negative numbers in sum constra
 **Logic:** The window has a constant length k. Build the first window in O(k), then slide: each step, one element enters on the right and one leaves on the left. Update the state with exactly those two changes and evaluate.
 
 **Core insight — why it works:** Consecutive windows of size k overlap in k−1 elements — recomputing from scratch redoes almost all of that work, costing O(nk). The slide exploits the overlap: the *difference* between window i and window i+1 is exactly one entering element and one leaving element, so the new state is derivable from the old in O(1). You're computing a difference, not a window. This "pay only for what changed" idea is the seed of the whole sliding-window family.
+
+![One element enters on the right, one leaves on the left, k-1 are shared and never re-read, and the state updates in O(1)](images/sw-fixed.svg)
 
 **Template (max sum of a size-k window):**
 ```cpp
@@ -59,6 +63,8 @@ for (int right = 0; right < n; right++) {
 **Logic:** Expand `right` every iteration, folding the new element into the state. The moment the window becomes **invalid**, shrink from `left` until validity is restored. Since the window is valid at the end of every iteration, record `right - left + 1` as a candidate answer there.
 
 **Core insight — why it works:** The whole pattern rests on one property: **invalidity is hereditary upward** — if `[left, right]` is invalid (too many distinct chars, too many zeros, sum too large with positives), then every window *containing* it is also invalid. So when the window breaks, `left` is dead: no future `right` can ever resurrect a window starting there, and abandoning it forever is safe. Both pointers move only forward, each at most n steps — so despite the nested `while`, total work is O(n) *amortized* (each element is added once and removed once; the inner loop's lifetime total is n, not n per iteration).
+
+![Longest expands until invalid then shrinks to repair and records after the loop; shortest expands until valid then records inside the loop before squeezing](images/sw-longest-vs-shortest.svg)
 
 **Template (longest window satisfying a constraint):**
 ```cpp
@@ -139,6 +145,8 @@ return best == INT_MAX ? 0 : best;
 
 **Core insight — why it works:** Tool 1 works because of the hereditary structure *within* one iteration: if `[left, right]` is valid and validity is upward-closed under shrinking from the left (fewer distinct values, smaller product), then all `right − left + 1` of its suffixes `[left..right], [left+1..right], …, [right..right]` are valid too — and grouping the count **by right endpoint** guarantees each subarray is counted exactly once. Tool 2 works because "exactly K" is rarely monotonic (you can't slide on it directly), but "at most K" always is — so you express the non-monotonic set as the difference of two monotonic ones. Turning a hard predicate into a difference of easy ones is a trick worth keeping far beyond sliding windows.
 
+![Every start from left to right is valid, nothing before left is, and each subarray is counted only under its own right endpoint](images/sw-counting.svg)
+
 **Template (count subarrays with at most K distinct values):**
 ```cpp
 long long atMost(vector<int>& nums, int k) {
@@ -183,6 +191,8 @@ long long exactlyK = atMost(nums, k) - atMost(nums, k - 1);
 **Logic:** Sometimes the window's *boundaries* slide normally, but the question asked of the window (its max, min, median, max−min) can't be maintained with simple counters — removing an element would require knowing the "second best". Pair the window with a structure that supports the query *and* expiry of departed elements: a monotonic deque (max/min in amortized O(1)), a `multiset` (max−min, median in O(log n)), or two heaps with lazy deletion.
 
 **Core insight — why it works:** Take the max-query deque: it stores indices whose values are **strictly decreasing**. When `x` enters, every smaller element at the back is popped — and this is safe because such an element is *both older and smaller* than `x`, so it can never be the maximum of any future window that still contains `x`. It's **dominated**, and dominated elements can be discarded the moment their dominator arrives. The deque is exactly the set of "still potentially useful" elements; the front is the current max, and it's evicted only when its index leaves the window. Every element is pushed once and popped once → amortized O(1) per step. The deeper lesson: when O(1) state isn't enough, find a *dominance relation* and keep only the non-dominated frontier.
+
+![Back-popping dominated newcomers, front-popping aged-out indices, the front holding the window maximum, and the amortized O(n) accounting](images/sw-deque.svg)
 
 **Template (sliding window maximum):**
 ```cpp
@@ -249,6 +259,55 @@ for (int right = 0; right < n; right++) {
 
 ---
 
+## Pattern 7: Monotonicity Broken — Pin the Troublesome Variable and Iterate
+
+**Logic:** Every pattern above assumes the constraint is monotonic in window size: an invalid window stays invalid as it grows (Pattern 2's shrink rule) or a valid one stays valid as it grows (Pattern 3's). Some constraints have neither — the classic being "**every** character appears **at least** k times", where shrinking pushes counts *down*, away from validity, and a *larger* window can repair an invalid one. There is no legal shrink rule, so the slide has nothing to stand on. The escape hatch is not a new algorithm but a reduction: identify the single free variable that destroys monotonicity, **pin it to a constant**, solve the now-monotonic subproblem with an ordinary window, and loop over every value the pinned variable can take.
+
+**Core insight — why it works:** Non-monotonicity here comes from an *unbounded degree of freedom*, not from the constraint itself. In "at least k occurrences", the culprit is the number of distinct characters: the window is free to gain new characters as it grows, which is what lets a bigger window become valid again. Freeze that number at `d` and the picture changes completely — "at most `d` distinct" *is* upward-closed-invalid, so Pattern 2's machinery is legal again, and inside such a window the remaining check (`distinct == d` and all `d` of them appear at least k times) is O(1) state. Every optimal answer has *some* distinct count between 1 and the alphabet size, so sweeping `d` over that bounded range is exhaustive. The cost is a constant multiplier, not a complexity class: the transform trades a factor of |Σ| for the return of monotonicity. Generalize the move as: *when one variable makes the search intractable, enumerate it and let the rest of the problem become easy.*
+
+The companion micro-technique is **counting the crossing, not the state**. To keep a scalar like "how many characters currently appear at least k times" in O(1), you must update it on the exact *transition* across the threshold, never on the condition being true — increment when a count *reaches* k, decrement when it is *about to drop below* k. Testing `>= k` on every add would increment repeatedly past the threshold and corrupt the counter. This is the same discipline that makes `have` work in problem 76.
+
+**Template (longest substring where every character appears at least k times):**
+```cpp
+int longestSubstring(string s, int k) {
+    int n = s.size(), best = 0;
+    for (int d = 1; d <= 26; d++) {              // pin the culprit variable
+        vector<int> cnt(26, 0);
+        int left = 0, distinct = 0, atLeastK = 0;
+        for (int right = 0; right < n; right++) {
+            int c = s[right] - 'a';
+            if (cnt[c]++ == 0) distinct++;
+            if (cnt[c] == k) atLeastK++;         // crossing UP, exactly at k
+            while (distinct > d) {               // monotonic again → legal shrink
+                int l = s[left] - 'a';
+                if (cnt[l] == k) atLeastK--;     // crossing DOWN, checked before decrement
+                if (--cnt[l] == 0) distinct--;
+                left++;
+            }
+            if (distinct == d && atLeastK == d)  // all d characters satisfied
+                best = max(best, right - left + 1);
+        }
+    }
+    return best;
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 395. Longest Substring with At Least K Repeating Characters | Medium | The canonical pin-a-variable problem (template above). The "Medium" label is a lie — most candidates try to slide directly, find no shrink rule, and stall. The alternative solution is divide-and-conquer on characters that can never qualify; knowing both, and being able to say *why* the plain window fails, is the whole point. |
+| 1763. Longest Nice Substring | Easy | Same shape at small scale: iterate over the 26 candidate alphabets (or split on the offending character) instead of hunting for a shrink rule. Confirms the reduction is a repeatable move, not a one-off trick for 395. |
+| 2444. Count Subarrays With Fixed Bounds | Hard | No maintainable window state, so pin *positions* instead of a value: track the last index of minK, of maxK, and of the last out-of-range element, then count `min(lastMin, lastMax) − lastBad` per right endpoint. Counting by boundary crossings rather than by window state. |
+| 862. Shortest Subarray with Sum ≥ K | Hard | The other flavour of broken monotonicity — negatives, so no shrink rule for sums. Here the fix is a change of object, not a pinned variable: slide a monotonic deque over *prefix sums*, popping prefixes that are later and smaller (dominated). Worth solving right after 395 to see both escape hatches back to back. |
+
+**Pitfalls:**
+- Updating a threshold counter with `if (cnt[c] >= k) atLeastK++` instead of `== k`: it increments on every subsequent occurrence and silently over-counts. The `== k` test on the way down must also run *before* the decrement.
+- Forgetting the `distinct == d` guard and recording on any window with at most `d` distinct: those windows belong to a smaller `d`'s pass, and accepting them here can admit a window whose characters are not all satisfied.
+- Applying this when the pinned variable is unbounded — the reduction only pays off when its range is small (26 letters, 2 states, a handful of thresholds). If the culprit ranges over n, you have an O(n²) algorithm wearing a disguise.
+- Reaching for the escape hatch before proving monotonicity actually fails. Do the diagnosis first: "if this window is invalid, is every larger window invalid?" Only a genuine *no* justifies leaving Patterns 2–5.
+
+---
+
 ## When Sliding Window FAILS — Know the Boundary
 
 This list earns more interview points than any single problem:
@@ -260,6 +319,9 @@ This list earns more interview points than any single problem:
 | Count subarrays with sum == k (signed) | Same negativity issue, in counting form | Prefix-sum frequency hashmap (560) |
 | Validity depends on the whole arrangement (e.g., "is a palindrome") | Adding one char can flip validity arbitrarily — no hereditary property in either direction | Expand-from-center, DP, hashing |
 | Window query needs max/min/median | State isn't O(1)-maintainable with counters alone | Window + monotonic deque / multiset (Pattern 5) |
+| "**at least** k occurrences of every element" (395) | Shrinking drives counts *down*, away from validity, and a **larger** window can repair an invalid one — no legal shrink rule in either direction | Pin the distinct-count and slide once per value (Pattern 7) |
+
+Two rows here have a systematic escape hatch rather than a wholly different algorithm: an unbounded free variable can be pinned and enumerated, and a broken sum constraint can be re-aimed at prefix sums — both in Pattern 7.
 
 The litmus test in one sentence: **a window works iff validity changes monotonically as the window grows, and the state updates in O(1)-ish per element.** Lose either property and you need a different tool.
 
@@ -276,6 +338,7 @@ The litmus test in one sentence: **a window works iff validity changes monotonic
 | "exactly k distinct / exactly k odd …" | `atMost(k) − atMost(k−1)` |
 | "maximum/minimum of each window", "max − min ≤ limit" | Window + monotonic deque / multiset |
 | "make elements equal with ≤ k operations" | Sort first, then slide |
+| "every character appears **at least** k times" | No shrink rule → pin the distinct-count, slide per value (Pattern 7) |
 | sum constraint + array contains negatives | NOT a window → prefix sums (+ hashmap or deque) |
 
 ---
@@ -287,6 +350,7 @@ The litmus test in one sentence: **a window works iff validity changes monotonic
 - Window + deque: **O(n)** amortized (each index pushed and popped at most once).
 - Window + multiset/heap: **O(n log n)**.
 - Sort-then-slide: **O(n log n)** for the sort, O(n) for the slide.
+- Pin-a-variable + slide: **O(|Σ|·n)** — one full window pass per pinned value (26 passes for lowercase letters), so linear with a constant factor.
 - Space: O(1) for counter states, O(Σ) for frequency maps (Σ = alphabet size), O(k) or O(n) for deque/multiset variants.
 
 ---
@@ -308,5 +372,6 @@ The litmus test in one sentence: **a window works iff validity changes monotonic
 **Week 2 — variable windows, longest:** 3 → 904 → 1004 → 1493 → 1695 → 424 → 2024
 **Week 3 — shortest + counting:** 209 → 713 → 930 → 1248 → 1358 → 992 → 76
 **Week 4 — auxiliary structures & boss fights:** 239 → 1438 → 1838 → 2779 → 1658 → 862 → 480 → 30
+**Week 5 — when the window breaks:** 1763 → 395 → 2444 (revisit 862 with Pattern 7 eyes: same diagnosis, different escape hatch)
 
 Good luck with the interviews!

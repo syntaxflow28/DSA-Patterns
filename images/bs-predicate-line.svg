@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="320" viewBox="0 0 880 320" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="320" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">F F F F T T T T &#8212; YOU ARE SEARCHING A BOUNDARY, NOT DATA</text>
+
+  <line x1="246" y1="96" x2="246" y2="228" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="4 4"/>
+  <text x="246" y="88" fill="#f59e0b" font-size="12" font-weight="bold" text-anchor="middle">first T = the answer</text>
+
+  <g font-size="11" fill="#64748b" text-anchor="middle">
+    <text x="64" y="104">0</text><text x="116" y="104">1</text><text x="168" y="104">2</text><text x="220" y="104">3</text>
+    <text x="272" y="104">4</text><text x="324" y="104">5</text><text x="376" y="104">6</text><text x="428" y="104">7</text>
+  </g>
+
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="112" width="48" height="34" rx="6" fill="#1e293b" stroke="#64748b"/><text x="64"  y="134" fill="#64748b">F</text>
+    <rect x="92"  y="112" width="48" height="34" rx="6" fill="#1e293b" stroke="#64748b"/><text x="116" y="134" fill="#64748b">F</text>
+    <rect x="144" y="112" width="48" height="34" rx="6" fill="#1e293b" stroke="#64748b"/><text x="168" y="134" fill="#64748b">F</text>
+    <rect x="196" y="112" width="48" height="34" rx="6" fill="#1e293b" stroke="#64748b"/><text x="220" y="134" fill="#64748b">F</text>
+    <rect x="248" y="112" width="48" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="272" y="134" fill="#0f172a">T</text>
+    <rect x="300" y="112" width="48" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="324" y="134" fill="#c4b5fd">T</text>
+    <rect x="352" y="112" width="48" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="376" y="134" fill="#c4b5fd">T</text>
+    <rect x="404" y="112" width="48" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="428" y="134" fill="#c4b5fd">T</text>
+  </g>
+
+  <line x1="48" y1="175" x2="238" y2="175" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="40" y="196" fill="#34d399" font-size="12" font-weight="bold">lo: pred(mid) is F &#8658; lo = mid + 1 &#183; mid is certified dead</text>
+
+  <line x1="442" y1="222" x2="256" y2="222" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="40" y="243" fill="#f59e0b" font-size="12" font-weight="bold">hi: pred(mid) is T &#8658; hi = mid &#183; mid may itself be the answer</text>
+
+  <text x="40" y="274" fill="#94a3b8" font-size="11.5">neither pointer can cross the flip, so they can only meet on it</text>
+
+  <text x="510" y="90" fill="#e2e8f0" font-size="12.5">the domain may be indices, candidate answers, reals, or</text>
+  <text x="510" y="110" fill="#e2e8f0" font-size="12.5">a value space you never build &#8212; only the flip matters</text>
+
+  <text x="510" y="146" fill="#f59e0b" font-size="12.5" font-weight="bold">state the invariant, then the branches are forced:</text>
+  <text x="510" y="166" fill="#f59e0b" font-size="12.5" font-weight="bold">everything left of lo is F, everything from hi on is T</text>
+
+  <text x="510" y="204" fill="#34d399" font-size="12.5" font-weight="bold">the loop ending at lo == hi is not luck &#8212; it IS the</text>
+  <text x="510" y="222" fill="#34d399" font-size="12.5" font-weight="bold">correctness proof, so never guess mid vs mid + 1</text>
+
+  <text x="510" y="258" fill="#f87171" font-size="12">the branch that KEEPS mid dictates the rounding;</text>
+  <text x="510" y="276" fill="#f87171" font-size="12">for last-true (lo = mid) you must round up, or the</text>
+  <text x="510" y="294" fill="#f87171" font-size="12">loop hangs at interval width 2 &#8212; and only there</text>
+</svg>

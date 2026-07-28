@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arSlate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#64748b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">BELLMAN-FORD: THE PASS NUMBER IS AN EDGE BUDGET</text>
+
+  <line x1="46" y1="72" x2="46" y2="274" stroke="#64748b" stroke-width="2.5" marker-end="url(#arSlate)"/>
+
+  <g font-size="11.5">
+    <rect x="60" y="72"  width="400" height="28" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="72" y="90"  fill="#93c5fd">before any pass: correct for paths of 0 edges &#8212; the source alone</text>
+    <rect x="60" y="110" width="400" height="28" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="72" y="128" fill="#93c5fd">after pass 1: correct for every node reachable in &#8804; 1 edge</text>
+    <rect x="60" y="148" width="400" height="28" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="72" y="166" fill="#93c5fd">after pass 2: correct for &#8804; 2 edges</text>
+    <rect x="60" y="186" width="400" height="28" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="72" y="204" fill="#0f172a" font-weight="bold">after pass k: correct for &#8804; k edges &#8212; this IS &#8220;at most k stops&#8221;</text>
+    <rect x="60" y="224" width="400" height="28" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="72" y="242" fill="#c4b5fd">after pass V - 1: every simple shortest path is final</text>
+    <rect x="60" y="262" width="400" height="28" rx="6" fill="#1e293b" stroke="#f87171"/><text x="72" y="280" fill="#f87171">one more pass still relaxes &#8658; a reachable negative cycle (-&#8734;)</text>
+  </g>
+
+  <text x="40" y="316" fill="#34d399" font-size="12.5" font-weight="bold">induction on edge count &#8212; no assumption about weights anywhere</text>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">pass i relaxes the last edge of every &#8804; i-edge shortest</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">path against a predecessor already made correct by</text>
+  <text x="510" y="128" fill="#e2e8f0" font-size="12.5">pass i - 1. Simple paths use &#8804; V - 1 edges, so V - 1</text>
+  <text x="510" y="148" fill="#e2e8f0" font-size="12.5">passes exhaust them</text>
+
+  <text x="510" y="182" fill="#f59e0b" font-size="12.5" font-weight="bold">stop at pass k and you have not approximated the</text>
+  <text x="510" y="202" fill="#f59e0b" font-size="12.5" font-weight="bold">answer &#8212; you have exactly the &#8804; k-edge optimum,</text>
+  <text x="510" y="222" fill="#f59e0b" font-size="12.5" font-weight="bold">which is the constraint Dijkstra could not express</text>
+
+  <text x="510" y="256" fill="#34d399" font-size="12.5" font-weight="bold">the proof never mentions the sign of a weight, which</text>
+  <text x="510" y="276" fill="#34d399" font-size="12.5" font-weight="bold">is precisely what Dijkstra's cut argument could not say</text>
+
+  <text x="510" y="308" fill="#f87171" font-size="12">relax in place and one pass chains several edges, quietly</text>
+  <text x="510" y="326" fill="#f87171" font-size="12">blowing the budget &#8212; use a frozen copy of the last pass</text>
+</svg>

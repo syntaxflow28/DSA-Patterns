@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="350" viewBox="0 0 880 350" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="350" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">TWO HEAPS: A CUT YOU MAINTAIN THROUGH THE MIDDLE</text>
+
+  <text x="150" y="78" fill="#93c5fd" font-size="12" font-weight="bold" text-anchor="middle">max-heap lo &#183; smaller half</text>
+  <text x="358" y="78" fill="#f9a8d4" font-size="12" font-weight="bold" text-anchor="middle">min-heap hi &#183; larger half</text>
+
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="180" y="96"  width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="208" y="118" fill="#0f172a">5</text>
+    <rect x="108" y="152" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="136" y="174" fill="#93c5fd">2</text>
+    <rect x="176" y="152" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="204" y="174" fill="#93c5fd">4</text>
+
+    <rect x="268" y="96"  width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="296" y="118" fill="#0f172a">8</text>
+    <rect x="272" y="152" width="56" height="34" rx="6" fill="#831843" stroke="#f472b6"/><text x="300" y="174" fill="#f9a8d4">11</text>
+    <rect x="340" y="152" width="56" height="34" rx="6" fill="#831843" stroke="#f472b6"/><text x="368" y="174" fill="#f9a8d4">9</text>
+  </g>
+  <g stroke="#334155" stroke-width="1.5">
+    <line x1="200" y1="130" x2="150" y2="150"/>
+    <line x1="212" y1="130" x2="208" y2="150"/>
+    <line x1="292" y1="130" x2="302" y2="150"/>
+    <line x1="304" y1="130" x2="360" y2="150"/>
+  </g>
+
+  <line x1="252" y1="88" x2="252" y2="212" stroke="#f59e0b" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="252" y="206" fill="#f59e0b" font-size="11" font-weight="bold" text-anchor="middle">the cut</text>
+  <line x1="208" y1="216" x2="230" y2="240" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <line x1="296" y1="216" x2="274" y2="240" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="40" y="266" fill="#e2e8f0" font-size="12" font-family="Consolas, monospace">odd n &#8594; lo.top()</text>
+  <text x="40" y="288" fill="#e2e8f0" font-size="12" font-family="Consolas, monospace">even n &#8594; (lo.top() + hi.top()) / 2.0</text>
+  <text x="40" y="316" fill="#34d399" font-size="12" font-weight="bold">the two elements adjacent to the median, both O(1)</text>
+
+  <text x="510" y="88" fill="#e2e8f0" font-size="12.5">a full sort maintains far more order than you need;</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">one heap maintains order at the wrong place &#8212; an end.</text>
+  <text x="510" y="128" fill="#e2e8f0" font-size="12.5">Two facing heaps maintain it exactly at the cut.</text>
+  <text x="510" y="160" fill="#f59e0b" font-size="12.5" font-weight="bold">ordering invariant: every value in lo &#8804; every value in hi</text>
+  <text x="510" y="180" fill="#94a3b8" font-size="11.5">enforced structurally: always push into lo, then move</text>
+  <text x="510" y="200" fill="#94a3b8" font-size="11.5">lo's top across into hi &#8212; never route by hand-comparing</text>
+  <text x="510" y="228" fill="#f59e0b" font-size="12.5" font-weight="bold">balance rule: size(lo) &#8722; size(hi) is 0 or 1</text>
+  <text x="510" y="248" fill="#94a3b8" font-size="11.5">that alone pins the cut to the middle; O(log n) per insert</text>
+  <text x="510" y="278" fill="#34d399" font-size="12.5" font-weight="bold">generalizes: skew the size ratio and the same pair holds</text>
+  <text x="510" y="298" fill="#34d399" font-size="12.5" font-weight="bold">ANY percentile &#8212; a maintained boundary, not just a median</text>
+  <text x="510" y="326" fill="#f87171" font-size="12">with lazy deletion the heap sizes LIE (they count corpses)</text>
+  <text x="510" y="344" fill="#f87171" font-size="12">&#8212; balance on your own valid counters instead</text>
+</svg>

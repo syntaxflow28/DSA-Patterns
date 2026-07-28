@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">ROUTING: INPUT SHAPE FIRST, THEN THE GOAL</text>
+
+  <g font-size="11" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40" y="72" width="126" height="26" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="103" y="89" fill="#93c5fd">LINKED LIST</text>
+    <rect x="40" y="126" width="126" height="26" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="103" y="143" fill="#c4b5fd">TWO SEQUENCES</text>
+    <rect x="40" y="176" width="126" height="26" rx="6" fill="#312e81" stroke="#6366f1"/><text x="103" y="193" fill="#a5b4fc">ONE ARRAY</text>
+  </g>
+
+  <g stroke="#475569" stroke-width="1.4">
+    <line x1="166" y1="85"  x2="176" y2="85"/>
+    <line x1="176" y1="82"  x2="176" y2="104"/>
+    <line x1="176" y1="82"  x2="186" y2="82"/>
+    <line x1="176" y1="104" x2="186" y2="104"/>
+
+    <line x1="166" y1="139" x2="186" y2="139"/>
+
+    <line x1="166" y1="189" x2="176" y2="189"/>
+    <line x1="176" y1="180" x2="176" y2="290"/>
+    <line x1="176" y1="180" x2="186" y2="180"/>
+    <line x1="176" y1="202" x2="186" y2="202"/>
+    <line x1="176" y1="224" x2="186" y2="224"/>
+    <line x1="176" y1="246" x2="186" y2="246"/>
+    <line x1="176" y1="268" x2="186" y2="268"/>
+    <line x1="176" y1="290" x2="186" y2="290"/>
+  </g>
+
+  <g font-size="11.5" fill="#e2e8f0">
+    <text x="192" y="86">cycle / middle node</text>
+    <text x="192" y="108">k-th from the end</text>
+    <text x="192" y="143">merge or compare</text>
+    <text x="192" y="184">sorted pair / triplet sum</text>
+    <text x="192" y="206">unsorted, indices free</text>
+    <text x="192" y="228">longest contiguous run</text>
+    <text x="192" y="250">filter / compact in place</text>
+    <text x="192" y="272">2-3 labelled regions</text>
+    <text x="192" y="294">palindromic substrings</text>
+  </g>
+
+  <g font-size="11.5" fill="#f59e0b" font-family="Consolas, monospace">
+    <text x="352" y="86">P3 Floyd cycle</text>
+    <text x="352" y="108">P4 fixed gap</text>
+    <text x="352" y="143">P5 parallel walk</text>
+    <text x="352" y="184">P1 converging</text>
+    <text x="352" y="206">P9 sort, then P1</text>
+    <text x="352" y="228">P6 sliding window</text>
+    <text x="352" y="250">P2 read / write</text>
+    <text x="352" y="272">P8 Dutch flag</text>
+    <text x="352" y="294">P7 expand center</text>
+  </g>
+
+  <text x="40" y="332" fill="#64748b" font-size="11.5">a linked list here means any deterministic successor function</text>
+  <text x="40" y="350" fill="#64748b" font-size="11.5">&#8212; 202 and 287 route to P3 with no list in sight</text>
+
+  <text x="510" y="90"  fill="#e2e8f0" font-size="12.5">the mechanic is never the first question &#8212; the SHAPE of</text>
+  <text x="510" y="110" fill="#e2e8f0" font-size="12.5">the input fixes the geometry, and only then does the goal</text>
+  <text x="510" y="130" fill="#e2e8f0" font-size="12.5">pick which of the nine templates applies</text>
+
+  <text x="510" y="164" fill="#34d399" font-size="12.5" font-weight="bold">same direction &#8658; window or read/write</text>
+  <text x="510" y="184" fill="#34d399" font-size="12.5" font-weight="bold">opposite ends &#8658; converge, or expand outward</text>
+  <text x="510" y="204" fill="#34d399" font-size="12.5" font-weight="bold">one per sequence &#8658; the merge walk</text>
+
+  <text x="510" y="240" fill="#f59e0b" font-size="12.5">every route assumes an ordering you can trust:</text>
+  <text x="510" y="260" fill="#f59e0b" font-size="12.5">sorted values, or a fixed successor function.</text>
+  <text x="510" y="280" fill="#f59e0b" font-size="12.5">that ordering is what licenses discarding a side.</text>
+
+  <text x="510" y="316" fill="#f87171" font-size="12">no ordering and no legal sort &#8658; this is not a</text>
+  <text x="510" y="334" fill="#f87171" font-size="12">two-pointer problem; reach for a hashmap, prefix</text>
+  <text x="510" y="352" fill="#f87171" font-size="12">sums, or DP instead</text>
+</svg>

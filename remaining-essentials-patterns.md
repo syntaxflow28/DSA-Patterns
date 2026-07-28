@@ -1,6 +1,6 @@
 # The Remaining Essentials — High-Frequency Interview Patterns (C++)
 
-The previous guides covered the seven big families: two pointers, sliding window, binary search, heap, BFS, DFS/backtracking, and DP. This guide collects everything else that shows up constantly in interviews — eight compact patterns, each a frequent favorite, each with the same treatment: the logic, the **core insight** (why it's correct), C++ templates, strong problem sets with descriptive notes, and the pitfalls.
+The previous guides covered the seven big families: two pointers, sliding window, binary search, heap, BFS, DFS/backtracking, and DP. This guide collects everything else that shows up constantly in interviews — eleven compact patterns, each a frequent favorite, each with the same treatment: the logic, the **core insight** (why it's correct), C++ templates, strong problem sets with descriptive notes, and the pitfalls. Bit manipulation is deliberately absent — XOR sweeps, popcount and lowest-set-bit, power-of-two masks, bitmask-as-set, and arithmetic without operators now have their own dedicated guide in `bit-manipulation-patterns.md`.
 
 ---
 
@@ -9,6 +9,8 @@ The previous guides covered the seven big families: two pointers, sliding window
 **Logic:** Scan the array once, maintaining a stack whose elements (usually **indices**) are kept in monotonic order of value. Each new element **pops everything it beats** before being pushed — and each pop is a *resolution*: "element x just found its next greater element; it's me." Decreasing stack → finds next greater; increasing stack → finds next smaller.
 
 **Core insight — why it works:** When element x arrives and y < x sits on the stack, y's fate is sealed twice over: x *is* y's next greater element (resolve it now), and y can never again be anyone's answer — any future element would meet x first, and x dominates y (newer **and** bigger). So popping y is permanently safe, and the stack holds exactly the **non-dominated frontier**: elements still waiting for their answer, necessarily in decreasing order. Every element pushes once and pops once → O(n) total, despite the nested-looking while loop — the same amortized accounting as sliding window. This is the deque-domination argument from the heap guide's Pattern 5, specialized to one direction. **Recognition cue:** any "next/previous greater/smaller," "how many days until," "span of," or "largest rectangle" phrasing.
+
+![A decreasing stack 5, 3, 1 meets an arriving 4 that resolves 1 and 3 and then stops at 5, because a younger larger element makes older smaller ones useless forever](images/ess-monotonic-stack.svg)
 
 **Template (next greater element / daily temperatures):**
 ```cpp
@@ -50,6 +52,8 @@ for (int i = 0; i < n; i++) {
 **Logic:** Precompute `pre[i]` = sum of the first i elements; any subarray sum is a difference: `sum(i..j) = pre[j+1] − pre[i]`. For "count/find subarrays with sum k," scan once keeping a hashmap of *previously seen prefix values*: at each position, the number of valid subarrays ending here = `count[pre − k]`.
 
 **Core insight — why it works:** This is exactly what picks up where sliding window fails. Windows need monotonicity — adding an element must push the sum one way — which negatives destroy. Prefix sums sidestep monotonicity entirely by turning a **range condition into an equality between two point values**: "some subarray ending at j sums to k" ⇔ "some earlier prefix equals pre[j] − k" — and equality lookups are what hashmaps do in O(1), order be damned. The same compilation works for any invertible accumulation: counts of parity (odd elements → 1248), remainders mod m (974, 523 — where "sum divisible by m" becomes "two prefixes share a remainder"), and balance encodings (equal 0s and 1s → map 0 to −1, seek repeated prefix values — 525). **Recognition cue:** subarray + sum/count/divisibility condition + negatives allowed (or any non-monotone accumulation).
+
+![The prefix line turning a subarray sum Pj minus Pi into the lookup Pj minus k, with the map queried before Pj is inserted so every match is strictly earlier](images/ess-prefix-hashmap.svg)
 
 **Template (count subarrays summing to k — LC 560):**
 ```cpp
@@ -132,6 +136,8 @@ for (auto& cur : iv) {
 **Logic:** Maintain a partition of elements into groups under two operations: `find(x)` — which group is x in (returns a canonical root) — and `unite(x, y)` — merge two groups. Implemented as a parent-pointer forest with two accelerations: **path compression** (point nodes met during find directly at the root) and **union by rank/size** (hang the shorter tree under the taller).
 
 **Core insight — why it works:** The structure stores only the *equivalence relation*, nothing else — exactly enough for connectivity and not a bit more, which is why it beats graph traversal when edges arrive **incrementally**: BFS/DFS answers "connected?" for a frozen graph in O(V+E) per query, while DSU absorbs each new edge in near-O(1) and answers queries instantly forever after. The two optimizations together drive amortized cost to O(α(n)) — the inverse Ackermann function, ≤ 4 for any conceivable n; "effectively constant" is the interview phrase. The bonus capability: `unite` returning *false* (both already in one group) means the new edge closed a **cycle** — undirected cycle detection without any traversal. **Recognition cues:** "connected components" + edges added over time; "merge accounts/groups by shared attribute"; "is this edge redundant"; equations/equivalences to propagate.
+
+![A find chain flattened into a star by path compression, and union-by-size attaching the smaller tree so depth grows only when the two sizes are equal](images/ess-union-find.svg)
 
 **Template (DSU with both optimizations):**
 ```cpp
@@ -220,6 +226,8 @@ return true;
 
 **Core insight — why it works:** A hashset answers "is this exact word present?" but is structurally blind to **prefixes** — checking "does any word start with pre" requires scanning everything. The trie's move is to make sharing physical: all words with a common prefix share that path, so prefix queries terminate at one node, and — the deeper payoff — *a dead prefix kills every word behind it simultaneously*. That mass-pruning is why tries transform multi-pattern search (Word Search II: thousands of words pruned per board step), autocomplete, and wildcard matching (a `.` fans out across children — branching exactly where ambiguity exists, sharing everywhere else). **Recognition cues:** "prefix" anywhere in the problem; many patterns matched against one text/board; dictionary + character-level operations.
 
+![A trie over car, cat, do and dog where common prefixes are shared paths and the isWord flag can sit on an interior node](images/ess-trie.svg)
+
 **Template (array-children trie):**
 ```cpp
 struct TrieNode {
@@ -278,6 +286,8 @@ struct Trie {
 **Logic:** Rewiring `next` pointers without auxiliary arrays: reversal (iterate with prev/cur, flipping each arrow), the **dummy head** (a sentinel before the real head so "modify the first node" stops being a special case), and composite operations (find a position → cut → transform → splice) built from those primitives plus the fast/slow tools from the two-pointers guide.
 
 **Core insight — why it works:** A singly linked list's defining poverty is **no backward access and no random access** — every technique is a workaround for that. Reversal works because each node needs only its predecessor remembered (one `prev` variable) at the moment its arrow flips: O(1) state replaces the missing back-pointers. The dummy head works because it makes the head an ordinary node *with a predecessor*, collapsing the "empty list / modify head / delete head" case explosion into the general case — one allocation that eliminates a third of all linked-list bugs. And the composite problems (reverse k-groups, reorder, rotate) are revealing precisely *because* they're compositions: interviews use them to watch you decompose into find-middle, reverse, splice, and merge — each individually rehearsable.
+
+![The prev, cur and nxt reversal step in its correct order, and the failure branch where flipping the pointer before saving nxt strands the rest of the list](images/ess-list-reversal.svg)
 
 **Template (reverse a list — the primitive):**
 ```cpp
@@ -350,6 +360,171 @@ int  getMin()    { return st.top().second; }   // history travels with the stack
 
 ---
 
+## Pattern 9: Cyclic Sort / Index-as-Hash — The Array Is the Hashmap
+
+**Logic:** When the values are guaranteed to live in a small range tied to the length — 1..n or 0..n — the array can *be* its own hashmap: value `v` belongs at index `v − 1`. Either swap each value into its home slot (**cyclic sort**), or mark presence destructively in place (**sign-marking**: negate `nums[|v| − 1]`). Afterwards, any index whose contents disagree with the placement rule names a missing, duplicated, or corrupted value.
+
+**Core insight — why it works:** The 1..n guarantee is a hidden **bijection** between the index space and the value space. A hashmap exists to translate a large key domain into a small slot domain; here that translation is already free (`slot = value − 1`), so allocating a hashmap or a boolean array is paying for a mapping the constraints handed you. That's what converts the standard O(n) *space* solution into O(1) space. Cyclic sort terminates in O(n) despite the nested `while` for the usual amortized reason: **every swap places at least one value permanently into its correct home**, so there are at most n swaps in total across the entire run, and each non-swapping iteration advances `i`. Sign-marking is the cheaper cousin — it records "index j was seen" in the *sign bit* of a value you no longer need positive — and it's the reason 41 First Missing Positive can hit O(1) space at all. **Recognition cues:** "array of n integers where each is in range 1..n," "find all missing/duplicate," "without extra space and in O(n) time" — that constraint pair is a near-certain tell.
+
+**Template (cyclic sort, then read off the anomalies):**
+```cpp
+int i = 0, n = nums.size();
+while (i < n) {
+    int home = nums[i] - 1;                             // value v wants index v-1
+    if (nums[i] >= 1 && nums[i] <= n && nums[home] != nums[i])
+        swap(nums[i], nums[home]);                      // send it home, retry index i
+    else
+        ++i;                                            // in place, or out of range, or a dup
+}
+for (int j = 0; j < n; j++)
+    if (nums[j] != j + 1) { /* j+1 is missing; nums[j] is a duplicate */ }
+```
+
+```cpp
+// Sign-marking variant (448/442) — no swaps, one pass to mark, one to read
+for (int x : nums) {
+    int idx = abs(x) - 1;
+    if (nums[idx] > 0) nums[idx] = -nums[idx];          // "value idx+1 was present"
+    else duplicates.push_back(idx + 1);                 // marked twice -> seen twice
+}
+for (int j = 0; j < n; j++) if (nums[j] > 0) missing.push_back(j + 1);
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 448. Find All Numbers Disappeared | Easy | The pattern's clearest statement: sign-mark, then every still-positive slot names a missing value. O(1) extra space if the output doesn't count — say that caveat out loud. |
+| 442. Find All Duplicates | Medium | Same sweep, opposite read: hitting an already-negative slot means that value arrived twice. 448 and 442 are one algorithm with two report lines. |
+| 41. First Missing Positive | Hard | The boss. Cyclic-sort only values in 1..n (ignore negatives and anything larger — they provably can't be the answer), then return the first index whose value is wrong. O(n) time, O(1) space is the *required* bar, and interviewers ask exactly for that. |
+| 268. Missing Number | Easy | Placement version of the XOR-pairing solution in the bit manipulation guide — values are 0..n so the home index is `v` itself, not `v − 1`. Off-by-one discipline in miniature. |
+| 645. Set Mismatch | Easy | One value duplicated, one missing: cyclic sort and the single wrong index reports both at once. The cleanest demo that "wrong slot" is a two-sided signal. |
+| 287. Find the Duplicate Number | Medium | The trap: index-as-hash solves it but **mutates the input**, which the problem forbids. The sanctioned answers are Floyd cycle detection (two-pointers guide) or binary search on the value range (binary-search guide). Know why this pattern is *disqualified* here — that is the interview point. |
+| 1539. Kth Missing Positive Number | Easy/Med | Sorted input turns the same "value vs index" gap reasoning into a binary search on `nums[i] − i − 1` missing-count. The index-arithmetic idea escaping O(n) scanning. |
+| 765. Couples Holding Hands | Hard | Cyclic-sort-flavored greedy: swap each mismatched partner directly into place; the minimum swaps equal n minus the number of cycles. Also solvable with DSU (Pattern 4) — the cycle-counting equivalence is worth stating. |
+
+**Pitfalls:**
+- The swap loop must **not** advance `i` after a swap — the newly arrived value at `i` still needs a home. Advancing is the classic bug and it silently drops values.
+- Compare **values** (`nums[home] != nums[i]`), not indices, in the swap guard. With duplicates present, an index-based check spins forever.
+- Guard the range before indexing: 41's input contains negatives and values greater than n, and `nums[nums[i] - 1]` on those is out-of-bounds memory access, not a wrong answer.
+- Sign-marking needs `abs()` on every read afterwards — the array is now carrying two channels of information in one slot.
+- Both variants destroy the input. If the problem says read-only (287), the pattern is off the table; if it doesn't say, ask.
+
+---
+
+## Pattern 10: Fenwick / Segment Tree — Range Queries That Survive Updates
+
+**Logic:** Prefix sums answer range queries in O(1) but die on updates: changing one element rebuilds the whole suffix in O(n). A **Fenwick tree (BIT)** stores partial sums over power-of-two-aligned blocks so both point-update and prefix-query touch O(log n) blocks. A **segment tree** generalizes the same idea to any associative merge (min, max, gcd, assignment with lazy propagation) at ~2× the code.
+
+**Core insight — why it works:** The tension is a trade: a raw array is O(1) update / O(n) query; a prefix array is O(n) update / O(1) query. Both are extremes of the same spectrum, and the fix is to store sums over *overlapping scales* so no single write invalidates many entries and no single read touches many entries — O(log n) each, meeting in the middle. Fenwick's indexing is the elegance: node `i` covers the `i & -i` elements ending at `i` (the lowest-set-bit trick from the bit manipulation guide, doing structural work), so `i += i & -i` walks the ancestors that must absorb an update, and `i -= i & -i` walks the disjoint blocks that tile the prefix `1..i`. The second, subtler use is **counting problems in disguise**: "how many earlier elements are smaller than me" becomes a BIT over the *value* domain — insert values as you scan and query the prefix count — which is how 315 and 493 get from O(n²) to O(n log n). Coordinate-compress first if values are sparse. **Recognition cues:** interleaved updates and range queries; "count of smaller/greater elements to the right"; counting inversions; range sums of ranks.
+
+**Template (Fenwick tree, 0-indexed API):**
+```cpp
+struct BIT {
+    int n; vector<long long> t;
+    BIT(int n) : n(n), t(n + 1, 0) {}
+    void add(int i, long long v) {                       // point update: nums[i] += v
+        for (++i; i <= n; i += i & -i) t[i] += v;         // walk covering blocks upward
+    }
+    long long sum(int i) {                               // prefix sum of nums[0..i]
+        long long s = 0;
+        for (++i; i > 0; i -= i & -i) s += t[i];          // disjoint blocks tiling the prefix
+        return s;
+    }
+    long long range(int l, int r) { return sum(r) - sum(l - 1); }   // sum(-1) == 0 safely
+};
+```
+
+```cpp
+// 315: count of smaller numbers after self — BIT over compressed VALUES, scanned right to left
+vector<int> srt(nums); sort(srt.begin(), srt.end());
+srt.erase(unique(srt.begin(), srt.end()), srt.end());
+BIT bit(srt.size());
+vector<int> ans(nums.size());
+for (int i = nums.size() - 1; i >= 0; --i) {
+    int r = lower_bound(srt.begin(), srt.end(), nums[i]) - srt.begin();
+    ans[i] = r > 0 ? (int)bit.sum(r - 1) : 0;            // already-inserted values strictly smaller
+    bit.add(r, 1);
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 307. Range Sum Query — Mutable | Medium | The reason this pattern exists: 303's prefix array is O(n) per update, so it fails here. State the O(1)/O(n) vs O(log n)/O(log n) trade before writing anything. |
+| 315. Count of Smaller Numbers After Self | Hard | The flagship: BIT over the *value* domain (compressed), scanned right to left. Also solvable with merge sort's merge step — mention both; the BIT is shorter to write correctly under time pressure. |
+| 493. Reverse Pairs | Hard | 315 with the condition `nums[i] > 2 * nums[j]` — compress both `v` and `2v` into the coordinate set, or use merge sort with a two-pointer count. The compression detail is where submissions fail. |
+| 327. Count of Range Sum | Hard | Prefix sums (Pattern 2) *plus* a BIT: count earlier prefixes falling in `[pre − upper, pre − lower]`. The clean composition of the two range techniques in one problem. |
+| Count Inversions (classic, not on LeetCode) | Medium | Asked verbatim in interviews: it is 315 summed. Worth being able to write from scratch in either the BIT or the merge-sort form. |
+| 699. Falling Squares | Hard | Needs **range assign + range max** — a BIT can't do it; this is the problem that forces a segment tree with lazy propagation (or an ordered-map coordinate sweep). Knowing which structure the operation set demands is the whole lesson. |
+| 732. My Calendar III | Hard | Maximum concurrent bookings: lazy segment tree over a large coordinate range, or a `map<int,int>` of deltas with a running max — the ordered-map sweep is the interview-sized answer (Pattern 3's sweep line, upgraded). |
+| 2251 / 1649. Flowers in Bloom / Create Sorted Array | Med/Hard | 1649 is a BIT counting strictly-smaller and strictly-greater per insertion; 2251 is a pure sweep. Together they calibrate when a BIT is genuinely needed versus overkill. |
+
+**Pitfalls:**
+- BIT is 1-indexed internally. Mixing conventions is *the* bug here — pick one external API (the template's is 0-indexed) and never index `t` directly outside the class.
+- `add` is a **delta**, not an assignment. For "set `nums[i] = v`," call `add(i, v − old)` and keep your own copy of `old`.
+- Coordinate-compress when values are large or sparse; a BIT sized to the value range blows memory on `10^9`-bounded inputs.
+- Sums overflow `int` fast — `long long` in the tree by default.
+- A BIT does prefix-invertible operations only (sum, XOR, count). Min/max over an arbitrary range, range assignment, or anything non-invertible needs a segment tree — recognize this *before* you have written 30 lines of the wrong structure.
+- Reach for these only when updates genuinely interleave with queries. On a static array, prefix sums are simpler and strictly faster; proposing a BIT for 303 is a red flag.
+
+---
+
+## Pattern 11: Matrix & In-Place Array Manipulation
+
+**Logic:** Grid problems with no search in them — the difficulty is purely **index discipline and space constraints**: rotate a matrix in place, traverse in a spiral, zero out rows and columns without a marker array, advance a cellular automaton simultaneously. The recurring devices are **decomposition into simpler transforms** (rotate = transpose + reverse), **shrinking boundary pointers** (spiral), and **encoding extra state inside the data** (first row/column as markers, or a second bit per cell).
+
+**Core insight — why it works:** Every one of these is a fight against a hidden dependency. Rotation looks like it needs a copy because writing a cell destroys a value someone else still needs — but rotation *factors* into two involutions (transpose, then reverse each row), each of which is a pure pairwise swap, and pairwise swaps never lose data. The set-zeroes problem has the same shape: naively zeroing a row corrupts the evidence for later rows, so you must **separate detection from application** — one pass to record which rows and columns are doomed, one to apply — and the O(1)-space version just relocates that record into the matrix's own first row and column (cells that are getting zeroed anyway). Game of Life is the same principle in its purest form: simultaneous update requires old and new state to coexist, so store both in one cell with a second bit (`newState << 1 | oldState`) and shift down at the end. **Recognition cue:** the words "in place," "O(1) extra space," or "simultaneously" attached to a grid.
+
+**Template (rotate, and the spiral boundary walk):**
+```cpp
+// 48. Rotate 90° clockwise = transpose, then reverse each row.
+int n = m.size();
+for (int i = 0; i < n; i++)
+    for (int j = i + 1; j < n; j++) swap(m[i][j], m[j][i]);   // j > i: swap each pair once
+for (auto& row : m) reverse(row.begin(), row.end());
+// counter-clockwise: transpose, then reverse the row ORDER instead.
+
+// 54. Spiral order via four shrinking boundaries.
+int top = 0, bot = rows - 1, left = 0, right = cols - 1;
+vector<int> out;
+while (top <= bot && left <= right) {
+    for (int j = left; j <= right; j++) out.push_back(m[top][j]);
+    ++top;
+    for (int i = top; i <= bot; i++) out.push_back(m[i][right]);
+    --right;
+    if (top <= bot) {                                   // re-check: a single row must not replay
+        for (int j = right; j >= left; j--) out.push_back(m[bot][j]);
+        --bot;
+    }
+    if (left <= right) {                                // re-check: a single column must not replay
+        for (int i = bot; i >= top; i--) out.push_back(m[i][left]);
+        ++left;
+    }
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 48. Rotate Image | Medium | Transpose + reverse, in place. The four-way ring swap is the alternative — present the decomposition first, because it is impossible to get wrong under pressure. |
+| 54 / 59. Spiral Matrix / Spiral Matrix II | Medium | The boundary template; 59 writes instead of reads. The two mid-loop re-checks are what separate a passing submission from one that duplicates the middle row of an odd-height matrix. |
+| 73. Set Matrix Zeroes | Medium | Detection then application; the O(1)-space upgrade stores flags in row 0 and column 0, with one extra boolean for column 0 itself because the corner cell is overloaded. That overloading is the entire interview discussion. |
+| 289. Game of Life | Medium | Simultaneity via a second bit per cell, then one shift-down pass. The follow-up ("infinite board") wants a hashset of live coordinates instead — a genuinely different data model. |
+| 867. Transpose Matrix | Easy | Non-square transpose needs a new matrix — a useful reminder of *why* 48's in-place trick requires squareness. |
+| 240. Search a 2D Matrix II | Medium | Staircase from the top-right: each step eliminates a full row or column, O(m+n). Cross-listed with binary search; the pointer walk is the elegant answer, not the binary search. |
+| 498. Diagonal Traverse | Medium | Index arithmetic on `i + j` (the diagonal id) with direction flipping on parity. Pure bookkeeping — the value is in writing it cleanly on the first attempt. |
+| 36. Valid Sudoku | Medium | Three bitmask sets per constraint group, with box index `(i / 3) * 3 + j / 3`. That box formula and the bitmask-as-set trick (bit manipulation guide) are the two things being tested. |
+| 1886. Determine Whether Matrix Can Be Obtained By Rotation | Easy | Apply the in-place rotation up to four times and compare. Any "rotate or reflect the grid" variant reduces to a composition of transpose and reversal — say which two, then write them. |
+
+**Pitfalls:**
+- Transposing over the **full** index range instead of `j > i` swaps every pair twice, leaving the matrix unchanged — a silent no-op that passes compilation and fails everything.
+- Spiral without the two re-checks double-prints the last row or column when the remaining region is one row or one column tall/wide.
+- 73's O(1) version: the cell `m[0][0]` serves both row 0 and column 0, so one of them needs a separate boolean, and the write-back pass must go **backwards** (or handle row 0 and column 0 last) or the flags get destroyed before they are read.
+- Non-square matrices: `rows` and `cols` are different variables and mixing them is the most common index error here. Never write `n` for both.
+- 289: reading `m[i][j] & 1` for neighbor counts after some cells already hold two bits is what makes the encoding work — using the raw value instead corrupts the generation.
+
+---
+
 ## Cheat Sheet: Problem Phrase → Pattern
 
 | Phrase in the problem | Pattern |
@@ -365,6 +540,10 @@ int  getMin()    { return st.top().second; }   // history travels with the stack
 | reverse / reorder / merge / k-group on a linked list | List surgery (P7) |
 | "valid parentheses / decode / calculator" | Matching stack (P8) |
 | "design X with O(1) operations" | Structure composition (P8) |
+| "n integers each in 1..n", "find missing/duplicate in O(1) space" | Cyclic sort / index-as-hash (P9) |
+| range sum **with updates**, "count of smaller to the right", inversions | Fenwick tree (P10) |
+| range min/max/assign with updates | Segment tree with lazy propagation (P10) |
+| "in place", "O(1) extra space", "simultaneously" on a grid | Matrix manipulation (P11) |
 
 ---
 
@@ -378,6 +557,9 @@ int  getMin()    { return st.top().second; }   // history travels with the stack
 - Trie: **O(L)** per word/query; memory O(total characters × children width).
 - List surgery: **O(n)** time, **O(1)** space — the whole point.
 - Design targets: every flagship (146, 380) is **O(1)** per operation by construction.
+- Cyclic sort / index-as-hash: **O(n)** time, **O(1)** extra space — at most n placing swaps total.
+- Fenwick tree: **O(log n)** per update and per prefix query, O(n) space; segment tree the same with a larger constant, O(4n) space.
+- Matrix in place: **O(rows × cols)** time, **O(1)** extra space by construction.
 
 ---
 
@@ -398,6 +580,7 @@ int  getMin()    { return st.top().second; }   // history travels with the stack
 **Week 1 — stacks & prefixes:** 20 → 155 → 739 → 496 → 901 → 394 → 560 → 525 → 238 → 974
 **Week 2 — intervals & DSU:** 56 → 57 → 252 → 253 → 435 → 452 → 1094 → 547 → 684 → 990 → 721
 **Week 3 — greedy, trie, lists:** 55 → 45 → 134 → 763 → 406 → 208 → 211 → 648 → 206 → 92 → 21 → 2 → 143
-**Week 4 — boss fights:** 84 → 85 → 42 (stack) → 907 → 1074 → 212 → 421 → 25 → 138 → 148 → 146 → 380 → 224 → 305
+**Week 4 — placement & grids:** 448 → 442 → 645 → 268 → 41 → 48 → 54 → 59 → 73 → 289
+**Week 5 — boss fights:** 84 → 85 → 42 (stack) → 907 → 1074 → 212 → 421 → 25 → 138 → 148 → 146 → 380 → 224 → 305 → 307 → 315 → 493 → 327
 
 Good luck with the interviews!

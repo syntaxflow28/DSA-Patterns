@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">ROUTING: ASK WHAT THE STATE MUST CARRY, NOT WHAT THE STORY IS</text>
+
+  <rect x="40" y="62" width="300" height="32" rx="8" fill="#f59e0b" stroke="#f59e0b"/>
+  <text x="190" y="84" fill="#0f172a" font-size="12.5" font-weight="bold" text-anchor="middle">WHAT MUST THE STATE CARRY?</text>
+  <line x1="54" y1="94" x2="54" y2="357" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 4"/>
+
+  <g stroke="#64748b" stroke-width="1.5">
+    <line x1="54" y1="117" x2="66" y2="117"/>
+    <line x1="54" y1="141" x2="66" y2="141"/>
+    <line x1="54" y1="165" x2="66" y2="165"/>
+    <line x1="54" y1="189" x2="66" y2="189"/>
+    <line x1="54" y1="213" x2="66" y2="213"/>
+    <line x1="54" y1="237" x2="66" y2="237"/>
+    <line x1="54" y1="261" x2="66" y2="261"/>
+    <line x1="54" y1="285" x2="66" y2="285"/>
+    <line x1="54" y1="309" x2="66" y2="309"/>
+    <line x1="54" y1="333" x2="66" y2="333"/>
+    <line x1="54" y1="357" x2="66" y2="357"/>
+  </g>
+
+  <g font-size="11" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="68" y="106" width="40" height="22" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="88" y="121" fill="#93c5fd">P1</text>
+    <rect x="68" y="130" width="40" height="22" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="88" y="145" fill="#93c5fd">P2</text>
+    <rect x="68" y="154" width="40" height="22" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="88" y="169" fill="#93c5fd">P3</text>
+    <rect x="68" y="178" width="40" height="22" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="88" y="193" fill="#c4b5fd">P4</text>
+    <rect x="68" y="202" width="40" height="22" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="88" y="217" fill="#c4b5fd">P5</text>
+    <rect x="68" y="226" width="40" height="22" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="88" y="241" fill="#c4b5fd">P6</text>
+    <rect x="68" y="250" width="40" height="22" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="88" y="265" fill="#a5b4fc">P7</text>
+    <rect x="68" y="274" width="40" height="22" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="88" y="289" fill="#a5b4fc">P8</text>
+    <rect x="68" y="298" width="40" height="22" rx="6" fill="#312e81" stroke="#a5b4fc"/><text x="88" y="313" fill="#a5b4fc">P9</text>
+    <rect x="68" y="322" width="40" height="22" rx="6" fill="#831843" stroke="#f472b6"/><text x="88" y="337" fill="#f9a8d4">P10</text>
+    <rect x="68" y="346" width="40" height="22" rx="6" fill="#831843" stroke="#f472b6"/><text x="88" y="361" fill="#f9a8d4">P11</text>
+  </g>
+
+  <g font-size="11.5" fill="#e2e8f0">
+    <text x="118" y="121">one sequence; only the last 1-2 positions still matter</text>
+    <text x="118" y="145">longest subsequence under a pairwise compatibility test</text>
+    <text x="118" y="169">a cell (r, c) reached by restricted moves</text>
+    <text x="118" y="193">how much capacity / target is still unfilled</text>
+    <text x="118" y="217">a PAIR of prefixes, one from each sequence</text>
+    <text x="118" y="241">a contiguous range that gets split or merged</text>
+    <text x="118" y="265">a mode: holding, cooldown, transactions used</text>
+    <text x="118" y="289">which of n &#8804; 20 items are already used</text>
+    <text x="118" y="313">a subtree plus a decision about its own root</text>
+    <text x="118" y="337">digit position + is the upper bound still binding</text>
+    <text x="118" y="361">chance-weighted successors: probability or expectation</text>
+  </g>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">do not classify by story (stocks, coins, grids, dice) &#8212;</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">classify by what the FUTURE needs to know about the past</text>
+
+  <text x="510" y="140" fill="#f59e0b" font-size="12.5" font-weight="bold">state = the smallest summary that makes the rest of</text>
+  <text x="510" y="160" fill="#f59e0b" font-size="12.5" font-weight="bold">the problem independent of how you got here</text>
+
+  <text x="510" y="192" fill="#e2e8f0" font-size="12">if two histories leave exactly the same options ahead,</text>
+  <text x="510" y="210" fill="#e2e8f0" font-size="12">they are one state &#8212; that merge is the entire speedup</text>
+
+  <text x="510" y="242" fill="#34d399" font-size="12.5" font-weight="bold">once the summary is named, the recurrence is only</text>
+  <text x="510" y="262" fill="#34d399" font-size="12.5" font-weight="bold">&#8220;what was the last move?&#8221; asked over that summary</text>
+
+  <text x="510" y="294" fill="#f87171" font-size="12">if no finite summary exists, the state space explodes &#8212;</text>
+  <text x="510" y="312" fill="#f87171" font-size="12">that is backtracking territory, not DP</text>
+
+  <text x="510" y="340" fill="#64748b" font-size="11.5">the rows compose: P7 x P4 in 188, P6 over two strings in 87,</text>
+  <text x="510" y="358" fill="#64748b" font-size="11.5">P10 carrying a KMP automaton as its property in 1397</text>
+</svg>

@@ -15,6 +15,8 @@ Both conditions matter, and each rules out a different impostor:
 
 **DP = recursion + memory.** Top-down (memoized DFS — Pattern 5 of the DFS guide) and bottom-up (tables and loops) are the *same algorithm* with different bookkeeping: the recursion tree collapsed into a DAG of distinct states, each computed once. Complexity for both is **O(states × transition cost)** — count states *first*; it's simultaneously your feasibility check and your complexity analysis.
 
+![The naive fib(5) call tree with its recomputed nodes highlighted, and the n-node memoized DAG it collapses into](images/dp-overlapping.svg)
+
 **The anatomy every DP shares — four questions, in order:**
 1. **State:** what does `dp[i]` (or `dp[i][j]`…) *mean, in one English sentence*? This sentence is the whole game. "dp[i] = the maximum money robbable from the first i houses" — precise, complete, unambiguous.
 2. **Transition:** how does a state follow from strictly smaller ones? Usually a max/min/sum over the **last decision**: "either rob house i (add dp[i−2]) or skip it (take dp[i−1])."
@@ -50,6 +52,10 @@ If you can say all four out loud, the implementation is transcription. If you ca
 | State needs the full history (no compact summary suffices) | State space explodes | Search/backtracking, or find a better state |
 | "Subarray" problems with monotone structure | DP works but O(n²) | Sliding window / Kadane / monotonic stack |
 | Need the optimal *and* adversary moves alternate | Plain max/min misses the opponent | Minimax DP (still DP — flip max/min per turn) |
+
+**Routing by problem shape** — ask what the future actually needs to know about the past, and the pattern falls out:
+
+![Routing the single question "what must the state carry?" to each of the eleven DP patterns](images/dp-routing.svg)
 
 ---
 
@@ -153,6 +159,8 @@ for (int x : nums) {
 
 **Core insight — why it works:** Movement restrictions make the grid a **DAG** (you can never return to a cell), and the position alone is a sufficient state — *how* you reached (r, c) doesn't change what's ahead. The last-move partition is geometric: every path arrives from above or from the left, disjointly and exhaustively. Row-major order is just a topological order of this DAG. Two power-ups recur: **rolling rows** (each row depends only on the previous → O(cols) space), and **reverse-direction DP** when the constraint propagates backward — Dungeon Game's "minimum health needed *from here on*" must be computed from the princess back to the start, because forward DP can't express "health must never dip below 1 in the future."
 
+![Cell (i, j) reading its two legal predecessors from above and from the left, with the base row, base column and row-major fill order](images/dp-grid.svg)
+
 **Template (min path sum, rolled to one row):**
 ```cpp
 vector<int> dp(n, INT_MAX);
@@ -191,6 +199,8 @@ return dp[n-1];
 **Logic:** Items + a capacity/target; `dp[i][c]` = best/count using the first i items with capacity c. **0/1** (each item once): take it (`dp[i−1][c−w] + v`) or skip (`dp[i−1][c]`). **Unbounded** (unlimited copies): take from `dp[i][c−w]` — same row, allowing repeats. Subset-sum, coin change, and partition are all reskins.
 
 **Core insight — why it works:** The frontier here isn't positional — it's **resource-shaped**: after deciding items 1..i, everything the future needs to know is *how much capacity remains*. That single number is the sufficient summary, which is why capacity becomes a state dimension. The 0/1-vs-unbounded distinction lives in one index: reading row i−1 means "item i no longer available" (0/1); reading row i means "still available" (unbounded). Compressed to one array, this becomes the famous **loop direction rule** — capacity right-to-left preserves 0/1 (you read pre-item-i values), left-to-right *deliberately* enables unbounded. And for counting problems, the **loop nesting order** is semantic, not stylistic: items-outer counts each multiset once (combinations — 518); capacity-outer counts every ordering (permutations — 377). Two interchangeable-looking loops, two different questions answered.
+
+![Descending capacity keeps dp[c−w] at its pre-item value (0/1) while ascending capacity reads a cell already updated with this item (unbounded)](images/dp-knapsack-direction.svg)
 
 **Template (0/1 subset-sum, one array — note the direction):**
 ```cpp
@@ -231,6 +241,8 @@ return dp[target];
 **Logic:** Two strings/arrays; `dp[i][j]` = answer for *prefixes* A[0..i) and B[0..j). The transition cases on the **last characters**: if they match, extend the diagonal; otherwise take the best of dropping one tail or the other (or paying an edit). Fill row-major; row 0/column 0 = one sequence empty.
 
 **Core insight — why it works:** Any alignment/matching of two sequences ends in one of a constant number of ways — last chars matched, A's last char deleted, B's last char inserted, one substituted — and each ending reduces the problem to a *pair of shorter prefixes*. Pairs of prefixes are only (n+1)(m+1) distinct states, so the exponential space of alignments collapses into an O(nm) table where each cell is a constant-case decision. The diagonal/left/up reads have stable *meanings* (match/substitute, delete, insert) across the whole family — LCS, edit distance, distinct-subsequence counting, and even regex matching are one table with different case logic. Space rolls to two rows whenever reconstruction isn't needed.
+
+![One alignment cell: the diagonal read on a match, the up and left reads on a mismatch, over a base row and base column that are the empty-prefix answers](images/dp-lcs-cell.svg)
 
 **Template (edit distance):**
 ```cpp
@@ -273,6 +285,8 @@ return dp[n][m];
 
 **Core insight — why it works:** The discovery move is choosing the *right* last decision — the one that makes the pieces **independent**. Burst Balloons is the canonical lesson: recursing on the *first* balloon burst leaves two halves that still interact through their shared boundary (neighbors change as bursts happen); recursing on the **last** balloon burst means, at that final moment, it neighbors exactly the interval's fixed walls i−1 and j+1 — and the two sides, fully burst before it, never interacted across it. Independence restored, recurrence legal. This "pick the decision that decouples" is interval DP's repeating trick (last burst, the matrix-chain's outermost multiplication, the triangle containing a fixed edge). Fill-by-length is just the topological order of "longer depends on shorter." Costs run O(n²) states × O(n) splits = O(n³) — fine for n ≤ ~500, which the constraints will confirm.
 
+![The upper triangle filled by increasing span length, from the len-1 diagonal up to the answer cell at (0, n−1), every read strictly shorter](images/dp-interval-order.svg)
+
 **Template (longest palindromic subsequence — endpoint peeling):**
 ```cpp
 // dp[i][j] = LPS length within s[i..j]
@@ -311,6 +325,8 @@ return dp[0][n-1];
 **Logic:** At each timestep you occupy one of a few **named states** (holding a stock / not holding; cooldown; j transactions used), and the input moves you between them. `dp[day][state]` = best value in that state after that day; transitions follow the machine's arrows.
 
 **Core insight — why it works:** When "what you can do next" depends on a small categorical mode — not just position — the fix is to make the mode part of the state, and the cleanest mental model is an explicit **finite-state machine**: draw circles (hold, empty, cooldown), label arrows (buy: −price, sell: +price, rest: 0), and the recurrence *is* the diagram — each state's new value = best over its incoming arrows. This dissolves the entire stock series into one method: 122 is the 2-state machine; 309 adds a cooldown node; 714 puts the fee on an arrow; 123/188 stack k copies of the machine. Drawing the diagram before coding converts a "hard DP" into transcription, and presenting it that way is exactly what interviewers reward.
+
+![The Free / Hold / Sold cooldown machine with its buy, sell, rest and cooldown arrows, and no arrow back from Sold to Hold](images/dp-state-machine.svg)
 
 **Template (best time with cooldown — 3-state machine):**
 ```cpp
@@ -424,6 +440,109 @@ pair<long long,long long> dfs(TreeNode* node) {
 
 ---
 
+## Pattern 10: Digit DP — Counting Over a Number Range
+
+**Logic:** "How many integers in [L, R] have property P?" where R can be 10¹⁸ — far too many to enumerate. Build the number **one decimal digit at a time, most significant first**, and make the state `(position, tight, started, property-so-far)`: `tight` = every digit placed so far equals R's prefix (so this digit is capped at R's digit, otherwise 0–9), `started` = a nonzero digit has been placed (leading zeros are not real zeros). Answer a range by subtraction: `f(R) − f(L−1)`.
+
+**Core insight — why it works:** The set of numbers ≤ R splits cleanly on *when you first go below R's prefix*. Once you place a digit strictly smaller than R's digit at some position, **every** completion of the remaining suffix is allowed — the upper bound stops mattering, and all such suffixes share one subproblem regardless of what came before. That collapse is the entire pattern: at most one tight path exists per position (it is the prefix of R itself), and everything hanging off it is a free, cacheable suffix problem depending only on (position, property). So 10¹⁸ numbers become ~18 positions × a small property alphabet × 10 digit choices. The two flags are the classic bug sources and both encode something real: `tight` says "the bound is still binding" (never memoize across it — those states aren't equivalent), `started` says "zeros so far were padding, not digits" (a number like 0007 must count as 7, and properties like "no two adjacent equal digits" must not be triggered by the padding).
+
+![Walking the digit positions of N with the tight flag: while tight the ceiling is N's digit, once loose it is 9, which is why loose states are memoizable and tight ones are not](images/dp-digit.svg)
+
+**Template (count integers in [1, N] with no two adjacent equal digits):**
+```cpp
+string num;                       // decimal digits of N, most significant first
+int memo[20][11];                 // [pos][last digit], last = 10 means "nothing placed yet"
+
+// numbers completable from position pos onward, given the last real digit placed
+int dfs(int pos, int last, bool tight) {
+    if (pos == (int)num.size()) return last == 10 ? 0 : 1;   // all-padding = the number 0, not counted
+    if (!tight && memo[pos][last] != -1) return memo[pos][last];  // NEVER cache tight states
+    int limit = tight ? num[pos] - '0' : 9;
+    int res = 0;
+    for (int d = 0; d <= limit; ++d) {
+        if (d == last) continue;                             // the property (last == 10 can never match)
+        bool started = (last != 10) || d > 0;
+        res += dfs(pos + 1, started ? d : 10, tight && d == limit);
+    }
+    if (!tight) memo[pos][last] = res;
+    return res;
+}
+// f(N) = (num = to_string(N), memset(memo, -1, sizeof memo), dfs(0, 10, true));
+// answer on [L, R] = f(R) - f(L - 1)
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 233. Number of Digit One | Hard | The canonical entry point: property = count of 1s placed so far, so the state carries an accumulator and the base case *returns that count* instead of 1. Also solvable by per-position combinatorics — showing both (DP for safety, closed form for flair) is the strong answer. |
+| 902. Numbers At Most N Given Digit Set | Hard | Allowed digits are restricted, so the digit loop iterates the given set instead of 0–9; numbers *shorter* than N are the `started == false` branch and are the part everyone forgets. |
+| 600. Non-negative Integers Without Consecutive Ones | Hard | Same machinery in **base 2**: digits are bits, property = previous bit. Proof that "digit DP" means "positional DP in any base" — the binary version also has a slick Fibonacci counting argument worth mentioning. |
+| 1012. Numbers With Repeated Digits | Hard | Complementary counting: count numbers with *all distinct* digits (property = a 10-bit mask of used digits) and subtract from N. When the property is hard to maintain, invert the question — a reflex worth building. |
+| 2376. Count Special Integers | Hard | 1012's positive form, same used-digit mask state. Pair them and the mask template is locked in. |
+| 357. Count Numbers with Unique Digits | Medium | The bound is 10ⁿ, so `tight` is trivially loose — pure counting, and the gentlest first exposure to the digit-position mindset before the flags arrive. |
+| 788. Rotated Digits | Medium | Property = "contains at least one of 2/5/6/9 and none of 3/4/7" — two boolean accumulators, showing how a compound property still fits in a tiny state. |
+| 1397. Find All Good Strings | Hard | Digit DP fused with **KMP**: the "property so far" is the automaton state of a forbidden pattern, and there are *two* tight flags (lower and upper bound). The pattern's final boss and a great demo that "property so far" can be any finite automaton. |
+
+**Pitfalls:**
+- **Memoizing tight states** is the signature bug: a tight `(pos, prop)` is not the same subproblem as a loose one (its digit range is capped). Cache only when `!tight`, or index the memo by `tight` too.
+- Leading zeros: without a `started` flag, "no two adjacent equal digits" rejects `100`-style padding and properties like "digit sum" get polluted. Decide explicitly whether 0 itself is in range.
+- Range subtraction with `L = 0` underflows to −1 — special-case it, and use `long long` for N ≥ 10¹⁰ and for counts.
+- `memset(memo, -1, sizeof memo)` must be re-run per query (per `f(R)` call) when the memo depends on N's digits — a stale cache across two bounds silently returns the previous answer.
+
+---
+
+## Pattern 11: Probability & Expectation DP — Chance-Weighted Transitions
+
+**Logic:** Same tables as everywhere else, but the cell holds a **probability** or an **expected value**, and the transition is a *weighted sum over successors* — `dp[s] = Σ P(s → t) · dp[t]` (+ any immediate cost) — instead of a max/min/count. Everything else (state design, fill order, rolling arrays) is unchanged.
+
+**Core insight — why it works:** Two theorems replace the max: the **law of total probability** (mutually exclusive, exhaustive first moves ⇒ their probabilities add, each weighted by how likely that move is) and **linearity of expectation** (E of a sum is the sum of Es, regardless of dependence — so expected cost decomposes along the same last-move partition you already use). The one genuinely new hazard is *direction*: probability of *reaching* a state flows **forward** from the start, while expected value *from* a state flows **backward** from absorbing/terminal states — mixing the two produces an equation where a state depends on itself. When self-dependence is unavoidable (a move can return you to the same state), either solve the one-variable equation algebraically (`E = 1 + pE + … ⇒ E = …`) or re-index so the dependency graph is acyclic. Second recurring move: these recurrences are usually a **sum over a contiguous window** of previous states (roll a k-sided die, draw up to k points), so the naive O(n·k) collapses to O(n) with a running window sum — the standard follow-up.
+
+**Template (Knight Probability in Chessboard — forward probability mass, rolling layer):**
+```cpp
+double knightProbability(int n, int k, int startRow, int startCol) {
+    static const int dr[8] = {-2,-2,-1,-1, 1, 1, 2, 2};
+    static const int dc[8] = {-1, 1,-2, 2,-2, 2,-1, 1};
+    vector<vector<double>> dp(n, vector<double>(n, 0.0));
+    dp[startRow][startCol] = 1.0;                       // all mass starts here
+    for (int step = 0; step < k; ++step) {
+        vector<vector<double>> nxt(n, vector<double>(n, 0.0));
+        for (int r = 0; r < n; ++r)
+            for (int c = 0; c < n; ++c) {
+                if (dp[r][c] == 0.0) continue;
+                for (int d = 0; d < 8; ++d) {
+                    int nr = r + dr[d], nc = c + dc[d];
+                    if (nr >= 0 && nr < n && nc >= 0 && nc < n)
+                        nxt[nr][nc] += dp[r][c] / 8.0;  // mass leaving the board is simply dropped
+                }
+            }
+        dp = nxt;                                        // rolling layer: only step-1 matters
+    }
+    double total = 0.0;
+    for (auto& row : dp) for (double p : row) total += p;
+    return total;                                        // probability of surviving all k moves
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 688. Knight Probability in Chessboard | Medium | The template: grid DP where the combine is `sum of predecessors / 8` instead of a min. Falling off the board needs no special state — the mass just isn't propagated, and the surviving total *is* the answer. |
+| 837. New 21 Game | Medium | dp[x] = probability of finishing with a score ≤ n given the current score is x; for x < k it is the **average** of dp[x+1 .. x+W], and for x ≥ k it is simply 0 or 1. Naive O(n·W) TLEs — the **sliding-window sum** (add the newly available term, drop the one that left the window) is the whole point, and `k == 0` plus `k + W <= n` are the edge cases that decide acceptance. |
+| 808. Soup Servings | Medium | Four equally likely operations, memoized on remaining volumes; scale by 25 to shrink the state space, then the notorious observation that for n ≥ ~4800 the answer is within 1e−6 of 1 — an *approximation* argument as the intended solution. |
+| 1230. Toss Strange Coins | Medium | dp[i][h] = probability that the first i coins gave h heads — knapsack shape with a probability cell; rolls to one array iterated **right-to-left** for exactly the 0/1 knapsack reason. |
+| 1155. Number of Dice Rolls With Target Sum | Medium | Counting version (divide by k^n for the probability): dp[dice][sum] summed over the k faces. The window-sum optimization applies here too; also the natural place to remember the mod. |
+| 1223. Dice Roll Simulation | Hard | Adds a "how many consecutive times this face has repeated" dimension — a state-machine × counting hybrid, and a good test of whether you can extend a state instead of abandoning the model. |
+| 1467. Probability of a Two Boxes Having Same Number of Distinct Balls | Hard | Enumerate splits with combinatorics, then take the ratio of favorable to total arrangements. Shows the honest limit of the pattern: when the state can't be summarized, counting + combinatorics beats a table. |
+| 913. Cat and Mouse | Hard | Not probabilistic itself, but the definitive cure for the **self-dependent state** hazard above: the (mouse, cat, turn) graph has cycles, so no fill order exists — resolve it by propagating **backward from terminal states** with a BFS/counting-of-unresolved-moves scheme. Keep it in your pocket for any chance/game DP whose states can loop. |
+
+**Pitfalls:**
+- Forgetting to **normalize**: each branch carries `1 / (number of equally likely moves)`, not 1. If your probabilities sum above 1, a divisor is missing; if they vanish, you divided twice.
+- Direction confusion: probability-of-reaching flows forward, expected-value-from-here flows backward. A state that depends on itself means you picked the wrong direction (or you owe an algebraic solve).
+- Floating-point: accumulate in `double`, compare against the stated tolerance (usually 1e−5/1e−6), never with `==`; for pure counting versions switch to `long long` + mod instead of doubles.
+- The O(n·k) window sum is the intended optimization in 837/1155 — write the naive recurrence, then say "this is a sliding-window sum" before the interviewer does.
+
+---
+
 ## Cheat Sheet: Problem Phrase → Pattern
 
 | Phrase in the problem | Pattern |
@@ -438,6 +557,8 @@ pair<long long,long long> dfs(TreeNode* node) {
 | buy/sell with cooldowns, fees, limited transactions | State machine (P7) |
 | n ≤ 20, assignment / ordering / partition of a set | Bitmask (P8) |
 | best value over subtrees, parent-child constraints | Tree DP (P9) |
+| "how many integers in [L, R] whose digits …", bounds like 10⁹ | Digit DP (P10) |
+| "probability that …", "expected number of …", dice/coins/random moves | Probability & expectation (P11) |
 | "subarray" with monotone structure | maybe NOT DP — window/Kadane/stack first |
 
 ---
@@ -451,6 +572,8 @@ pair<long long,long long> dfs(TreeNode* node) {
 - Interval: O(n²) states × O(n) splits = **O(n³)** — budget for n ≤ ~500.
 - State machine: O(n × |states|). Bitmask: O(2ⁿ × n) to O(2ⁿ × n²) — n ≤ ~20.
 - Tree DP: O(n × states per node). Rerooting: two O(n) passes.
+- Digit DP: O(digits × property states × base) — ~19 positions for a 64-bit bound, so effectively **constant** in the magnitude of N; that's the whole point.
+- Probability/expectation: identical to the underlying shape (grid, knapsack, linear); watch for the O(n × k) window sum that rolls to O(n).
 
 ---
 
@@ -472,5 +595,6 @@ pair<long long,long long> dfs(TreeNode* node) {
 **Week 2 — knapsack & LIS:** 416 → 494 → 322 → 518 → 377 → 279 → 1049 → 300 → 673 → 354
 **Week 3 — sequences & machines:** 1143 → 583 → 72 → 97 → 718 → 121 → 122 → 309 → 714 → 123
 **Week 4 — boss fights:** 115 → 44 → 10 → 516 → 312 → 1039 → 1547 → 188 → 526 → 698 → 337 → 968 → 834
+**Week 5 — number line & chance:** 357 → 902 → 233 → 600 → 1012 → 2376 → 688 → 1155 → 1230 → 837 → 808
 
 Good luck with the interviews!

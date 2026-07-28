@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">ROTATED ARRAY &#8212; ONE COMPARISON NAMES THE SORTED HALF</text>
+
+  <text x="153" y="82" fill="#64748b" font-size="11" text-anchor="middle">sorted run A (the high values)</text>
+  <text x="356" y="82" fill="#64748b" font-size="11" text-anchor="middle">sorted run B (the low values)</text>
+
+  <line x1="269" y1="88" x2="269" y2="150" stroke="#f59e0b" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="100" width="52" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="66"  y="122" fill="#93c5fd">4</text>
+    <rect x="98"  y="100" width="52" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="124" y="122" fill="#93c5fd">5</text>
+    <rect x="156" y="100" width="52" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="182" y="122" fill="#93c5fd">6</text>
+    <rect x="214" y="100" width="52" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="240" y="122" fill="#93c5fd">7</text>
+    <rect x="272" y="100" width="52" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="298" y="122" fill="#0f172a">0</text>
+    <rect x="330" y="100" width="52" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="356" y="122" fill="#c4b5fd">1</text>
+    <rect x="388" y="100" width="52" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="414" y="122" fill="#c4b5fd">2</text>
+  </g>
+
+  <g font-size="11.5" fill="#94a3b8" text-anchor="middle">
+    <text x="66"  y="152">lo</text>
+    <text x="240" y="152">mid</text>
+    <text x="414" y="152">hi</text>
+  </g>
+  <text x="298" y="152" fill="#f59e0b" font-size="11.5" text-anchor="middle">pivot</text>
+
+  <line x1="44" y1="180" x2="264" y2="180" stroke="#34d399" stroke-width="2.5"/>
+  <line x1="44" y1="174" x2="44" y2="186" stroke="#34d399" stroke-width="2.5"/>
+  <line x1="264" y1="174" x2="264" y2="186" stroke="#34d399" stroke-width="2.5"/>
+  <text x="154" y="170" fill="#34d399" font-size="11.5" text-anchor="middle">provably sorted</text>
+
+  <text x="40" y="208" fill="#34d399" font-size="12.5" font-weight="bold">nums[mid] = 7 &#62; nums[hi] = 2 &#8658; [lo, mid] is the sorted run</text>
+  <text x="40" y="232" fill="#94a3b8" font-size="11.5">range-test the target inside that run in O(1);</text>
+  <text x="40" y="250" fill="#94a3b8" font-size="11.5">if it is not there, cross the pivot and repeat</text>
+
+  <text x="510" y="90" fill="#e2e8f0" font-size="12.5">a rotation is two sorted runs glued together &#8212; every</text>
+  <text x="510" y="110" fill="#e2e8f0" font-size="12.5">element of run A sits above every element of run B</text>
+
+  <text x="510" y="148" fill="#f59e0b" font-size="12.5" font-weight="bold">one probe against nums[hi] classifies the halves, and</text>
+  <text x="510" y="166" fill="#f59e0b" font-size="12.5" font-weight="bold">at least one half is ALWAYS fully sorted</text>
+
+  <text x="510" y="204" fill="#34d399" font-size="12.5" font-weight="bold">a definitive yes/no about the sorted half is a</text>
+  <text x="510" y="222" fill="#34d399" font-size="12.5" font-weight="bold">definitive answer about the other &#8658; you still delete</text>
+  <text x="510" y="240" fill="#34d399" font-size="12.5" font-weight="bold">half the interval per probe, just via two steps</text>
+
+  <text x="510" y="278" fill="#f87171" font-size="12">duplicates (81, 154): when nums[lo] == nums[mid] ==</text>
+  <text x="510" y="296" fill="#f87171" font-size="12">nums[hi] the classifier says nothing &#8212; shrink both</text>
+  <text x="510" y="314" fill="#f87171" font-size="12">ends by one and admit the O(n) worst case out loud</text>
+</svg>

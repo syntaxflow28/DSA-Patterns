@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+    <marker id="arIndigo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a5b4fc"/></marker>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">LIST REVERSAL: SAVE NXT BEFORE THE ARROW FLIPS</text>
+
+  <text x="40" y="78" fill="#94a3b8" font-size="11.5">one step, in the only order that works</text>
+
+  <path d="M 152 104 Q 192 72 232 104" fill="none" stroke="#a5b4fc" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arIndigo)"/>
+  <text x="192" y="66" fill="#a5b4fc" font-size="11.5" font-weight="bold" text-anchor="middle">1. nxt = cur-&gt;next</text>
+
+  <line x1="249" y1="122" x2="294" y2="122" stroke="#3b82f6" stroke-width="2" marker-end="url(#arBlue)"/>
+  <g font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <circle cx="72"  cy="122" r="16" fill="#4c1d95" stroke="#a78bfa"/><text x="72"  y="127" fill="#c4b5fd">1</text>
+    <circle cx="152" cy="122" r="16" fill="#f59e0b" stroke="#f59e0b"/><text x="152" y="127" fill="#0f172a">2</text>
+    <circle cx="232" cy="122" r="16" fill="#312e81" stroke="#a5b4fc"/><text x="232" y="127" fill="#a5b4fc">3</text>
+    <circle cx="312" cy="122" r="16" fill="#1e3a8a" stroke="#3b82f6"/><text x="312" y="127" fill="#93c5fd">4</text>
+  </g>
+
+  <path d="M 140 136 Q 112 178 84 140" fill="none" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="250" y="176" fill="#34d399" font-size="11.5" font-weight="bold">2. cur-&gt;next = prev</text>
+
+  <g font-size="11.5" text-anchor="middle">
+    <text x="72"  y="206" fill="#c4b5fd">prev</text>
+    <text x="152" y="206" fill="#f59e0b" font-weight="bold">cur</text>
+    <text x="232" y="206" fill="#a5b4fc">nxt</text>
+    <text x="312" y="206" fill="#93c5fd">rest</text>
+  </g>
+  <text x="40" y="236" fill="#f59e0b" font-size="11.5" font-weight="bold" font-family="Consolas, monospace">3. prev = cur</text>
+  <text x="180" y="236" fill="#f59e0b" font-size="11.5" font-weight="bold" font-family="Consolas, monospace">4. cur = nxt</text>
+
+  <text x="40" y="274" fill="#f87171" font-size="12.5" font-weight="bold">flip first, and step 1 has nothing left to read:</text>
+  <g font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <circle cx="72"  cy="312" r="16" fill="#4c1d95" stroke="#a78bfa"/><text x="72"  y="317" fill="#c4b5fd">1</text>
+    <circle cx="152" cy="312" r="16" fill="#f59e0b" stroke="#f59e0b"/><text x="152" y="317" fill="#0f172a">2</text>
+  </g>
+  <line x1="134" y1="312" x2="92" y2="312" stroke="#f87171" stroke-width="2.5" marker-end="url(#arRed)"/>
+  <line x1="172" y1="312" x2="285" y2="312" stroke="#f87171" stroke-width="2.5" stroke-dasharray="5 4"/>
+  <line x1="212" y1="300" x2="236" y2="324" stroke="#f87171" stroke-width="2.5"/>
+  <line x1="236" y1="300" x2="212" y2="324" stroke="#f87171" stroke-width="2.5"/>
+  <text x="295" y="316" fill="#f87171" font-size="11.5">3, 4, ... unreachable</text>
+  <text x="40" y="352" fill="#f87171" font-size="12">cur-&gt;next was the only pointer to node 3 &#8212; overwriting</text>
+  <text x="40" y="370" fill="#f87171" font-size="12">it strands the entire remainder of the list</text>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">a singly linked list has no back pointer and no</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">random access &#8212; every list technique is a</text>
+  <text x="510" y="128" fill="#e2e8f0" font-size="12.5">workaround for exactly that poverty</text>
+
+  <text x="510" y="160" fill="#34d399" font-size="12.5" font-weight="bold">reversal needs only ONE remembered predecessor at</text>
+  <text x="510" y="180" fill="#34d399" font-size="12.5" font-weight="bold">the instant an arrow flips &#8658; a single prev variable</text>
+  <text x="510" y="200" fill="#34d399" font-size="12.5" font-weight="bold">replaces every missing backward link, in O(1) space</text>
+
+  <g font-size="12.5" fill="#a5b4fc" font-family="Consolas, monospace">
+    <text x="510" y="234">nxt = cur-&gt;next;</text>
+    <text x="510" y="256">cur-&gt;next = prev;</text>
+    <text x="510" y="278">prev = cur;</text>
+    <text x="510" y="300">cur = nxt;</text>
+  </g>
+  <g font-size="12.5" fill="#64748b" font-family="Consolas, monospace">
+    <text x="690" y="234">// save</text>
+    <text x="690" y="256">// flip</text>
+    <text x="690" y="278">// advance</text>
+    <text x="690" y="300">// advance</text>
+  </g>
+
+  <text x="510" y="332" fill="#f59e0b" font-size="12.5" font-weight="bold">the loop ends with cur null &#8212; return prev, the new head</text>
+  <text x="510" y="362" fill="#64748b" font-size="11.5">these four lines are the engine inside 92, 25 and 143</text>
+</svg>

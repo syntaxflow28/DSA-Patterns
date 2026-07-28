@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/></marker>
+    <marker id="arSlate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">ROUTING: THE SHAPE OF THE ASK PICKS THE PATTERN</text>
+
+  <g font-size="11.5" fill="#94a3b8">
+    <text x="44" y="85">max items, none overlapping</text>
+    <text x="44" y="110">cover a range / reach the end</text>
+    <text x="44" y="135">order everything to optimize</text>
+    <text x="44" y="160">match items into pairs</text>
+    <text x="44" y="185">multiplicities + a separation rule</text>
+    <text x="44" y="210">lexicographically best under a budget</text>
+    <text x="44" y="235">value constrained by both neighbors</text>
+    <text x="44" y="260">combine two at a time until one is left</text>
+  </g>
+
+  <g font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="290" y="70"  width="54" height="22" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="317" y="85"  fill="#93c5fd">P1</text>
+    <rect x="290" y="95"  width="54" height="22" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="317" y="110" fill="#93c5fd">P2</text>
+    <rect x="290" y="120" width="54" height="22" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="317" y="135" fill="#c4b5fd">P3</text>
+    <rect x="290" y="145" width="54" height="22" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="317" y="160" fill="#c4b5fd">P4</text>
+    <rect x="290" y="170" width="54" height="22" rx="6" fill="#312e81" stroke="#6366f1"/><text x="317" y="185" fill="#a5b4fc">P5</text>
+    <rect x="290" y="195" width="54" height="22" rx="6" fill="#312e81" stroke="#6366f1"/><text x="317" y="210" fill="#a5b4fc">P6</text>
+    <rect x="290" y="220" width="54" height="22" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="317" y="235" fill="#93c5fd">P7</text>
+    <rect x="290" y="245" width="54" height="22" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="317" y="260" fill="#c4b5fd">P9</text>
+  </g>
+
+  <g stroke="#94a3b8" stroke-width="1.2">
+    <line x1="344" y1="81"  x2="362" y2="81"/>
+    <line x1="344" y1="106" x2="362" y2="106"/>
+    <line x1="344" y1="131" x2="362" y2="131"/>
+    <line x1="344" y1="156" x2="362" y2="156"/>
+    <line x1="344" y1="181" x2="362" y2="181"/>
+    <line x1="344" y1="206" x2="362" y2="206"/>
+    <line x1="344" y1="231" x2="362" y2="231"/>
+    <line x1="344" y1="256" x2="362" y2="256"/>
+    <line x1="362" y1="81"  x2="362" y2="256"/>
+  </g>
+  <path d="M362,256 L362,278 L228,278" fill="none" stroke="#94a3b8" stroke-width="2.5"/>
+  <line x1="228" y1="278" x2="228" y2="286" stroke="#94a3b8" stroke-width="2.5" marker-end="url(#arSlate)"/>
+
+  <rect x="40" y="292" width="376" height="30" rx="6" fill="#f59e0b" stroke="#fbbf24"/>
+  <text x="228" y="312" fill="#0f172a" font-size="12" font-weight="bold" text-anchor="middle">does the choice need knowledge of the future?</text>
+
+  <line x1="120" y1="322" x2="120" y2="336" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <line x1="320" y1="322" x2="320" y2="336" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#arPurple)"/>
+
+  <rect x="40" y="338" width="160" height="28" rx="6" fill="none" stroke="#34d399"/>
+  <text x="120" y="357" fill="#34d399" font-size="11.5" font-weight="bold" text-anchor="middle">no &#8594; sort, sweep, commit</text>
+  <rect x="216" y="338" width="200" height="28" rx="6" fill="#4c1d95" stroke="#a78bfa"/>
+  <text x="316" y="357" fill="#c4b5fd" font-size="11.5" font-weight="bold" text-anchor="middle">yes &#8594; P8 regret heap, then DP</text>
+
+  <text x="510" y="88" fill="#e2e8f0" font-size="12.5">the shape of the ask picks the pattern; the lookahead</text>
+  <text x="510" y="106" fill="#e2e8f0" font-size="12.5">question then decides whether the plain sweep survives</text>
+  <text x="510" y="140" fill="#34d399" font-size="12.5" font-weight="bold">P1&#8211;P7 and P9: one sort key, one pass, and every</text>
+  <text x="510" y="158" fill="#34d399" font-size="12.5" font-weight="bold">commit is final &#8212; correctness is a two-line exchange</text>
+  <text x="510" y="192" fill="#f59e0b" font-size="12.5">P8 is the escape hatch: the heap holds every option</text>
+  <text x="510" y="210" fill="#f59e0b" font-size="12.5">you refused to decide about, so the past stays editable</text>
+  <text x="510" y="244" fill="#f87171" font-size="12">weights on intervals, arbitrary coin systems, or two</text>
+  <text x="510" y="262" fill="#f87171" font-size="12">interacting constraints &#8658; the swap can lose value: DP</text>
+  <text x="510" y="296" fill="#64748b" font-size="12">routing is not memorization &#8212; re-derive the sort key</text>
+  <text x="510" y="314" fill="#64748b" font-size="12">with the adjacent-swap test on every new problem</text>
+  <text x="510" y="332" fill="#64748b" font-size="12">P8 and P9 are the two heap-backed rungs of the family</text>
+</svg>

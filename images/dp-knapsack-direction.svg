@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arPink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f472b6"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">KNAPSACK: THE SWEEP DIRECTION IS THE SEMANTICS (w = 2)</text>
+
+  <text x="40" y="76" fill="#e2e8f0" font-size="12" font-weight="bold">0/1 &#8212; capacity sweeps DOWNWARD</text>
+  <line x1="424" y1="92" x2="58" y2="92" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+
+  <g font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="60"  y="102" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="88"  y="124" fill="#93c5fd">old</text>
+    <rect x="122" y="102" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="150" y="124" fill="#93c5fd">old</text>
+    <rect x="184" y="102" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#34d399"/><text x="212" y="124" fill="#34d399">old</text>
+    <rect x="246" y="102" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="274" y="124" fill="#93c5fd">old</text>
+    <rect x="308" y="102" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="336" y="124" fill="#0f172a">?</text>
+    <rect x="370" y="102" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="398" y="124" fill="#c4b5fd">new</text>
+  </g>
+  <g font-size="11" text-anchor="middle" font-family="Consolas, monospace">
+    <text x="88"  y="154" fill="#64748b">0</text>
+    <text x="150" y="154" fill="#64748b">1</text>
+    <text x="212" y="154" fill="#34d399">c-w</text>
+    <text x="274" y="154" fill="#64748b">3</text>
+    <text x="336" y="154" fill="#f59e0b">c</text>
+    <text x="398" y="154" fill="#64748b">5</text>
+  </g>
+  <text x="40" y="178" fill="#34d399" font-size="11.5" font-weight="bold">dp[c-w] is untouched this round &#8658; still the pre-item-i value</text>
+  <text x="40" y="194" fill="#94a3b8" font-size="11.5">item i can enter the answer at most once</text>
+
+  <text x="40" y="222" fill="#e2e8f0" font-size="12" font-weight="bold">UNBOUNDED &#8212; capacity sweeps UPWARD</text>
+  <line x1="58" y1="238" x2="424" y2="238" stroke="#f472b6" stroke-width="2.5" marker-end="url(#arPink)"/>
+
+  <g font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="60"  y="248" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="88"  y="270" fill="#93c5fd">old</text>
+    <rect x="122" y="248" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="150" y="270" fill="#93c5fd">old</text>
+    <rect x="184" y="248" width="56" height="34" rx="6" fill="#4c1d95" stroke="#f472b6"/><text x="212" y="270" fill="#f9a8d4">new</text>
+    <rect x="246" y="248" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="274" y="270" fill="#c4b5fd">new</text>
+    <rect x="308" y="248" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="336" y="270" fill="#0f172a">?</text>
+    <rect x="370" y="248" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="398" y="270" fill="#93c5fd">old</text>
+  </g>
+  <g font-size="11" text-anchor="middle" font-family="Consolas, monospace">
+    <text x="88"  y="300" fill="#64748b">0</text>
+    <text x="150" y="300" fill="#64748b">1</text>
+    <text x="212" y="300" fill="#f9a8d4">c-w</text>
+    <text x="274" y="300" fill="#64748b">3</text>
+    <text x="336" y="300" fill="#f59e0b">c</text>
+    <text x="398" y="300" fill="#64748b">5</text>
+  </g>
+  <text x="40" y="324" fill="#f9a8d4" font-size="11.5" font-weight="bold">dp[c-w] was rewritten earlier in this very sweep</text>
+  <text x="40" y="340" fill="#94a3b8" font-size="11.5">so it may already contain item i &#8212; reuse, deliberately</text>
+
+  <text x="510" y="86"  fill="#e2e8f0" font-size="12.5">one array, one item i, one pass over the capacity axis.</text>
+  <text x="510" y="106" fill="#e2e8f0" font-size="12.5">the ONLY difference between the two knapsacks is which</text>
+  <text x="510" y="126" fill="#e2e8f0" font-size="12.5">way that pass runs</text>
+
+  <text x="510" y="158" fill="#f59e0b" font-size="12.5" font-weight="bold">direction decides which VERSION of dp[c-w] you read:</text>
+  <text x="510" y="178" fill="#f59e0b" font-size="12.5" font-weight="bold">row i-1 (item i not yet available) or row i (already</text>
+  <text x="510" y="198" fill="#f59e0b" font-size="12.5" font-weight="bold">including it) &#8212; the 2-D distinction, compressed</text>
+
+  <text x="510" y="230" fill="#34d399" font-size="12.5" font-weight="bold">descending simply delays overwriting the cells you</text>
+  <text x="510" y="250" fill="#34d399" font-size="12.5" font-weight="bold">still need, so the &#8220;read row i-1&#8221; rule survives</text>
+
+  <text x="510" y="282" fill="#f87171" font-size="12">ascending on a 0/1 problem silently becomes unbounded &#8212;</text>
+  <text x="510" y="300" fill="#f87171" font-size="12">and still passes every test where no item is worth reusing</text>
+
+  <text x="510" y="328" fill="#64748b" font-size="11.5">separate knob &#8212; loop NESTING: items outer counts</text>
+  <text x="510" y="346" fill="#64748b" font-size="11.5">combinations (518), capacity outer counts orderings (377)</text>
+</svg>

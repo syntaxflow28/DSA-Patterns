@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">LOWER_BOUND VS UPPER_BOUND &#8212; ONE OPERATOR APART</text>
+
+  <g font-size="11" fill="#64748b" text-anchor="middle">
+    <text x="68" y="97">0</text><text x="130" y="97">1</text><text x="192" y="97">2</text>
+    <text x="254" y="97">3</text><text x="316" y="97">4</text><text x="378" y="97">5</text>
+  </g>
+
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="105" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="68"  y="127" fill="#93c5fd">2</text>
+    <rect x="102" y="105" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="130" y="127" fill="#0f172a">5</text>
+    <rect x="164" y="105" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="192" y="127" fill="#0f172a">5</text>
+    <rect x="226" y="105" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="254" y="127" fill="#0f172a">5</text>
+    <rect x="288" y="105" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="316" y="127" fill="#93c5fd">7</text>
+    <rect x="350" y="105" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="378" y="127" fill="#93c5fd">9</text>
+  </g>
+
+  <line x1="102" y1="200" x2="102" y2="147" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="102" y="220" fill="#34d399" font-size="12" font-weight="bold" text-anchor="middle">lower_bound(5) = 1</text>
+
+  <line x1="288" y1="200" x2="288" y2="147" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#arPurple)"/>
+  <text x="288" y="220" fill="#c4b5fd" font-size="12" font-weight="bold" text-anchor="middle">upper_bound(5) = 4</text>
+
+  <text x="40" y="254" fill="#f59e0b" font-size="12.5" font-weight="bold">LC 34 falls out for free: range = [1, 4 &#8722; 1], count = 3</text>
+  <text x="40" y="280" fill="#94a3b8" font-size="11.5">same loop, same invariant &#8212; only &#8805; became &#62;</text>
+
+  <text x="510" y="90" fill="#e2e8f0" font-size="12.5">lower_bound = first i with nums[i] &#8805; target</text>
+  <text x="510" y="110" fill="#e2e8f0" font-size="12.5">upper_bound = first i with nums[i] &#62; target</text>
+
+  <text x="510" y="148" fill="#f59e0b" font-size="12.5" font-weight="bold">both are the SAME first-true search; the predicate</text>
+  <text x="510" y="166" fill="#f59e0b" font-size="12.5" font-weight="bold">changes, the loop never does</text>
+
+  <text x="510" y="204" fill="#34d399" font-size="12.5" font-weight="bold">duplicates need zero special handling, because a</text>
+  <text x="510" y="222" fill="#34d399" font-size="12.5" font-weight="bold">boundary search never asks &#8220;is mid equal?&#8221; &#8212; two</text>
+  <text x="510" y="240" fill="#34d399" font-size="12.5" font-weight="bold">outcomes per probe instead of three</text>
+
+  <text x="510" y="268" fill="#94a3b8" font-size="12">the result can be n, meaning &#8220;no such element&#8221;;</text>
+  <text x="510" y="286" fill="#94a3b8" font-size="12">check that before you dereference it</text>
+
+  <text x="510" y="312" fill="#f87171" font-size="12">exact-match search lands on an arbitrary 5 &#8212; that is</text>
+  <text x="510" y="330" fill="#f87171" font-size="12">why 34 wants boundaries, not a hit</text>
+</svg>

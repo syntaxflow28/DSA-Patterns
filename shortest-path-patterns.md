@@ -33,6 +33,7 @@ if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;   // edge (u, v, w)
 | Graph is a DAG (any weights) | Topological relaxation | O(V + E) |
 | All pairs, small V (≤ ~400) | Floyd-Warshall | O(V³) |
 | Path cost = max/min/product of edges | Modified Dijkstra / binary search | varies |
+| "How many" shortest paths / second shortest | Dijkstra + count or k settles | O(E log V) / O(k·E log(kV)) |
 
 **The second skill — modeling.** Half of hard shortest-path problems hide the graph: nodes might be (cell, keys held), (city, stops used), (node, time mod pattern), or "all positions sharing a value." Before picking an algorithm, answer three questions: *what is a node? what is an edge? what does an edge cost?* — the state-design discipline from the BFS guide, now with weights. Pattern 8 is devoted to it.
 
@@ -46,13 +47,32 @@ if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;   // edge (u, v, w)
 
 **3. Structure.** Grids with movement costs; flight/road networks; "convert A into B with operation costs" (implicit state graphs); dependency chains with durations (DAG).
 
-**4. The negative signals.** "Longest simple path" in a general graph — NP-hard, not a relaxation problem (but trivial on DAGs — Pattern 6). "Count paths" alone — DP/BFS-counting, not distance. "Path that visits all nodes" — TSP/bitmask, not shortest path.
+**4. The negative signals.** "Longest simple path" in a general graph — NP-hard, not a relaxation problem (but trivial on DAGs — Pattern 6). "Count paths" alone — DP/BFS-counting, not distance (though *counting shortest* paths is Pattern 9). "Path that visits all nodes" — TSP/bitmask, not shortest path.
+
+**The audit, drawn.** Walk it top-down in the first ten seconds; every branch is a question about the *input*, never about how hard the problem feels:
+
+![Routing the shortest path question: pair count, then acyclicity, then a stop budget, then the sign and shape of the weights pick the algorithm](images/sp-routing.svg)
 
 ---
 
 ## Pattern 1: Unweighted — BFS (the degenerate case)
 
 **Logic & insight (condensed — full treatment in the BFS guide):** With unit edges, BFS's layer order *is* cost order, so first arrival = shortest distance and no comparisons are ever needed. Mark visited at **enqueue**. Multi-source variants seed all sources at distance 0. The mistake this pattern exists to prevent: reaching for Dijkstra on an unweighted graph — correct, but a log factor slower and a signal you didn't audit the weights.
+
+**Template (multi-source, kept here so this guide stands alone):**
+```cpp
+vector<int> dist(n, -1);                            // -1 doubles as "unvisited"
+queue<int> q;
+for (int s : sources) { dist[s] = 0; q.push(s); }   // seed EVERY source at 0
+while (!q.empty()) {
+    int u = q.front(); q.pop();
+    for (int v : adj[u])
+        if (dist[v] == -1) {                        // visited at ENQUEUE — first arrival is optimal
+            dist[v] = dist[u] + 1;
+            q.push(v);
+        }
+}
+```
 
 **Problems:** 1091 (Shortest Path in Binary Matrix), 127 (Word Ladder), 752 (Open the Lock), 542/994 (multi-source fields), 909 (Snakes and Ladders), 815 (Bus Routes — BFS over *routes*, a modeling gem).
 
@@ -63,6 +83,26 @@ if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;   // edge (u, v, w)
 ## Pattern 2: Weights {0, 1} — 0-1 BFS (the deque trick)
 
 **Logic & insight (condensed — full treatment in the BFS guide, Pattern 7):** A 0-edge neighbor has the *same* distance as the current node, so it belongs at the deque's **front** (current layer); a 1-edge neighbor goes to the **back**. The deque stays sorted by distance — Dijkstra's ordering guarantee at queue prices: O(V + E), no heap. Relax like Dijkstra (distance comparison, stale-skip), not like BFS (no visited-at-enqueue).
+
+![0-edges push to the deque's front and 1-edges to the back, so the deque never holds more than two distinct distances and its front is the global minimum](images/sp-01-deque.svg)
+
+**Template:**
+```cpp
+vector<int> dist(n, INT_MAX);
+deque<pair<int,int>> dq;                     // (dist, node)
+dist[src] = 0;
+dq.push_back({0, src});
+while (!dq.empty()) {
+    auto [d, u] = dq.front(); dq.pop_front();
+    if (d > dist[u]) continue;               // stale entry — same lazy deletion as Dijkstra
+    for (auto [v, w] : adj[u])               // w is 0 or 1
+        if (dist[u] + w < dist[v]) {
+            dist[v] = dist[u] + w;
+            if (w == 0) dq.push_front({dist[v], v});   // same layer
+            else        dq.push_back ({dist[v], v});   // next layer
+        }
+}
+```
 
 **Problems:** 1368 (Min Cost Valid Path — follow arrow free, change it for 1), 2290 (Minimum Obstacle Removal), 1293 (Obstacle Elimination — reframable both ways), 934 (Shortest Bridge — flood fill + the "expand free, cross for 1" reading).
 
@@ -75,6 +115,8 @@ if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;   // edge (u, v, w)
 **Logic:** A min-heap holds the frontier keyed by tentative distance. Pop the cheapest node; if the popped entry is stale (worse than the recorded distance), skip it; otherwise the node is **settled** — its distance is final — and you relax its outgoing edges, pushing improved tentative costs. C++ has no decrease-key, so improvements are pushed as duplicates and stale entries die at pop.
 
 **Core insight — why it works:** The settlement is a **cut argument**: when u pops with tentative cost d — the minimum over the entire frontier — any alternative route to u must leave the settled region through some frontier node with cost ≥ d, and with **non-negative edges** can only grow from there. So no future discovery can beat d: settle u permanently, never revisit. That argument is also a precise map of the failure modes: a negative edge beyond the frontier could shrink a path after the exit (→ Bellman-Ford), and a constraint like "≤ k stops" can force a costlier-but-shorter route that Dijkstra's permanent settlement already discarded (→ Pattern 5). One more subtlety worth saying aloud: Dijkstra is BFS with the queue upgraded to a heap — and the visited rule flips accordingly (settle on **pop**, not enqueue) because in BFS first discovery is optimal and here it isn't.
+
+![S to A costs 1 and S to B costs 5, but A to B costs 1 — so B is discovered at 5 and settled at 2, which is why Dijkstra settles on pop rather than on enqueue](images/sp-dijkstra-settle.svg)
 
 **Template (the canonical form — internalize every line):**
 ```cpp
@@ -100,7 +142,7 @@ while (!pq.empty()) {
 |---|---|---|
 | 743. Network Delay Time | Medium | Vanilla Dijkstra; answer = max settled distance (or −1 if any node unreached). The cleanest place to drill the template and the stale-skip line. |
 | 1514. Path with Maximum Probability | Medium | Maximize a **product** of probabilities: flip to a max-heap, relax with `prob[u] * w > prob[v]`. Works because multiplying by values in (0,1] never increases — the same monotonicity Dijkstra's cut needs. (Equivalent: minimize −log p.) |
-| 1976. Number of Ways to Arrive | Medium | Dijkstra + path counting: strict improvement copies the count, a tie adds it. The "augment with counts" move (LIS guide) on a weighted graph — mod 1e9+7. |
+| 1976. Number of Ways to Arrive | Medium | Dijkstra + path counting: strict improvement copies the count, a tie adds it. The "augment with counts" move (LIS guide) on a weighted graph — mod 1e9+7. Full treatment in Pattern 9. |
 | 505. The Maze II | Medium | Edges are entire rolls until a wall: nodes = stopping cells, edge weight = roll length. Non-unit weights emerging from movement rules — the weight audit catching what looks like a grid-BFS. |
 | 1786. Number of Restricted Paths | Medium | Dijkstra from the destination, then count strictly-decreasing-distance paths with memoized DFS over the distance field. Distance fields as *input to a second algorithm*. |
 | 2045. Second Minimum Time | Hard | Track the best **two** distinct arrival times per node; traffic-light waiting modifies the edge cost as a function of departure time. Dijkstra generalized to k-best + time-dependent edges — a genuine boss fight. |
@@ -155,6 +197,8 @@ if (cand < dist[v]) {
 
 **Core insight — why it works:** Induction on path length: after pass i, `dist[v]` is correct for every v whose shortest path uses ≤ i edges — because that path's last edge gets relaxed in pass i with an already-correct predecessor (≤ i−1 edges, previous pass). Shortest simple paths have ≤ n−1 edges, hence n−1 passes. This proof needs *no* assumption about weights — negatives are fine — which is exactly what Dijkstra's cut couldn't offer. The k-stops insight is sharper: the pass count **is** an edge budget, so the constraint that *breaks* Dijkstra (787: a pricier-but-shorter route may be the only legal one, but Dijkstra already settled the node via the cheap long route) is the thing Bellman-Ford *natively expresses*. One implementation subtlety makes or breaks the k-version: relax from a **frozen snapshot** of the previous pass (copy the dist array), or one pass can chain multiple edges and blow the budget.
 
+![After pass i every shortest path of at most i edges is correct, so pass k is the "at most k stops" answer and a further relaxing pass proves a negative cycle](images/sp-bellman-passes.svg)
+
 **Template (k-constrained Bellman-Ford — LC 787):**
 ```cpp
 vector<long long> dist(n, LLONG_MAX);
@@ -197,6 +241,8 @@ return dist[dst] == LLONG_MAX ? -1 : dist[dst];
 
 **Core insight — why it works:** Every ordering trick in this guide exists to ensure `dist[u]` is final before u's edges are relaxed. On a DAG, topological order *guarantees that structurally*: all of u's predecessors precede it, so by the time u is processed, every path into it has been fully accounted — one relaxation sweep suffices, with zero assumptions about weights. The longest-path bonus is the deeper point: longest simple path is NP-hard *because of cycles* (you'd have to avoid revisits); a DAG has no cycles, so the hardness evaporates and max-relaxation is exactly as easy as min. This is why "critical path / minimum total time with prerequisites" problems — which are longest-path questions — are tractable: dependencies form a DAG by nature. Recognition cue: **prerequisites, build orders, version chains, strictly-increasing moves** — anything where edges can't loop.
 
+![A single relaxation sweep in topological order finalizes every node, a negative edge included, and flipping min to max yields the longest path](images/sp-dag-order.svg)
+
 **Template (DAG relaxation after Kahn's order):**
 ```cpp
 // topo = topological order (from Kahn's algorithm)
@@ -231,6 +277,8 @@ for (int u : topo)
 
 **Core insight — why it works:** It's interval-style DP on the *set of allowed intermediates*: the shortest i→j path using intermediates {0..k} either ignores k (previous value stands) or passes through k exactly once — splitting into i→k and k→j, both using only {0..k−1}, both already computed. That case split is exhaustive (a shortest path visits k at most once — no negative cycles), which is the entire proof. The k-outermost order is the DP's dependency order; swapping loops breaks the invariant (a classic gotcha question). When to choose it: V ≤ ~400 (V³ ≈ 6×10⁷), **many queries** between arbitrary pairs, or when the problem is *about* the full distance matrix (counting reachable sets, comparing all cities). Bonus powers: transitive closure (booleans + OR/AND), path *products* (399), and negative-edge tolerance (diagonal going negative ⇔ negative cycle).
 
+![Allowing k as an intermediate compares the old i-to-j value against best i-to-k plus best k-to-j, both computed over intermediates 0 to k−1](images/sp-floyd-k.svg)
+
 **Template:**
 ```cpp
 // d[i][j] = direct edge weight, INF if absent, 0 if i == j
@@ -263,6 +311,8 @@ for (int k = 0; k < n; k++)                  // intermediate — OUTERMOST, non-
 **Logic:** When legality or cost depends on more than the position — fuel left, stops used, keys held, parity of arrival time, which discounts remain — the graph you must search is over **augmented states** (position, extra). Pick the algorithm by the *edge weights of the augmented graph* (the same decision table as always), and let the state carry the constraint.
 
 **Core insight — why it works:** This is the unifying pattern of the whole guide — and of the BFS guide's state-design section, now weighted. A constraint that breaks an algorithm's proof on the *original* graph often vanishes on the right augmented graph: 787 breaks Dijkstra because settling a city discards the pricier-short route — but over (city, stops-used) states, every node again has a single well-defined optimal cost and **Dijkstra's cut argument is restored**. The price is state-space size (V × budget), so the discipline is the same two-step as ever: prove the state *sufficient* (two situations with equal states have identical futures), then *count* it (states × branching must fit). Plus one new lever unique to weighted search — **dominance pruning**: skip state (v, r) if some recorded (v, r') with r' ≥ r already has cost ≤ yours; strictly-better-in-both states need never be expanded.
+
+![One input vertex expands into one copy per key set, with pick-up-key edges crossing between the layers while the original edges are copied inside each](images/sp-state-augment.svg)
 
 **Template (Dijkstra over (node, resource) states):**
 ```cpp
@@ -304,6 +354,72 @@ while (!pq.empty()) {
 
 ---
 
+## Pattern 9: Counting and Ranking Shortest Paths
+
+**Logic:** Sometimes the distance isn't the answer — *how many* shortest paths are there, *which edges lie on one*, or what is the **second** shortest length. All three are read off the same Dijkstra run. Counting: carry a parallel `ways[]` array — a strict improvement **overwrites** the count (`ways[v] = ways[u]`), a tie **adds** to it (`ways[v] += ways[u]`), mod 1e9+7. Edge membership: run Dijkstra from both endpoints and test each edge with `dS[u] + w + dT[v] == dS[t]`. Second/k-th shortest: drop the settle-once rule to **settle-at-most-k-times** — pop order delivers a node's distances in increasing order, so the i-th settled pop is its i-th best.
+
+**Core insight — why it works:** The edges that satisfy `dist[u] + w == dist[v]` form the **shortest-path DAG** — every shortest path is a path in it, and with strictly positive weights it is acyclic because `dist` strictly increases along every edge. Counting paths in a DAG is a one-line DP, and Dijkstra's settle order *is* a topological order of that DAG, so the count can be broadcast the moment a node pops: nothing settled later can ever be a predecessor. That is also the exact failure condition to state aloud — a **zero-weight edge** lets two nodes share a distance, the "DAG" gains a cycle, and `ways[u]` is no longer final at pop time. The k-shortest relaxation rests on the same monotonicity from a different angle: the heap emits candidate costs globally non-decreasing, so the k-th time a node survives to the front, no smaller unseen cost for it can exist. And the two-sided edge test is the classic distance-field composition — the cheapest path through edge (u, v) costs `dS[u] + w + dT[v]`, so the edge is on *some* shortest path exactly when that equals the optimum.
+
+**Template (counting shortest paths — LC 1976):**
+```cpp
+const long long MOD = 1'000'000'007;
+vector<long long> dist(n, LLONG_MAX), ways(n, 0);
+priority_queue<pair<long long,int>,
+               vector<pair<long long,int>>, greater<>> pq;
+dist[src] = 0; ways[src] = 1;
+pq.push({0, src});
+while (!pq.empty()) {
+    auto [d, u] = pq.top(); pq.pop();
+    if (d > dist[u]) continue;                    // stale — ways[u] is final at this point
+    for (auto [v, w] : adj[u]) {
+        long long nd = d + w;
+        if (nd < dist[v]) {                       // strictly better: the old paths are dead
+            dist[v] = nd;
+            ways[v] = ways[u];                    // OVERWRITE, never +=
+            pq.push({nd, v});
+        } else if (nd == dist[v]) {               // tie: a new family of shortest paths
+            ways[v] = (ways[v] + ways[u]) % MOD;  // no push — dist[v] didn't change
+        }
+    }
+}
+return (int)ways[dst];
+```
+
+**Template (k-th smallest distinct cost — the second-shortest generalization):**
+```cpp
+priority_queue<pair<long long,int>,
+               vector<pair<long long,int>>, greater<>> pq;
+vector<int> settled(n, 0);
+vector<long long> last(n, -1);                    // last cost settled at each node
+pq.push({0, src});
+while (!pq.empty()) {
+    auto [d, u] = pq.top(); pq.pop();
+    if (settled[u] >= K) continue;                // u already has its K best costs
+    if (last[u] == d) continue;                   // want DISTINCT costs (drop for non-distinct)
+    last[u] = d; settled[u]++;
+    if (u == dst && settled[u] == K) return d;    // the K-th smallest cost to dst
+    for (auto [v, w] : adj[u]) pq.push({d + w, v});
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 1976. Number of Ways to Arrive at Destination | Medium | The flagship, and a very common phone screen. Weights are positive (strictly), which is exactly the precondition the counting DP needs — say so unprompted; it's the detail that separates memorized code from understanding. |
+| 3123. Find Edges in Shortest Paths | Hard | Two Dijkstras (from 0 and from n−1), then one O(E) sweep testing `dS[u] + w + dT[v] == D` in both orientations. The distance-field-from-both-ends composition, and the cheapest Hard in this guide once you see it. |
+| 2045. Second Minimum Time to Reach Destination | Hard | Cross-listed from Pattern 3: the k = 2 instance, with the twist that the second time must be **strictly** greater, plus red-light waiting folded into the edge cost. The distinctness guard in the template is precisely this problem's trap. |
+| 1786. Number of Restricted Paths | Medium | Dijkstra from the destination, then count paths along strictly-decreasing distance — counting on a DAG *derived* from a distance field rather than the tie-subgraph. Same DP, different DAG. |
+| Counting shortest paths, unweighted (classic) | — | Same recurrence with BFS layers: `ways[v] += ways[u]` when `dist[v] == dist[u] + 1`. Grid version degenerates to plain DP (62/63) — recognizing that the grid *is* the shortest-path DAG is the point. |
+
+**Pitfalls:**
+- `ways[v] += ways[u]` on a strict improvement instead of `=`: silently keeps counts from paths that are no longer shortest. The single most common 1976 bug.
+- Zero-weight edges (or a metric where ties can be relaxed *after* settling) break the count — the tie-subgraph is no longer acyclic. Guard it, or contract zero-weight components first.
+- Counting at push time rather than at settle time double-counts every duplicate heap entry.
+- Second-shortest without the strict-inequality guard returns the shortest time twice — and the "at most k settles" version is O(k·E log(kV)): budget it before promising it.
+- Overflow and modulus: keep `ways` in `long long`, mod after every addition, and don't mod the distances.
+
+---
+
 ## When Each Tool FAILS — The Boundary Map
 
 | Situation | Broken tool & why | Repair |
@@ -316,6 +432,8 @@ while (!pq.empty()) {
 | All pairs, large sparse V | Floyd-Warshall — V³ explodes | Dijkstra per source (E log V each) |
 | Edge costs depend on arrival time/parity | Plain relaxation — cost isn't edge-local | Fold time into the state or the metric (2045, 2577) |
 | Path cost isn't path-monotone | Modified Dijkstra — cut argument needs monotonicity | Binary search on answer + feasibility BFS, or rethink |
+| Counting shortest paths with **zero-weight** edges | The `ways[]` DP — the tie-subgraph stops being a DAG | Require positive weights, or contract zero-weight components first |
+| "Second shortest" via one Dijkstra run | Settle-once discards the runner-up on arrival | Settle each node up to k times (P9), or keep the two best per node |
 
 The one-sentence audit that routes everything: **what do edges cost, can anything be negative, is there a budget, and how many (source, target) pairs are asked?** Four answers, one algorithm.
 
@@ -336,6 +454,8 @@ The one-sentence audit that routes everything: **what do edges cost, can anythin
 | strictly increasing/decreasing moves | It's a DAG — topological DP (P6) |
 | "for every pair of cities…", small n | Floyd-Warshall (P7) |
 | cost/legality depends on fuel, keys, stops, parity | State augmentation (P8) |
+| "number of ways to arrive", "how many shortest paths" | Counting Dijkstra (P9) |
+| "second minimum", "k-th shortest", "which edges lie on a shortest path" | Ranked / two-sided Dijkstra (P9) |
 
 ---
 
@@ -347,6 +467,7 @@ The one-sentence audit that routes everything: **what do edges cost, can anythin
 - DAG relaxation: **O(V + E)** including the topological sort — and longest path at the same price.
 - Floyd-Warshall: **O(V³)** time, O(V²) space — budget V ≤ ~400.
 - State-augmented: **O(S log S + moves)** with S = states — count S first, always.
+- Counting shortest paths: **O(E log V)** — the `ways[]` array is free. k-th shortest: **O(k·E log(kV))**.
 
 ---
 
@@ -364,8 +485,8 @@ The one-sentence audit that routes everything: **what do edges cost, can anythin
 ## Suggested Practice Order
 
 **Week 1 — the audit & BFS family:** 1091 → 752 → 542 → 994 → 1368 → 2290 → 934
-**Week 2 — Dijkstra fluency:** 743 → 1514 → 505 → 1976 → 1631 → 778 → 1102
+**Week 2 — Dijkstra fluency:** 743 → 1514 → 505 → 1976 → 3123 → 1631 → 778 → 1102
 **Week 3 — beyond Dijkstra:** 787 (all three ways) → 743 (BF + FW re-solves) → 1334 → 1462 → 399 → 1136 → 2050
-**Week 4 — boss fights:** 1129 → 1293 → 864 → 1928 → 1345 → 2045 → 2577 → 1697 → 2812
+**Week 4 — boss fights:** 1129 → 1293 → 864 → 1928 → 1345 → 1786 → 2045 → 2577 → 1697 → 2812
 
 Good luck with the interviews!

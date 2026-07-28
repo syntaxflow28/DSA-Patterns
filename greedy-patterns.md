@@ -35,6 +35,10 @@ The skill is choosing the **one number** (or small tuple) that dominates all str
 **3. Counterexample Hunting** (the disproof — equally important).
 Before trusting any greedy rule, spend 60 seconds trying to kill it: tiny inputs (n = 3–5), extreme values, ties, and adversarial orderings. Killing your own rule costs a minute; having the interviewer kill it costs the round. The classic graveyard: coin change greedy fails on coins {1, 3, 4} for amount 6 (greedy: 4+1+1; optimal: 3+3) — greedy-on-coins works for *canonical* systems like US coins but is not a general algorithm, and knowing that distinction cold is a standard checkpoint.
 
+**Picture — the decision procedure, and the fallback ladder when it fails:**
+
+![The 60-second counterexample hunt, then exchange and staying-ahead, with the fallback ladder from plain greedy to regret heap to DP](images/greedy-proof-ladder.svg)
+
 **Recognizing greedy problems:**
 - "Minimum number of X to cover/achieve Y", "maximum items selected under a simple constraint" — selection/coverage shapes.
 - A natural **sort key** suggests itself (deadline, end time, ratio, size) and the constraint is one-dimensional.
@@ -43,11 +47,23 @@ Before trusting any greedy rule, spend 60 seconds trying to kill it: tiny inputs
 
 ---
 
+## Pattern Selection — Routing a Problem
+
+The shape of the *ask* picks the pattern; the lookahead question then decides whether the plain sweep survives.
+
+![Ask shapes routing to Patterns 1-9, with the lookahead fork sending problems to the regret heap or to DP](images/greedy-routing.svg)
+
+---
+
 ## Pattern 1: Interval Scheduling — Earliest End First
 
 **Logic:** To select the maximum number of non-overlapping intervals: sort by **end time**, sweep left to right, take every interval that starts at/after the last accepted end. Variants: minimum removals (n − kept), minimum arrows/points to hit all intervals (each accepted end is a "shot").
 
 **Core insight — why it works:** The earliest-ending interval is the choice that **leaves the most room** — formally, the exchange argument above: any optimal solution's first interval can be swapped for the earliest-ending one without losing feasibility (it ends no later) or count. Sorting by *start* instead has clean counterexamples (one long early-starting interval blocks two short ones) — the sort key must be the **resource the future cares about**, and the future cares only about when you become free. The same theorem powers "minimum points to stab all intervals": shoot at the earliest deadline (end), because any interval you'd group with it must be alive at that moment.
+
+**Picture — one long interval versus two short ones:**
+
+![A spanning 1 to 10 blocks B and C, so start-sorting keeps 1 while end-sorting keeps 2](images/greedy-interval.svg)
 
 **Template (max non-overlapping count):**
 ```cpp
@@ -85,6 +101,10 @@ for (auto& it : iv)
 **Logic:** Cover a line/range (reach the last index, stitch [0, T], water a garden) using elements that each cover an interval. Sweep left to right maintaining the **furthest point reachable** with the current budget; when the sweep is about to pass the current coverage edge, you *must* commit another unit — and the provably best unit is the one extending coverage furthest.
 
 **Core insight — why it works:** A staying-ahead argument on one number: `reach` = the farthest coverage achievable with k committed units — by induction it dominates every other strategy's frontier, because it's defined as the max over all available extensions. Jump Game II's layered form makes the hidden structure visible: positions reachable in k jumps form an interval, so the minimum-jumps problem is **implicit BFS where each "layer" is a range** — `[curEnd+1, furthest]` is layer k+1 — and the greedy "jump only when forced, to the furthest option" is exactly BFS's layer expansion without a queue. That equivalence (greedy = BFS on interval-shaped layers) is the satisfying *why* behind a family that otherwise feels like magic.
+
+**Picture — layers as intervals on [2, 3, 1, 1, 4]:**
+
+![curEnd is the current layer's right edge and farthest becomes the next one, with a jump forced whenever i reaches curEnd](images/greedy-reach.svg)
 
 **Template (Jump Game II — minimum units to cover):**
 ```cpp
@@ -233,6 +253,10 @@ return max((int)tasks.size(), skeleton);            // dense case needs no idles
 
 **Core insight — why it works:** Lexicographic order is decided at the **first position of difference**, so improving an early position is worth any sacrifice later — making greedy-by-prefix provably right: if popping the top yields a smaller character earlier, *every* completion of the popped version beats *every* completion of the kept version. The guard conditions encode feasibility: in Remove K Digits the budget `k` limits pops; in Remove Duplicate Letters a character may be popped **only if it occurs again later** (tracked via last-occurrence counts) — otherwise the swap argument breaks because the popped letter is gone forever. This is the monotonic stack (essentials guide P1) re-employed: same mechanics, but the stack now *is the answer*, and the pop condition is a greedy theorem rather than a domination fact.
 
+**Picture — the trace on 1432219 with k = 3:**
+
+![The stack pops larger digits while budget remains, never pops on ties, and pushes only once k is exhausted, yielding 1219](images/greedy-stack.svg)
+
 **Template (Remove K Digits):**
 ```cpp
 string st;                                    // stack-as-string
@@ -303,11 +327,83 @@ return accumulate(candy.begin(), candy.end(), 0LL);
 
 ## Pattern 8: Regret Greedy — Commit With an Undo Heap
 
-**Logic & insight (condensed — full treatment in the Heap guide, Pattern 7):** When the greedy choice needs future knowledge ("should I refuel here?"), commit cheaply now but keep all alternatives in a heap; when a constraint finally breaks, retract the **worst** past commitment (largest duration, smallest skipped fuel) — provably optimal by a reversed exchange argument. Sort by the forced dimension (position, deadline, capital), sweep, heap the regrets. This is the official escape hatch when Patterns 1–7 fail for lookahead reasons — the middle rung of the ladder before full DP.
+**Logic:** When the choice needs future knowledge ("should I refuel *here*?"), don't decide at the moment you pass it. Sweep in the order the problem forces (position, deadline, capital), take everything optimistically or defer it into a **heap of pending regrets**, and only when a constraint actually breaks do you reach into the heap and retract/redeem the **extreme** option — the largest skipped fuel, the longest accepted course, the smallest climb spent on a ladder. Two phases every time: (1) a sort establishing the sweep order, (2) a heap that makes the past editable. Mechanics and heap variants live in the Heap guide (Pattern 7); the proof layer is here.
 
-**Problems:** 871 (Min Refueling Stops — "retroactively decide you stopped at the best passed station"), 630 (Course Schedule III — drop the longest course when over deadline), 502 (IPO — unlock-then-take-best), 1642 (Furthest Building — retract a ladder from the smallest climb), 1353 (Max Events — earliest-deadline with expiry).
+**Core insight — why it works:** A **reversed exchange argument**. Ordinary greedy proves "my choice belongs to some optimal solution"; regret greedy proves the weaker but sufficient claim "*deferring* the choice loses nothing, because the heap still contains every option I could have taken." The sweep order guarantees an option is never needed before it enters the heap (you cannot refuel at a station you haven't driven past), so the heap is always a superset of the legal choices at the moment of the break — and at a break, taking the extreme element is a one-line exchange (any other retraction relieves the constraint less, so swapping it for the extreme keeps feasibility at equal or lower cost). This is precisely the "degenerate DP" framing paying off: the DP state you refused to enumerate is compressed into a multiset, and the heap is the undo log that keeps that compression lossless. **Recognition cue:** the objective is "minimum number of interventions" but you can't tell at each step whether an intervention is needed — that gap between *when you must decide* and *when you know* is exactly what the heap spans.
 
-**Pitfall worth re-flagging:** the regret extreme's direction (max vs min heap) comes from re-deriving the exchange per problem — 630 retracts the *longest*, 1642 the *smallest* — never from pattern-matching the previous solve.
+**Template (871 — Min Refueling Stops, the canonical sweep):**
+```cpp
+int minRefuelStops(int target, int startFuel, vector<vector<int>>& stations) {
+    priority_queue<int> pq;                 // fuel of every station already driven past
+    long long fuel = startFuel;
+    int stops = 0, i = 0, n = stations.size();
+    while (fuel < target) {
+        while (i < n && stations[i][0] <= fuel)   // stations sorted by position
+            pq.push(stations[i++][1]);            // bank the option, do NOT commit
+        if (pq.empty()) return -1;                // stuck with nothing left to regret
+        fuel += pq.top(); pq.pop();               // retroactively "I stopped at the biggest one"
+        stops++;
+    }
+    return stops;
+}
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 871. Minimum Number of Refueling Stops | Hard | The template. Narrate the time-travel framing: you drive as far as fuel allows, and only when you're about to stall do you decide *which* passed station you stopped at — the largest, always. Note the DP alternative (`dp[k]` = furthest reachable with k stops) and say the heap is O(n log n) vs its O(n²). |
+| 630. Course Schedule III | Hard | Sort by **deadline**, take every course greedily into a max-heap of durations; when the running time exceeds the current deadline, drop the **longest** taken course. Dropping the longest never reduces the count and maximally relieves the constraint — the cleanest reversed exchange in the set. |
+| 502. IPO | Hard | Two structures: projects sorted by capital, a max-heap by profit. Repeatedly unlock everything affordable, then take the most profitable — "regret" here is deferred *unlocking* rather than retraction, and the k rounds make it a bounded sweep. The min-heap/max-heap pairing is the part people fumble. |
+| 1642. Furthest Building You Can Reach | Medium | Spend ladders on every climb, keep climbs in a **min-heap**; when ladders run out, demote the **smallest** banked climb to bricks. Direction is inverted vs 630 — ladders are the scarce unbounded resource, so you want them on the biggest climbs, hence you regret the smallest. The direction trap of the whole pattern. |
+| 1353. Maximum Number of Events That Can Be Attended | Medium | Sweep days; push every event starting today into a min-heap by **end day**, pop expired ones, attend the earliest-ending survivor. Pattern 1's earliest-deadline theorem executed incrementally because events arrive over time — the heap is what turns a sort-once greedy into a streaming one. |
+| 1834. Single-Threaded CPU | Medium | Same shape as 1353 with processing time as the key: sort by enqueue time, heap by (duration, index), jump the clock forward when idle. The scheduling-simulation face of the pattern. |
+| 2542. Maximum Subsequence Score | Medium | Sort pairs by the multiplier descending, keep a min-heap of the k largest values seen; each element as the "current minimum" gives a candidate. Regret used to maintain a running best-k under a moving constraint. |
+
+**Pitfalls:**
+- **Heap direction is re-derived, never remembered.** 630 retracts the *longest*, 1642 the *smallest*, 871 redeems the *largest*. Ask "which retraction relieves the constraint most per unit of objective lost?" every single time.
+- Committing at pass-time instead of banking the option — the entire pattern is the refusal to decide early; an `if (fuel < needed) refuel here` line reintroduces the lookahead bug it exists to avoid.
+- Forgetting the sort that licenses the sweep (871 by position, 630 by deadline, 502 by capital): the heap is only a valid superset of legal choices if nothing legal arrives late.
+- Off-by-one in the "empty heap" exit (871 returns −1 there, 1642 returns the index *before* the failed climb) — the failure return is problem-specific and is where otherwise-correct code loses points.
+- Using `long long` for accumulated fuel/time: 871 and 630 both overflow `int` on the constraint ceilings.
+
+---
+
+## Pattern 9: Repeated-Merge Greedy — Huffman's Rule
+
+**Logic:** The objective is the cost of **combining everything into one**, where each merge costs (roughly) the sum of the two parts and the result re-enters the pool. Greedy rule: always merge the **two smallest** remaining items (min-heap), push the combined item back, repeat until one item remains. Maximization variants flip to a max-heap; some (Last Stone Weight) merge by *difference* instead of sum.
+
+**Core insight — why it works:** Every original item's value is paid once per merge it participates in — so total cost = Σ (value × depth in the merge tree). Minimizing that means giving the **largest values the shallowest depth**, which is exactly what merging the two smallest first accomplishes: the smallest items get pushed deepest. The exchange argument is Huffman's own: in an optimal merge tree, the two deepest leaves are siblings (otherwise swap a deeper leaf up — cost cannot increase), and they may be taken to be the two smallest values (swapping a smaller value into a deeper slot never increases Σ value × depth). So *some* optimal tree merges the two smallest first, and after merging, the remaining problem is the identical problem on n−1 items — greedy-choice property plus optimal substructure, textbook. **Recognition cue:** "combine two at a time until one remains, cost proportional to what you combined" — ropes, sticks, files, stone piles. The tell that it is *not* this pattern: if the items must stay in their original order (only *adjacent* pairs may merge), the exchange breaks and you are in interval DP (Burst Balloons / Merge Stones territory), not greedy.
+
+**Template (1167 — Minimum Cost to Connect Sticks):**
+```cpp
+priority_queue<long long, vector<long long>, greater<long long>>
+    pq(sticks.begin(), sticks.end());        // min-heap seeded in O(n)
+long long cost = 0;
+while (pq.size() > 1) {
+    long long a = pq.top(); pq.pop();
+    long long b = pq.top(); pq.pop();
+    cost += a + b;                            // pay for this merge
+    pq.push(a + b);                           // the result competes again
+}
+return cost;
+```
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 1167. Minimum Cost to Connect Sticks | Medium | The template; identical to "connect ropes" from the classic sets. Say the Σ value × depth framing — it's what turns "merge the two smallest" from folklore into a proof. |
+| 1046. Last Stone Weight | Easy | Max-heap, merge by **difference** rather than sum. Not an optimization at all (the result is invariant under any smashing order in the parity sense) — included because it drills the heap mechanics and because interviewers use it as the warm-up before 1049. |
+| 1049. Last Stone Weight II | Medium | The trap twin: this one is **not** greedy — it's subset-sum/partition DP. Solving 1046 greedily and then reaching for the heap on 1049 is the exact mistake the pair is designed to catch; name the difference out loud. |
+| 2233. Maximum Product After K Increments | Medium | Repeatedly increment the **smallest** element (min-heap): products are maximized by balanced factors, provable by the swap "moving a unit from a larger factor to a smaller one increases the product". Same machinery, opposite extreme. |
+| 1962. Remove Stones to Minimize the Total | Medium | k rounds of halving the **largest** pile (max-heap). The "repeatedly act on the extreme" sibling with no merging — group it here because the heap-driven loop and the exchange are identical in shape. |
+| 621. Task Scheduler (heap form) | Medium | Cross-reference: Pattern 5's simulation is the same repeated-extreme loop with a cooldown queue attached. Recognizing the shared skeleton is the point. |
+| 1094. Car Pooling / 253. Meeting Rooms II | Medium | The *resource* face: a heap of end times merged against a sorted stream of starts. Not cost-merging, but the same "cheapest structure that keeps the extreme reachable" instinct — and the standard follow-up when someone finishes 1167 early. |
+
+**Pitfalls:**
+- Sorting once and pairing left-to-right instead of re-heaping: merged results must **compete again**, and a merged item is frequently no longer the smallest. This is the single defining bug of the pattern.
+- Overflow: merge costs accumulate to Σ value × depth, which blows past `int` well before the item values do — `long long` for both the heap and the accumulator.
+- Applying it when merges are restricted to **adjacent** items (Merge Stones, Burst Balloons): order-preserving merges kill the exchange argument — that's interval DP.
+- Forgetting the `pq.size() > 1` guard (a single item costs nothing) and the empty-input case.
 
 ---
 
@@ -320,6 +416,7 @@ return accumulate(candy.begin(), candy.end(), 0LL);
 | The greedy needs future knowledge to pick | Commit-now is uninformed | Regret greedy (P8), then DP |
 | Multiple interacting constraint dimensions | One sort key can't serve two masters | DP / flows / matching |
 | You can't produce an exchange or invariant sketch | The structure probably isn't there | Counterexample-hunt 60s, then pivot to DP |
+| Merging restricted to *adjacent* items (Merge Stones, Burst Balloons) | Order-preservation kills the two-smallest exchange | Interval DP |
 | Counting or enumerating (not optimizing) | Greedy yields one solution, not all | DP / backtracking |
 
 One-sentence litmus: **greedy is right when the most constrained element has a provably safe best partner/placement — and "provably" means you can say the exchange in two sentences.** No sentence, no greedy.
@@ -338,6 +435,7 @@ One-sentence litmus: **greedy is right when the most constrained element has a p
 | "lexicographically smallest after removing k" | Stack-as-output (P6) |
 | each element constrained by **both** neighbors | Two-pass sweep (P7) |
 | greedy needs hindsight ("min stops/swaps with budget") | Regret heap (P8) |
+| "combine two at a time until one remains, cost = what you combined" | Repeated merge (P9) |
 | weighted intervals / coin change / interacting choices | NOT greedy — DP |
 
 ---
@@ -348,7 +446,8 @@ One-sentence litmus: **greedy is right when the most constrained element has a p
 - Reach sweeps, two-pass sweeps, frequency formulas: **O(n)** flat.
 - Stack-based lexicographic: **O(n)** (push/pop once).
 - Regret greedy: **O(n log n)** (sort + heap ops).
-- Space: typically **O(1)**–O(n); greedy's degenerate-DP nature is exactly why no table appears.
+- Repeated-merge greedy: **O(n log n)** (n−1 merges × heap ops; heap construction is O(n)).
+- Space: typically **O(1)**–O(n); greedy's degenerate-DP nature is exactly why no table appears — except P8/P9, where the heap *is* the compressed table.
 
 ---
 
@@ -365,9 +464,9 @@ One-sentence litmus: **greedy is right when the most constrained element has a p
 
 ## Suggested Practice Order
 
-**Week 1 — proofs on easy ground:** 455 → 561 → 409 → 860 → 605 → 1029 → 881
+**Week 1 — proofs on easy ground:** 455 → 561 → 409 → 860 → 605 → 1029 → 881 → 1046
 **Week 2 — the core families:** 435 → 452 → 646 → 55 → 45 → 134 → 763 → 179 → 406
-**Week 3 — frequency & lexicographic:** 621 → 767 → 1054 → 984 → 1405 → 402 → 316 → 1673 → 738 → 670
-**Week 4 — boss fights:** 135 → 330 → 1024 → 1326 → 871 → 630 → 502 → 1642 → 757 → 321
+**Week 3 — frequency, lexicographic & merging:** 621 → 767 → 1054 → 984 → 1405 → 1167 → 2233 → 1962 → 402 → 316 → 1673 → 738 → 670
+**Week 4 — boss fights:** 135 → 330 → 1024 → 1326 → 1353 → 1642 → 871 → 630 → 502 → 757 → 321
 
 Good luck with the interviews!

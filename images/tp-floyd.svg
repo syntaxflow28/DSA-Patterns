@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b82f6"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">FLOYD: WHY THE RESET POINTER LANDS ON THE ENTRANCE</text>
+
+  <line x1="45" y1="155" x2="205" y2="155" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arBlue)"/>
+  <circle cx="50"  cy="155" r="9" fill="#1e3a8a" stroke="#3b82f6"/>
+  <circle cx="100" cy="155" r="9" fill="#1e3a8a" stroke="#3b82f6"/>
+  <circle cx="150" cy="155" r="9" fill="#1e3a8a" stroke="#3b82f6"/>
+  <circle cx="260" cy="155" r="55" fill="none" stroke="#3b82f6" stroke-width="2"/>
+  <line x1="243" y1="102" x2="278" y2="104" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arBlue)"/>
+  <circle cx="205" cy="155" r="10" fill="#f59e0b" stroke="#f59e0b"/>
+  <circle cx="299" cy="116" r="9" fill="#f472b6" stroke="#f472b6"/>
+
+  <text x="50"  y="132" fill="#94a3b8" font-size="11.5" text-anchor="middle">head</text>
+  <text x="128" y="132" fill="#94a3b8" font-size="11.5" text-anchor="middle">a nodes of tail</text>
+  <text x="198" y="182" fill="#f59e0b" font-size="11.5" font-weight="bold" text-anchor="end">entrance</text>
+  <text x="316" y="112" fill="#f9a8d4" font-size="11.5" font-weight="bold">meeting point</text>
+  <text x="248" y="90"  fill="#94a3b8" font-size="11.5" text-anchor="middle">b nodes into the cycle</text>
+
+  <path d="M 50 208 L 200 208" fill="none" stroke="#34d399" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arGreen)"/>
+  <text x="50" y="228" fill="#34d399" font-size="11.5">phase 2: a steps</text>
+  <path d="M 308 107 A 68 68 0 1 1 193 143" fill="none" stroke="#34d399" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arGreen)"/>
+  <text x="272" y="248" fill="#34d399" font-size="11.5" text-anchor="middle">phase 2: c - b steps</text>
+
+  <text x="40" y="288" fill="#94a3b8" font-size="11.5">phase 1: fast gains exactly 1 per step, so the gap must pass through 0</text>
+  <text x="40" y="306" fill="#94a3b8" font-size="11.5">&#8212; fast can never leap over slow, a meeting is guaranteed</text>
+  <text x="40" y="330" fill="#34d399" font-size="12.5" font-weight="bold">both phase-2 walks take the same number of steps</text>
+
+  <text x="510" y="88" fill="#e2e8f0" font-size="13" font-weight="bold">the arithmetic that makes phase 2 work:</text>
+  <g font-size="13" font-family="Consolas, monospace">
+    <text x="510" y="120" fill="#a5b4fc">slow walked    a + b</text>
+    <text x="510" y="144" fill="#a5b4fc">fast walked    2(a + b)</text>
+    <text x="510" y="168" fill="#a5b4fc">surplus        a + b = k &#183; c</text>
+    <text x="510" y="192" fill="#f59e0b">so   a = k &#183; c - b  &#8801;  c - b  (mod c)</text>
+  </g>
+
+  <text x="510" y="228" fill="#34d399" font-size="12.5" font-weight="bold">c - b is precisely the distance still separating the</text>
+  <text x="510" y="248" fill="#34d399" font-size="12.5" font-weight="bold">meeting point from the entrance &#8658; equal step</text>
+  <text x="510" y="268" fill="#34d399" font-size="12.5" font-weight="bold">counts, so they collide exactly there</text>
+
+  <text x="510" y="302" fill="#f87171" font-size="12">guard on both: while (fast &amp;&amp; fast-&gt;next). one null</text>
+  <text x="510" y="320" fill="#f87171" font-size="12">check short of that segfaults on even-length lists</text>
+  <text x="510" y="344" fill="#64748b" font-size="11.5">no list required &#8212; any deterministic successor works (202, 287)</text>
+</svg>

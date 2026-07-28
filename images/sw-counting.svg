@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">COUNTING: WHY right - left + 1 IS EXACTLY RIGHT</text>
+
+  <text x="101" y="70" fill="#f87171" font-size="10.5" text-anchor="middle">starts here are invalid</text>
+  <text x="192" y="70" fill="#94a3b8" font-size="11" text-anchor="middle">left</text>
+  <text x="378" y="70" fill="#f59e0b" font-size="11" font-weight="bold" text-anchor="middle">right</text>
+
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="78" width="56" height="34" rx="6" fill="none"    stroke="#334155"/><text x="68"  y="100" fill="#64748b">a</text>
+    <rect x="102" y="78" width="56" height="34" rx="6" fill="none"    stroke="#334155"/><text x="130" y="100" fill="#64748b">b</text>
+    <rect x="164" y="78" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="192" y="100" fill="#93c5fd">c</text>
+    <rect x="226" y="78" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="254" y="100" fill="#93c5fd">d</text>
+    <rect x="288" y="78" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="316" y="100" fill="#93c5fd">e</text>
+    <rect x="350" y="78" width="56" height="34" rx="6" fill="#f59e0b" stroke="#f59e0b"/><text x="378" y="100" fill="#0f172a">f</text>
+  </g>
+
+  <g>
+    <rect x="164" y="130" width="242" height="14" rx="5" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="226" y="152" width="180" height="14" rx="5" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="288" y="174" width="118" height="14" rx="5" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="350" y="196" width="56"  height="14" rx="5" fill="#1e3a8a" stroke="#3b82f6"/>
+  </g>
+  <text x="416" y="142" fill="#94a3b8" font-size="11">every start from</text>
+  <text x="416" y="158" fill="#94a3b8" font-size="11">left to right,</text>
+  <text x="416" y="174" fill="#94a3b8" font-size="11">all ending at right</text>
+
+  <path d="M 158 128 L 148 128 L 148 212 L 158 212" fill="none" stroke="#34d399" stroke-width="2.5"/>
+  <text x="40" y="236" fill="#f59e0b" font-size="13" font-weight="bold" font-family="Consolas, monospace">count += right - left + 1</text>
+
+  <text x="40" y="266" fill="#34d399" font-size="12.5" font-weight="bold">nothing missed: every start before left is invalid</text>
+  <text x="40" y="286" fill="#34d399" font-size="12.5" font-weight="bold">nothing doubled: each subarray is counted only</text>
+  <text x="40" y="306" fill="#34d399" font-size="12.5" font-weight="bold">under its own right endpoint</text>
+
+  <text x="510" y="88" fill="#e2e8f0" font-size="13" font-weight="bold">why every suffix of the window is valid</text>
+  <text x="510" y="118" fill="#e2e8f0" font-size="12.5">left is the smallest legal start for this right, and</text>
+  <text x="510" y="136" fill="#e2e8f0" font-size="12.5">dropping elements off the left only relaxes the</text>
+  <text x="510" y="154" fill="#e2e8f0" font-size="12.5">constraint &#8212; fewer distinct, smaller product,</text>
+  <text x="510" y="172" fill="#e2e8f0" font-size="12.5">smaller sum &#8212; so all of them stay valid</text>
+
+  <text x="510" y="206" fill="#34d399" font-size="12.5" font-weight="bold">grouping by right endpoint PARTITIONS the set of</text>
+  <text x="510" y="226" fill="#34d399" font-size="12.5" font-weight="bold">all valid subarrays, so summing over right is not</text>
+  <text x="510" y="246" fill="#34d399" font-size="12.5" font-weight="bold">an estimate &#8212; it is exact</text>
+
+  <text x="510" y="280" fill="#f59e0b" font-size="12">declare the grouping out loud: per-right suffixes</text>
+  <text x="510" y="298" fill="#f59e0b" font-size="12">OR per-left extensions, never both in one pass</text>
+
+  <text x="510" y="324" fill="#f87171" font-size="12">counts reach n(n+1)/2 &#8212; accumulate in long long</text>
+</svg>
