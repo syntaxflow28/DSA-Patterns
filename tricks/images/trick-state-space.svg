@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">LC 1293: ONE CELL, THREE NODES &#8212; THE STATE IS (CELL, BUDGET LEFT)</text>
+
+  <line x1="70" y1="160" x2="440" y2="160" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <line x1="70" y1="240" x2="440" y2="240" stroke="#1e293b" stroke-width="1.5" stroke-dasharray="4 5"/>
+  <g font-size="12" font-family="Consolas, monospace" fill="#64748b">
+    <text x="40" y="126">k = 2</text>
+    <text x="40" y="206">k = 1</text>
+    <text x="40" y="286">k = 0</text>
+  </g>
+
+  <line x1="138" y1="120" x2="222" y2="120" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="180" y="110" fill="#34d399" font-size="11.5" font-weight="bold" text-anchor="middle">6 steps, 0 walls</text>
+
+  <path d="M120 138 L120 280 L222 280" fill="none" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="292" y="312" fill="#f59e0b" font-size="11.5" font-weight="bold">4 steps, 2 walls smashed</text>
+
+  <line x1="278" y1="120" x2="362" y2="185" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <line x1="278" y1="280" x2="362" y2="215" stroke="#f87171" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arRed)"/>
+  <text x="330" y="264" fill="#f87171" font-size="11.5" font-weight="bold">blocked</text>
+
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <circle cx="120" cy="120" r="18" fill="#1e3a8a" stroke="#3b82f6" stroke-width="2.5"/><text x="120" y="125" fill="#93c5fd">S</text>
+    <circle cx="250" cy="120" r="18" fill="#4c1d95" stroke="#a78bfa" stroke-width="2.5"/><text x="250" y="125" fill="#c4b5fd">C</text>
+    <circle cx="250" cy="280" r="18" fill="#f59e0b" stroke="#f59e0b" stroke-width="2.5"/><text x="250" y="285" fill="#0f172a">C</text>
+    <circle cx="380" cy="200" r="18" fill="#1e3a8a" stroke="#3b82f6" stroke-width="2.5"/><text x="380" y="205" fill="#93c5fd">T</text>
+  </g>
+  <text x="250" y="152" fill="#a78bfa" font-size="11" text-anchor="middle" font-family="Consolas, monospace">(C, 2)</text>
+  <text x="250" y="312" fill="#f59e0b" font-size="11" text-anchor="middle" font-family="Consolas, monospace">(C, 0)</text>
+
+  <text x="40" y="348" fill="#f87171" font-size="12" font-weight="bold">arrives first &#8212; and is a dead end: T needs one more wall</text>
+
+  <text x="510" y="100" fill="#e2e8f0" font-size="12.5">The same square is not the same node. Reaching C with</text>
+  <text x="510" y="120" fill="#e2e8f0" font-size="12.5">two eliminations left and reaching it with none left are</text>
+  <text x="510" y="140" fill="#e2e8f0" font-size="12.5">different futures, so they are different vertices.</text>
+
+  <text x="510" y="180" fill="#34d399" font-size="12.5" font-weight="bold">key visited on (r, c, k), never on (r, c)</text>
+  <text x="510" y="200" fill="#34d399" font-size="12.5" font-weight="bold">the traversal stays plain BFS &#8212; only the node set grew</text>
+
+  <text x="510" y="240" fill="#f87171" font-size="12">visited[r][c] alone lets the cheap-looking, budget-poor</text>
+  <text x="510" y="258" fill="#f87171" font-size="12">arrival claim the cell and permanently block the</text>
+  <text x="510" y="276" fill="#f87171" font-size="12">budget-rich one &#8658; wrong answer, not merely slow</text>
+
+  <text x="510" y="316" fill="#94a3b8" font-size="12">size check: 40 &#183; 40 &#183; 41 &#8804; 66k states &#8212; BFS is free;</text>
+  <text x="510" y="334" fill="#94a3b8" font-size="12">if the extra axis is a set, bitmask it (LC 864: 2^6 keys)</text>
+</svg>

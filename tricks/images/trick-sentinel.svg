@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">SENTINELS: PAD THE ENDS, DELETE THE BRANCH</text>
+
+  <text x="52"  y="78" fill="#94a3b8" font-size="11.5" font-weight="bold">WITHOUT SENTINEL</text>
+  <text x="286" y="78" fill="#f59e0b" font-size="11.5" font-weight="bold">WITH TRAILING 0</text>
+
+  <line x1="52"  y1="252" x2="248" y2="252" stroke="#334155" stroke-width="2"/>
+  <rect x="62"  y="212" width="34" height="40"  rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+  <rect x="102" y="162" width="34" height="90"  rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+  <rect x="142" y="122" width="34" height="130" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+  <g font-size="12" text-anchor="middle" fill="#64748b" font-family="Consolas, monospace">
+    <text x="79"  y="270">1</text><text x="119" y="270">3</text><text x="159" y="270">4</text>
+  </g>
+  <line x1="216" y1="150" x2="184" y2="150" stroke="#f87171" stroke-width="2.5" marker-end="url(#arRed)"/>
+  <text x="192" y="300" fill="#f87171" font-size="11.5" font-weight="bold" text-anchor="middle">i reaches n with</text>
+  <text x="192" y="316" fill="#f87171" font-size="11.5" font-weight="bold" text-anchor="middle">stack still [0,1,2]</text>
+
+  <line x1="286" y1="252" x2="482" y2="252" stroke="#334155" stroke-width="2"/>
+  <rect x="296" y="212" width="34" height="40"  rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+  <rect x="336" y="162" width="34" height="90"  rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+  <rect x="376" y="122" width="34" height="130" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+  <rect x="416" y="246" width="34" height="6"   rx="2" fill="#f59e0b" stroke="#f59e0b"/>
+  <g font-size="12" text-anchor="middle" fill="#64748b" font-family="Consolas, monospace">
+    <text x="313" y="270">1</text><text x="353" y="270">3</text><text x="393" y="270">4</text>
+  </g>
+  <text x="433" y="270" fill="#f59e0b" font-size="12" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">0</text>
+  <line x1="424" y1="238" x2="424" y2="150" stroke="#34d399" stroke-width="2.5"/>
+  <line x1="424" y1="150" x2="400" y2="150" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="384" y="300" fill="#34d399" font-size="11.5" font-weight="bold" text-anchor="middle">0 &#8804; every bar &#8658;</text>
+  <text x="384" y="316" fill="#34d399" font-size="11.5" font-weight="bold" text-anchor="middle">the loop drains itself</text>
+
+  <text x="40" y="352" fill="#94a3b8" font-size="11.5">left needs a second drain loop after the sweep &#8212; the same body, written twice</text>
+
+  <text x="510" y="88"  fill="#e2e8f0" font-size="12.5">every boundary bug is one bug: the loop body wants a</text>
+  <text x="510" y="108" fill="#e2e8f0" font-size="12.5">neighbor that does not exist at the ends of the array.</text>
+  <text x="510" y="128" fill="#e2e8f0" font-size="12.5">You can guard it, or you can invent it.</text>
+
+  <text x="510" y="162" fill="#34d399" font-size="12.5" font-weight="bold">pad with the IDENTITY of the operation:</text>
+  <text x="510" y="182" fill="#93c5fd" font-size="12.5" font-family="Consolas, monospace">1 for a product (312)</text>
+  <text x="510" y="202" fill="#93c5fd" font-size="12.5" font-family="Consolas, monospace">0 for a height minimum (84, 42)</text>
+  <text x="510" y="222" fill="#93c5fd" font-size="12.5" font-family="Consolas, monospace">a dummy node for pointer rewrites (19, 203)</text>
+
+  <text x="510" y="256" fill="#e2e8f0" font-size="12.5">in 312, padding both ends with 1 makes nums[i-1] and</text>
+  <text x="510" y="276" fill="#e2e8f0" font-size="12.5">nums[j+1] always exist, so the recurrence needs no</text>
+  <text x="510" y="296" fill="#e2e8f0" font-size="12.5">edge test at all &#8212; the branch you delete is the code</text>
+  <text x="510" y="316" fill="#e2e8f0" font-size="12.5">you cannot get wrong.</text>
+
+  <text x="510" y="350" fill="#f87171" font-size="12">the pad must be NEUTRAL &#8212; a 0 in 312 zeroes every</text>
+  <text x="510" y="368" fill="#f87171" font-size="12">product; a wrong identity is a silent wrong answer</text>
+</svg>

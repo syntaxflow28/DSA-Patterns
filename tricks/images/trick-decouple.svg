@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="380" viewBox="0 0 880 380" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="380" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">SEPARATE THE INDICES: THE PAIR GRID COLLAPSES TO ONE SWEEP</text>
+
+  <text x="40" y="78" fill="#94a3b8" font-size="11.5">every pair (i, j) with i &lt; j</text>
+  <g stroke="#1e293b">
+    <rect x="60"  y="90"  width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="86"  y="90"  width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="112" y="90"  width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="138" y="90"  width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="164" y="90"  width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="60"  y="116" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="86"  y="116" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="112" y="116" width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="138" y="116" width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="164" y="116" width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="60"  y="142" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="86"  y="142" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="112" y="142" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="138" y="142" width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="164" y="142" width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+    <rect x="60"  y="168" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="86"  y="168" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="112" y="168" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="138" y="168" width="22" height="22" rx="4" fill="#0f172a"/>
+    <rect x="164" y="168" width="22" height="22" rx="4" fill="#1e3a8a" stroke="#3b82f6"/>
+  </g>
+  <text x="40" y="212" fill="#f87171" font-size="12" font-weight="bold">n&#178;/2 scores &#8212; the brute force</text>
+
+  <g font-family="Consolas, monospace">
+    <text x="230" y="105" fill="#e2e8f0" font-size="13">v[i] + v[j] + i - j</text>
+    <text x="230" y="140" fill="#34d399" font-size="13" font-weight="bold">= (v[i] + i) + (v[j] - j)</text>
+    <text x="230" y="162" fill="#94a3b8" font-size="11.5">    A(i)         B(j)</text>
+    <text x="230" y="190" fill="#94a3b8" font-size="11.5">i-terms   j-terms</text>
+  </g>
+  <line x1="200" y1="140" x2="222" y2="140" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+
+  <text x="40" y="248" fill="#94a3b8" font-size="11.5">one pass over j, carrying max A(i) for i &lt; j</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="60"  y="258" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="88"  y="280" fill="#93c5fd">A(0)</text>
+    <rect x="122" y="258" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="150" y="280" fill="#93c5fd">A(1)</text>
+    <rect x="184" y="258" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="212" y="280" fill="#93c5fd">A(2)</text>
+    <rect x="246" y="258" width="56" height="34" rx="6" fill="#f59e0b" stroke="#fbbf24"/><text x="274" y="280" fill="#0f172a">B(j)</text>
+    <rect x="308" y="258" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="336" y="280" fill="#c4b5fd">.</text>
+    <rect x="370" y="258" width="56" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="398" y="280" fill="#c4b5fd">.</text>
+  </g>
+  <line x1="62" y1="248" x2="240" y2="248" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="40" y="320" fill="#34d399" font-size="12.5" font-weight="bold">ans = max(ans, best + B(j))</text>
+  <text x="40" y="340" fill="#f59e0b" font-size="12.5" font-weight="bold">best = max(best, A(j))  &#8212; only after scoring</text>
+
+  <text x="510" y="90"  fill="#e2e8f0" font-size="12.5">the grid is only necessary while i and j sit inside the</text>
+  <text x="510" y="110" fill="#e2e8f0" font-size="12.5">same term; once the sum splits into A(i) + B(j), the</text>
+  <text x="510" y="130" fill="#e2e8f0" font-size="12.5">two halves stop talking to each other</text>
+  <text x="510" y="158" fill="#e2e8f0" font-size="12.5">for a fixed j, B(j) is a constant &#8212; maximizing the</text>
+  <text x="510" y="178" fill="#e2e8f0" font-size="12.5">whole thing means maximizing A(i) alone, and that</text>
+  <text x="510" y="198" fill="#e2e8f0" font-size="12.5">is a running max, not a search</text>
+  <text x="510" y="234" fill="#34d399" font-size="12.5" font-weight="bold">a whole column of the grid is summarized by</text>
+  <text x="510" y="254" fill="#34d399" font-size="12.5" font-weight="bold">one number &#8658; O(n) time, O(1) space</text>
+  <text x="510" y="292" fill="#f87171" font-size="12">if a term multiplies i by j, or the pair is filtered by a</text>
+  <text x="510" y="310" fill="#f87171" font-size="12">condition on both, the split fails &#8212; you need a BIT,</text>
+  <text x="510" y="328" fill="#f87171" font-size="12">a monotone stack, or divide and conquer instead</text>
+</svg>

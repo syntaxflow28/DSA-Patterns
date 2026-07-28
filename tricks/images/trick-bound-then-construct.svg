@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="360" viewBox="0 0 880 360" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="360" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">LC 621: THE BOTTLENECK BUILDS THE SKELETON, THE REST FILLS THE GAPS</text>
+  <text x="40" y="70" fill="#94a3b8" font-size="11.5" font-family="Consolas, monospace">tasks = A A A A B B C C &#183; n = 2 &#183; maxFreq = 4 &#183; countOfMax = 1</text>
+
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="85"  width="56" height="34" rx="6" fill="#f59e0b" stroke="#fbbf24"/><text x="68"  y="107" fill="#0f172a">A</text>
+    <rect x="98"  y="85"  width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="126" y="107" fill="#93c5fd">B</text>
+    <rect x="156" y="85"  width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="184" y="107" fill="#93c5fd">C</text>
+
+    <rect x="40"  y="127" width="56" height="34" rx="6" fill="#f59e0b" stroke="#fbbf24"/><text x="68"  y="149" fill="#0f172a">A</text>
+    <rect x="98"  y="127" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="126" y="149" fill="#93c5fd">B</text>
+    <rect x="156" y="127" width="56" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="184" y="149" fill="#93c5fd">C</text>
+
+    <rect x="40"  y="169" width="56" height="34" rx="6" fill="#f59e0b" stroke="#fbbf24"/><text x="68"  y="191" fill="#0f172a">A</text>
+    <rect x="98"  y="169" width="56" height="34" rx="6" fill="#0f172a" stroke="#64748b" stroke-dasharray="4 3"/><text x="126" y="191" fill="#64748b" font-size="11">idle</text>
+    <rect x="156" y="169" width="56" height="34" rx="6" fill="#0f172a" stroke="#64748b" stroke-dasharray="4 3"/><text x="184" y="191" fill="#64748b" font-size="11">idle</text>
+
+    <rect x="40"  y="211" width="56" height="34" rx="6" fill="#f59e0b" stroke="#fbbf24"/><text x="68"  y="233" fill="#0f172a">A</text>
+  </g>
+
+  <line x1="224" y1="88" x2="224" y2="200" stroke="#475569" stroke-width="2"/>
+  <text x="240" y="104" fill="#f59e0b" font-size="11.5" font-weight="bold">A is the bottleneck: maxFreq = 4</text>
+  <text x="240" y="124" fill="#94a3b8" font-size="11.5">so maxFreq - 1 = 3 frames,</text>
+  <text x="240" y="141" fill="#94a3b8" font-size="11.5">each of width n + 1 = 3</text>
+  <text x="240" y="166" fill="#e2e8f0" font-size="11.5">B and C drop into the gaps &#8212;</text>
+  <text x="240" y="183" fill="#e2e8f0" font-size="11.5">they cost zero extra time</text>
+  <line x1="232" y1="228" x2="104" y2="228" stroke="#f59e0b" stroke-width="2.5" marker-end="url(#arAmber)"/>
+  <text x="240" y="232" fill="#94a3b8" font-size="11.5">tail row: countOfMax = 1</text>
+
+  <text x="40" y="266" fill="#34d399" font-size="13" font-weight="bold" font-family="Consolas, monospace">(4-1)*(2+1) + 1 = 10 slots, 2 idle</text>
+
+  <line x1="40" y1="288" x2="470" y2="288" stroke="#1e293b" stroke-width="2"/>
+
+  <text x="40" y="312" fill="#e2e8f0" font-size="12">now add D E F G H I: 14 tasks, every gap taken</text>
+  <line x1="44" y1="332" x2="80" y2="332" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <text x="90" y="336" fill="#34d399" font-size="12.5" font-weight="bold">no idle left &#8658; answer = tasks.size() = 14</text>
+
+  <text x="510" y="94" fill="#e2e8f0" font-size="12.5">two consecutive A's need n slots between them, so A</text>
+  <text x="510" y="113" fill="#e2e8f0" font-size="12.5">alone forces maxFreq - 1 whole frames of width n + 1,</text>
+  <text x="510" y="132" fill="#e2e8f0" font-size="12.5">plus one final row for the last occurrences</text>
+  <text x="510" y="158" fill="#f59e0b" font-size="12.5" font-weight="bold">bound 1: (maxFreq-1)*(n+1) + countOfMax</text>
+  <text x="510" y="186" fill="#e2e8f0" font-size="12.5">every other task lands INSIDE a gap, so adding tasks</text>
+  <text x="510" y="205" fill="#e2e8f0" font-size="12.5">is free until the gaps run out; past that, no slot is</text>
+  <text x="510" y="224" fill="#e2e8f0" font-size="12.5">ever idle and each unit of time holds one task</text>
+  <text x="510" y="250" fill="#f59e0b" font-size="12.5" font-weight="bold">bound 2: tasks.size()</text>
+  <text x="510" y="278" fill="#34d399" font-size="12.5" font-weight="bold">answer = max(bound 1, bound 2)</text>
+  <text x="510" y="297" fill="#34d399" font-size="12.5" font-weight="bold">both are reachable &#8658; the max is tight</text>
+  <text x="510" y="326" fill="#f87171" font-size="12">n is the COOLDOWN, not a slot count &#8212; the frame is</text>
+  <text x="510" y="344" fill="#f87171" font-size="12">n + 1 wide, and ties must all ride the tail row</text>
+</svg>

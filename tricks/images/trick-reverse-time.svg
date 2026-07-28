@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="340" viewBox="0 0 880 340" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+    <marker id="arRed" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+  </defs>
+  <rect x="0" y="0" width="880" height="340" rx="12" fill="#0f172a" stroke="#1e293b"/>
+
+  <text x="40" y="45" fill="#f8fafc" font-size="14" font-weight="bold">LC 803: PLAY THE DEMOLITION BACKWARDS</text>
+
+  <text x="40" y="76" fill="#f87171" font-size="12.5" font-weight="bold">FORWARD &#8212; EACH HIT SHATTERS</text>
+  <text x="137" y="92" fill="#f87171" font-size="10.5" text-anchor="middle">hit A</text>
+  <text x="263" y="92" fill="#f87171" font-size="10.5" text-anchor="middle">hit B</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="98" width="70" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="75"  y="120" fill="#93c5fd">9</text>
+    <rect x="166" y="98" width="70" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="201" y="120" fill="#93c5fd">7</text>
+    <rect x="292" y="98" width="70" height="34" rx="6" fill="#1e3a8a" stroke="#3b82f6"/><text x="327" y="120" fill="#93c5fd">4</text>
+  </g>
+  <line x1="114" y1="115" x2="160" y2="115" stroke="#f87171" stroke-width="2.5" marker-end="url(#arRed)"/>
+  <line x1="240" y1="115" x2="286" y2="115" stroke="#f87171" stroke-width="2.5" marker-end="url(#arRed)"/>
+  <g font-size="10.5" text-anchor="middle" fill="#64748b">
+    <text x="75"  y="150">start</text>
+    <text x="201" y="150">after A</text>
+    <text x="327" y="150">after B</text>
+  </g>
+  <text x="40" y="172" fill="#94a3b8" font-size="11.5">bricks still stuck to the roof</text>
+  <text x="40" y="194" fill="#f87171" font-size="12" font-weight="bold">every step SPLITS &#183; DSU cannot split</text>
+
+  <text x="40" y="226" fill="#34d399" font-size="12.5" font-weight="bold">REVERSED &#8212; EACH HIT IS A UNION</text>
+  <g font-size="13" font-weight="bold" text-anchor="middle" font-family="Consolas, monospace">
+    <rect x="40"  y="240" width="70" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="75"  y="262" fill="#c4b5fd">9</text>
+    <rect x="166" y="240" width="70" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="201" y="262" fill="#c4b5fd">7</text>
+    <rect x="292" y="240" width="70" height="34" rx="6" fill="#4c1d95" stroke="#a78bfa"/><text x="327" y="262" fill="#c4b5fd">4</text>
+  </g>
+  <line x1="286" y1="257" x2="240" y2="257" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <line x1="160" y1="257" x2="114" y2="257" stroke="#34d399" stroke-width="2.5" marker-end="url(#arGreen)"/>
+  <g font-size="10.5" text-anchor="middle" fill="#34d399">
+    <text x="263" y="292">put B back</text>
+    <text x="137" y="292">put A back</text>
+  </g>
+  <text x="40" y="316" fill="#f59e0b" font-size="12" font-weight="bold">fallen(B) = 7 &#8212; 4 &#8212; 1 = 2</text>
+
+  <text x="510" y="95" fill="#e2e8f0" font-size="12.5">a hit drops every brick that hung off it &#8212; the one</text>
+  <text x="510" y="115" fill="#e2e8f0" font-size="12.5">operation a disjoint-set union cannot express</text>
+  <text x="510" y="147" fill="#34d399" font-size="12.5" font-weight="bold">so run the tape backwards:</text>
+  <text x="510" y="169" fill="#e2e8f0" font-size="12.5">erase all hits first, build the DSU once, then</text>
+  <text x="510" y="189" fill="#e2e8f0" font-size="12.5">restore hit cells in reverse order, unioning each</text>
+  <text x="510" y="209" fill="#e2e8f0" font-size="12.5">with its four neighbours and the virtual roof</text>
+  <text x="510" y="243" fill="#34d399" font-size="12.5" font-weight="bold">deletion &#8658; insertion &#183; splitting &#8658; merging</text>
+  <text x="510" y="265" fill="#94a3b8" font-size="12">the -1 discounts the restored brick itself</text>
+  <text x="510" y="297" fill="#f87171" font-size="12">needs every hit up front &#8212; offline only; a streaming</text>
+  <text x="510" y="315" fill="#f87171" font-size="12">version of the same question kills the trick</text>
+</svg>
