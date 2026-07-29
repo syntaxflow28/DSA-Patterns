@@ -49,6 +49,22 @@ int  lowestBit(int x)    { return x & -x; }             // isolate lowest set bi
 int  clearLowest(int x)  { return x & (x - 1); }        // drop lowest set bit
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// >> is ARITHMETIC in Java (sign-extends); where C++ shifts an `unsigned`, use >>> (logical shift).
+// Here (x >> i) & 1 is safe either way because the & 1 discards the sign-extended bits.
+boolean test  (int x, int i) { return ((x >> i) & 1) != 0; } // is bit i set?
+int     set   (int x, int i) { return x |  (1 << i); }       // turn bit i on
+int     clear (int x, int i) { return x & ~(1 << i); }       // turn bit i off
+int     toggle(int x, int i) { return x ^  (1 << i); }       // flip bit i
+int     lowestBit(int x)     { return x & -x; }              // isolate lowest set bit (identical in Java)
+int     clearLowest(int x)   { return x & (x - 1); }         // drop lowest set bit
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -81,6 +97,22 @@ int popcount(int x) {                 // Brian Kernighan
 // __builtin_popcount(x) is the library shortcut; know the manual version too.
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int popcount(int x) {                        // Brian Kernighan
+    int count = 0;
+    while (x != 0) { x &= (x - 1); count++; }    // each step kills one set bit
+    return count;
+}
+// Integer.bitCount(x) is the library shortcut (== __builtin_popcount);
+// use Long.bitCount(x) for 64-bit values (== __builtin_popcountll).
+// The loop is sign-safe: it works on the raw bit pattern, so negatives need no >>>.
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -110,6 +142,19 @@ int findUnique(vector<int>& nums) {
     return acc;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int findUnique(int[] nums) {
+    int acc = 0;
+    for (int x : nums) acc ^= x;   // pairs cancel; the loner survives
+    return acc;
+}
+```
+
+</details>
 
 **Two loners (problem 260):** XOR everything to get `a ^ b`. They differ somewhere, so `a ^ b` has at least one set bit; isolate the lowest with `diff = (a^b) & -(a^b)`. That bit splits all numbers into two groups (set vs not). `a` and `b` fall in different groups, every pair stays together — XOR each group separately.
 
@@ -145,6 +190,21 @@ bool isPowerOfFour(int n) { return n > 0 && (n & (n - 1)) == 0   // one bit...
 int lowKBits(int x, int k){ return x & ((1 << k) - 1); }         // keep the low k bits
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+boolean isPowerOfTwo(int n)  { return n > 0 && (n & (n - 1)) == 0; }
+boolean isPowerOfFour(int n) { return n > 0 && (n & (n - 1)) == 0     // one bit...
+                                      && (n & 0x55555555) != 0;      // ...in an even position
+}
+int lowKBits(int x, int k)   { return x & ((1 << k) - 1); }          // keep the low k bits
+// 0x55555555 is a positive int in Java; the != 0 is required since int is not a boolean.
+// For k = 32 use ((1L << k) - 1) in long — 1 << 32 wraps to 1 in int (C++'s 1LL << k).
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -179,6 +239,24 @@ for (int sub = mask; sub; sub = (sub - 1) & mask) { /* use sub */ }
 // ...don't forget the empty submask 0 if you need it.
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// Enumerate all subsets of n elements
+for (int mask = 0; mask < (1 << n); ++mask) {
+    for (int i = 0; i < n; ++i)
+        if ((mask & (1 << i)) != 0) { /* element i is in this subset */ }
+}
+
+// Enumerate all SUBMASKS of a fixed mask (each subset of the set 'mask')
+for (int sub = mask; sub != 0; sub = (sub - 1) & mask) { /* use sub */ }
+// ...don't forget the empty submask 0 if you need it.
+// Java has no int→bool coercion, so `sub` and `mask & bit` need explicit != 0 tests.
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -211,6 +289,24 @@ int add(int a, int b) {
     return a;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int add(int a, int b) {
+    while (b != 0) {
+        int carry = (a & b) << 1;  // bits that carry into the next column
+                                   // Java has no `unsigned`, but signed << and overflow
+                                   // are defined to wrap (no UB), so plain int is correct here
+        a = a ^ b;                 // sum without carry
+        b = carry;                 // re-add the carry
+    }
+    return a;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

@@ -52,6 +52,23 @@ bool inorder(TreeNode* node) {                 // validation flavor
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// Java has no reference parameters, so the running prev lives as an instance field.
+TreeNode prev = null;
+boolean inorder(TreeNode node) {               // validation flavor
+    if (node == null) return true;
+    if (!inorder(node.left)) return false;
+    if (prev != null && prev.val >= node.val) return false;  // sorted ⇒ strictly increasing
+    prev = node;                               // the in-order moment: compare, then advance
+    return inorder(node.right);
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -93,6 +110,22 @@ TreeNode* lca(TreeNode* root, TreeNode* p, TreeNode* q) {
     return nullptr;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+TreeNode lca(TreeNode root, TreeNode p, TreeNode q) {
+    while (root != null) {
+        if (p.val < root.val && q.val < root.val)      root = root.left;   // both left
+        else if (p.val > root.val && q.val > root.val) root = root.right;  // both right
+        else return root;      // split point (or equal to p/q) — the LCA
+    }
+    return null;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -141,6 +174,30 @@ TreeNode* deleteNode(TreeNode* root, int key) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// Returns the (possibly new) subtree root instead of taking a TreeNode*& — Java has no
+// reference-to-pointer parameters, so the caller reattaches via root.left = deleteNode(...).
+TreeNode deleteNode(TreeNode root, int key) {
+    if (root == null) return null;
+    if      (key < root.val) root.left  = deleteNode(root.left, key);   // route left
+    else if (key > root.val) root.right = deleteNode(root.right, key);  // route right
+    else {                                          // found it
+        if (root.left == null)  return root.right;  // 0–1 children: splice
+        if (root.right == null) return root.left;
+        TreeNode s = root.right;                    // 2 children: in-order successor
+        while (s.left != null) s = s.left;
+        root.val = s.val;                           // copy successor up
+        root.right = deleteNode(root.right, s.val); // delete it below (easy case now)
+    }
+    return root;                                    // parent reattaches
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -181,6 +238,24 @@ TreeNode* build(vector<int>& pre, int lo, int hi) {
     return root;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// The shared consumption pointer is an instance field — Java cannot pass `int i` by reference.
+int i = 0;                                       // pre-order consumption pointer
+TreeNode build(int[] pre, int lo, int hi) {
+    if (i == pre.length || pre[i] < lo || pre[i] > hi)
+        return null;                             // this value belongs to an ancestor's other side
+    TreeNode root = new TreeNode(pre[i++]);
+    root.left  = build(pre, lo, root.val - 1);   // left must be < root
+    root.right = build(pre, root.val + 1, hi);   // right must be > root
+    return root;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -225,6 +300,26 @@ public:
     bool hasNext() { return !st.empty(); }
 };
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+class BSTIterator {
+    private final Deque<TreeNode> st = new ArrayDeque<>();   // ArrayDeque as a stack
+    private void pushSpine(TreeNode n) { while (n != null) { st.push(n); n = n.left; } }
+
+    public BSTIterator(TreeNode root) { pushSpine(root); }
+    public int next() {
+        TreeNode n = st.pop();
+        pushSpine(n.right);                      // restore the invariant
+        return n.val;
+    }
+    public boolean hasNext() { return !st.isEmpty(); }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

@@ -60,6 +60,55 @@ string reorganizeString(string s) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 621 — the entire solution is the two bounds
+int leastInterval(char[] tasks, int n) {
+    int[] cnt = new int[26];
+    for (char c : tasks) cnt[c - 'A']++;
+
+    int maxFreq = 0;
+    for (int v : cnt) maxFreq = Math.max(maxFreq, v);
+    int countOfMax = 0;
+    for (int v : cnt) if (v == maxFreq) countOfMax++;
+
+    long skeleton = (long)(maxFreq - 1) * (n + 1) + countOfMax;   // bottleneck bound
+    return (int)Math.max(skeleton, (long)tasks.length);           // work bound
+}
+
+// LC 767 — bound first (feasibility), then the construction that meets it
+// C++ captured `res`, `cnt` and `i` by reference in a lambda; Java lambdas cannot
+// capture mutable locals, so `place` is a method that returns the new cursor `i`.
+int place(char[] res, int[] cnt, int letter, int i) {   // even indices first, then odd
+    while (cnt[letter]-- > 0) {
+        res[i] = (char)('a' + letter);
+        i += 2;
+        if (i >= res.length) i = 1;                 // wrap only after evens are full
+    }
+    return i;
+}
+
+String reorganizeString(String s) {
+    int len = s.length();
+    int[] cnt = new int[26];
+    for (char c : s.toCharArray()) cnt[c - 'a']++;
+
+    int best = 0;
+    for (int c = 0; c < 26; c++) if (cnt[c] > cnt[best]) best = c;
+    if (cnt[best] > (len + 1) / 2) return "";      // the bound says it is impossible
+
+    char[] res = new char[len];
+    int i = 0;
+    i = place(res, cnt, best, i);                   // the bottleneck goes down first
+    for (int c = 0; c < 26; c++) if (c != best) i = place(res, cnt, c, i);
+    return new String(res);
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -122,6 +171,37 @@ bool closeStrings(string w1, string w2) {
     return a == b;                                          // same frequency MULTISET
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// The invariant collapses each of these to one expression
+boolean canWinNim(int n)        { return n % 4 != 0; }   // 292: residue mod 4
+boolean divisorGame(int n)      { return n % 2 == 0; }   // 1025: parity of n
+boolean stoneGame(int[] p)      { return true; }         // 877: end-index parity
+
+boolean xorGame(int[] nums) {                            // 810: XOR of the board
+    int x = 0;
+    for (int v : nums) x ^= v;
+    return x == 0 || nums.length % 2 == 0;
+}
+
+// 1657: two invariants, both necessary and together sufficient
+boolean closeStrings(String w1, String w2) {
+    if (w1.length() != w2.length()) return false;
+    int[] a = new int[26], b = new int[26];
+    for (char c : w1.toCharArray()) a[c - 'a']++;
+    for (char c : w2.toCharArray()) b[c - 'a']++;
+    for (int i = 0; i < 26; i++)
+        if ((a[i] == 0) != (b[i] == 0)) return false;    // same character SET
+    Arrays.sort(a);
+    Arrays.sort(b);
+    return Arrays.equals(a, b);                          // same frequency MULTISET
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -194,6 +274,52 @@ int brokenCalc(int startValue, int target) {
     return ops + (startValue - target);      // only subtractions remain
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Monotonic stack: n pushes total, so at most n pops total => O(n) amortised
+int[] dailyTemperatures(int[] t) {
+    int n = t.length;
+    int[] res = new int[n];
+    Deque<Integer> st = new ArrayDeque<>();   // indices, temperatures decreasing bottom->top
+    for (int i = 0; i < n; i++) {
+        while (!st.isEmpty() && t[st.peek()] < t[i]) {   // each pop kills one push forever
+            int top = st.pop();
+            res[top] = i - top;
+        }
+        st.push(i);                          // the monovariant: total pushes <= n
+    }
+    return res;
+}
+
+// Sliding window: `left` never decreases, so the inner while runs <= n times overall
+int lengthOfLongestSubstring(String s) {
+    int[] last = new int[128];
+    Arrays.fill(last, -1);
+    int best = 0, left = 0;
+    for (int r = 0; r < s.length(); r++) {
+        char c = s.charAt(r);
+        left = Math.max(left, last[c] + 1);   // monotone non-decreasing, bounded by n
+        last[c] = r;
+        best = Math.max(best, r - left + 1);
+    }
+    return best;
+}
+
+// LC 991 backwards: the value strictly decreases, so termination is immediate
+int brokenCalc(int startValue, int target) {
+    int ops = 0;
+    while (target > startValue) {
+        target = (target % 2 == 0) ? target / 2 : target + 1;   // strictly smaller soon
+        ops++;
+    }
+    return ops + (startValue - target);      // only subtractions remain
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -273,6 +399,57 @@ int maximumGap(vector<int>& nums) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 287 — the value range forces a cycle in the functional graph i -> nums[i]
+int findDuplicate(int[] nums) {
+    int slow = nums[0], fast = nums[0];
+    do {                                  // phase 1: meet inside the cycle
+        slow = nums[slow];
+        fast = nums[nums[fast]];
+    } while (slow != fast);
+
+    slow = nums[0];                       // phase 2: walk to the entrance
+    while (slow != fast) {
+        slow = nums[slow];
+        fast = nums[fast];
+    }
+    return slow;                          // the entrance = the repeated value
+}
+
+// LC 164 — n-1 buckets of width (hi-lo)/(n-1): the answer cannot live inside one
+int maximumGap(int[] nums) {
+    int n = nums.length;
+    if (n < 2) return 0;
+    int lo = Integer.MAX_VALUE, hi = Integer.MIN_VALUE;
+    for (int v : nums) { lo = Math.min(lo, v); hi = Math.max(hi, v); }
+    if (lo == hi) return 0;
+
+    long width = Math.max(1L, (long)(hi - lo) / (n - 1));   // <= the answer
+    int buckets = (int)((hi - lo) / width) + 1;
+    int[] bmin = new int[buckets], bmax = new int[buckets];
+    Arrays.fill(bmin, Integer.MAX_VALUE);
+    Arrays.fill(bmax, Integer.MIN_VALUE);
+    for (int v : nums) {
+        int b = (int)((v - lo) / width);
+        bmin[b] = Math.min(bmin[b], v);
+        bmax[b] = Math.max(bmax[b], v);
+    }
+
+    int best = 0, prev = lo;
+    for (int b = 0; b < buckets; b++) {
+        if (bmin[b] == Integer.MAX_VALUE) continue;    // empty buckets are the point
+        best = Math.max(best, bmin[b] - prev);
+        prev = bmax[b];
+    }
+    return best;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -351,6 +528,56 @@ vector<int> advantageCount(vector<int>& nums1, vector<int>& nums2) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 179 — the swap condition IS the comparator
+String largestNumber(int[] nums) {
+    // Java cannot hand a comparator to a primitive int[], so the values are boxed
+    // into a String[] (an Integer[] would work too) before sorting.
+    String[] v = new String[nums.length];
+    for (int i = 0; i < nums.length; i++) v[i] = Integer.toString(nums[i]);
+
+    // C++ predicate: `a + b > b + a`, i.e. a goes first iff that concatenation is bigger.
+    // A Java comparator must return a negative number to put `a` first, so the operands
+    // swap: (b + a).compareTo(a + b) < 0 exactly when a + b > b + a.
+    Arrays.sort(v, (a, b) -> (b + a).compareTo(a + b));
+
+    if (v[0].equals("0")) return "0";   // all zeros collapse to a single "0"
+    StringBuilder res = new StringBuilder();
+    for (String s : v) res.append(s);
+    return res.toString();
+}
+
+// LC 406 — exchange decides the ORDER OF INSERTION, not the final order
+int[][] reconstructQueue(int[][] people) {
+    Arrays.sort(people, (a, b) -> a[0] != b[0] ? Integer.compare(b[0], a[0])
+                                               : Integer.compare(a[1], b[1]));  // tallest first, then k
+    List<int[]> res = new ArrayList<>();
+    for (int[] p : people) res.add(p[1], p);           // index k is exact
+    return res.toArray(new int[0][]);
+}
+
+// LC 870 — sort both, then spend the smallest card that still wins
+int[] advantageCount(int[] nums1, int[] nums2) {
+    // multiset<int> has no Java equivalent: a TreeMap from value to remaining count
+    // keeps the sorted order and the duplicates.
+    TreeMap<Integer, Integer> pool = new TreeMap<>();
+    for (int x : nums1) pool.merge(x, 1, Integer::sum);
+    int[] res = new int[nums2.length];
+    for (int i = 0; i < nums2.length; i++) {
+        Integer key = pool.higherKey(nums2[i]);        // cheapest card that beats v
+        if (key == null) key = pool.firstKey();        // cannot win: dump the weakest
+        res[i] = key;
+        if (pool.get(key) == 1) pool.remove(key); else pool.merge(key, -1, Integer::sum);
+    }
+    return res;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -424,6 +651,56 @@ int trapRainWater(vector<vector<int>>& g) {
     return water;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 11 — the shorter line is provably dead: width only shrinks from here
+int maxArea(int[] h) {
+    int i = 0, j = h.length - 1, best = 0;
+    while (i < j) {
+        best = Math.max(best, (j - i) * Math.min(h[i], h[j]));
+        if (h[i] < h[j]) i++;      // h[i] caps every remaining pair it could join
+        else j--;
+    }
+    return best;
+}
+
+// LC 407 — always settle the LOWEST boundary cell; its level is already forced
+int trapRainWater(int[][] g) {
+    int m = g.length, n = g[0].length;
+    if (m < 3 || n < 3) return 0;
+
+    // C++ priority_queue with greater<> is a MIN-heap, and Java's PriorityQueue is
+    // already one, so the comparator only names the key — no direction flip needed.
+    PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> Integer.compare(a[0], b[0]));
+    boolean[][] seen = new boolean[m][n];
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < n; j++)
+            if (i == 0 || j == 0 || i == m - 1 || j == n - 1) {
+                pq.add(new int[]{g[i][j], i, j});
+                seen[i][j] = true;
+            }
+
+    int water = 0;
+    int[] dx = {1, -1, 0, 0}, dy = {0, 0, 1, -1};
+    while (!pq.isEmpty()) {
+        int[] cur = pq.poll();                       // the minimum: nothing can raise it
+        int level = cur[0], i = cur[1], j = cur[2];
+        for (int d = 0; d < 4; d++) {
+            int x = i + dx[d], y = j + dy[d];
+            if (x < 0 || y < 0 || x >= m || y >= n || seen[x][y]) continue;
+            seen[x][y] = true;
+            water += Math.max(0, level - g[x][y]);
+            pq.add(new int[]{Math.max(level, g[x][y]), x, y});   // the new boundary height
+        }
+    }
+    return water;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |

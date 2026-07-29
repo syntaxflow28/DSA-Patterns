@@ -44,6 +44,25 @@ while (left < right) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int left = 0, right = nums.length - 1;
+while (left < right) {
+    int sum = nums[left] + nums[right];
+    if (sum == target) {
+        return new int[]{left, right};
+    } else if (sum < target) {
+        left++;        // every pair (left, j<right) is even smaller — discard left
+    } else {
+        right--;       // every pair (i>left, right) is even bigger — discard right
+    }
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -86,6 +105,21 @@ for (int fast = 0; fast < nums.size(); fast++) {
 return slow;   // length of the deduped prefix
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int slow = 0;
+for (int fast = 0; fast < nums.length; fast++) {
+    if (fast == 0 || nums[fast] != nums[fast - 1]) {
+        nums[slow++] = nums[fast];   // keep it: write at the boundary, extend the boundary
+    }
+}
+return slow;   // length of the deduped prefix
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -124,6 +158,22 @@ while (fast && fast->next) {
 return false;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// class ListNode { int val; ListNode next; }
+ListNode slow = head, fast = head;
+while (fast != null && fast.next != null) {
+    slow = slow.next;
+    fast = fast.next.next;
+    if (slow == fast) return true;   // cycle exists
+}
+return false;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -161,6 +211,25 @@ lag->next = lag->next->next;        // splice the target out
 return dummy.next;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// class ListNode { int val; ListNode next; ListNode(int v, ListNode n) { val = v; next = n; } }
+ListNode dummy = new ListNode(0, head);
+ListNode lead = dummy, lag = dummy;
+for (int i = 0; i < n + 1; i++)     // n+1 so lag stops *before* the target
+    lead = lead.next;
+while (lead != null) {
+    lead = lead.next;
+    lag = lag.next;
+}
+lag.next = lag.next.next;           // splice the target out
+return dummy.next;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -189,6 +258,22 @@ while (i < a.size() && j < b.size()) {
 while (i < a.size()) result.push_back(a[i++]);   // drain leftovers
 while (j < b.size()) result.push_back(b[j++]);
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int i = 0, j = 0;
+List<Integer> result = new ArrayList<>();
+while (i < a.length && j < b.length) {
+    if (a[i] <= b[j]) result.add(a[i++]);
+    else              result.add(b[j++]);
+}
+while (i < a.length) result.add(a[i++]);   // drain leftovers
+while (j < b.length) result.add(b[j++]);
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -226,6 +311,23 @@ for (int right = 0; right < n; right++) {
     best = max(best, right - left + 1);  // window [left, right] is valid here
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int left = 0, best = 0;
+for (int right = 0; right < n; right++) {
+    add(s.charAt(right));                     // expand: bring s[right] into window state
+    while (!valid()) {                        // shrink until constraint holds again
+        remove(s.charAt(left));
+        left++;
+    }
+    best = Math.max(best, right - left + 1);  // window [left, right] is valid here
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -270,6 +372,25 @@ for (int i = 0; i < n; i++) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int expand(String s, int l, int r) {
+    while (l >= 0 && r < s.length() && s.charAt(l) == s.charAt(r)) {
+        l--; r++;
+    }
+    return r - l - 1;   // length of maximal palindrome at this center
+}
+
+for (int i = 0; i < n; i++) {
+    int odd  = expand(s, i, i);       // center = character i
+    int even = expand(s, i, i + 1);   // center = gap between i and i+1
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -302,6 +423,31 @@ while (mid <= high) {
     }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int low = 0, mid = 0, high = nums.length - 1;
+while (mid <= high) {
+    if (nums[mid] == 0) {
+        swap(nums, low++, mid++);         // incoming element is a known 1 — safe to advance
+    } else if (nums[mid] == 1) {
+        mid++;                            // already in the right region
+    } else {
+        swap(nums, mid, high--);          // incoming element is UNEXAMINED — do not advance mid
+    }
+}
+
+// Java has no std::swap — a helper keeps the three-line temp swap out of the loop
+private void swap(int[] a, int i, int j) {
+    int tmp = a[i];
+    a[i] = a[j];
+    a[j] = tmp;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

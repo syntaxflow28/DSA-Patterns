@@ -33,6 +33,24 @@ for (const string& s : strs) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+Map<String, List<String>> groups = new HashMap<>();
+for (String s : strs) {
+    int[] cnt = new int[26];
+    for (char c : s.toCharArray()) cnt[c - 'a']++;
+    // StringBuilder, not String: `key += ...` inside a loop is the classic O(n^2) trap
+    // (Java String is immutable, so every += copies the whole thing).
+    StringBuilder key = new StringBuilder();    // canonical name: "2#0#1#...#"
+    for (int x : cnt) { key.append(x); key.append('#'); }   // '#' guards against "1,12" vs "11,2"
+    groups.computeIfAbsent(key.toString(), k -> new ArrayList<>()).add(s);
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -75,6 +93,28 @@ int myAtoi(const string& s) {
     return (int)(sign * val);                            // anything after digits: ignored
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int myAtoi(String s) {
+    int i = 0, n = s.length(), sign = 1;
+    long val = 0;                                                 // C++ long long → Java long
+    while (i < n && s.charAt(i) == ' ') i++;                      // state 1: whitespace
+    if (i < n && (s.charAt(i) == '+' || s.charAt(i) == '-'))      // state 2: optional sign
+        sign = (s.charAt(i++) == '-') ? -1 : 1;
+    while (i < n && s.charAt(i) >= '0' && s.charAt(i) <= '9') {   // state 3: digits
+        val = val * 10 + (s.charAt(i++) - '0');                   // (explicit range beats Character.isDigit,
+                                                                  //  which also accepts non-ASCII digits)
+        if (sign * val <= Integer.MIN_VALUE) return Integer.MIN_VALUE;  // clamp early — val can't overflow long here
+        if (sign * val >= Integer.MAX_VALUE) return Integer.MAX_VALUE;
+    }
+    return (int) (sign * val);                                    // anything after digits: ignored
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -120,6 +160,27 @@ vector<int> prefixFunction(const string& s) {
 // match ends at text position i wherever pi[m + 1 + i] == m  (m = pattern length)
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int[] prefixFunction(String s) {
+    int n = s.length();
+    int[] pi = new int[n];                                  // new int[n] is zero-filled already
+    for (int i = 1; i < n; i++) {
+        int j = pi[i - 1];
+        while (j > 0 && s.charAt(i) != s.charAt(j)) j = pi[j - 1];   // fall back through the border chain
+        if (s.charAt(i) == s.charAt(j)) j++;                          // extend the border by one
+        pi[i] = j;
+    }
+    return pi;
+}
+// search: int[] pi = prefixFunction(pattern + "#" + text);
+// match ends at text position i wherever pi[m + 1 + i] == m  (m = pattern length)
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -160,6 +221,30 @@ long long get(int l, int r) {                  // hash of s[l..r], inclusive
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// The C++ version leans on file-scope globals shared between build() and get(); Java has no
+// globals or reference parameters, so these become instance fields of the enclosing class.
+static final long B = 131, MOD = 1_000_000_007L;
+int n; long[] h, p;                            // h[i] = hash of s[0..i-1], p[i] = B^i
+
+void build(String s) {
+    n = s.length(); h = new long[n + 1]; p = new long[n + 1];
+    p[0] = 1;                                  // Java arrays start all-zero, so p[0] needs setting
+    for (int i = 0; i < n; i++) {
+        h[i + 1] = (h[i] * B + s.charAt(i)) % MOD;
+        p[i + 1] = p[i] * B % MOD;
+    }
+}
+long get(int l, int r) {                       // hash of s[l..r], inclusive
+    return ((h[r + 1] - h[l] * p[r - l + 1]) % MOD + MOD) % MOD;  // Java % keeps the sign too — +MOD is mandatory
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -197,6 +282,24 @@ vector<int> zFunction(const string& s) {
     return z;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int[] zFunction(String s) {
+    int n = s.length();
+    int[] z = new int[n];
+    for (int i = 1, l = 0, r = 0; i < n; i++) {
+        if (i < r) z[i] = Math.min(r - i, z[i - l]);   // start from the mirror's answer
+        while (i + z[i] < n && s.charAt(z[i]) == s.charAt(i + z[i])) z[i]++;   // extend past r only
+        if (i + z[i] > r) { l = i; r = i + z[i]; }     // window only moves right → O(n)
+    }
+    return z;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

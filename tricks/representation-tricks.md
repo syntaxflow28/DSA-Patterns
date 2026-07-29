@@ -51,6 +51,48 @@ vector<int> findDuplicates(vector<int>& nums) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 289 - two bits per cell: bit0 = current, bit1 = next
+void gameOfLife(int[][] b) {
+    int m = b.length, n = b[0].length;
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < n; j++) {
+            int live = 0;
+            for (int di = -1; di <= 1; di++)
+                for (int dj = -1; dj <= 1; dj++) {
+                    if (di == 0 && dj == 0) continue;
+                    int x = i + di, y = j + dj;
+                    if (x >= 0 && x < m && y >= 0 && y < n)
+                        live += b[x][y] & 1;          // & 1 == the OLD board
+                }
+            if ((b[i][j] & 1) == 1 && (live == 2 || live == 3)) b[i][j] |= 2;
+            if ((b[i][j] & 1) == 0 && live == 3)               b[i][j] |= 2;
+        }
+    // Java's >> is ARITHMETIC (it sign-extends); >>> is the logical shift.
+    // Cells here hold 0..3 so >> 1 would also work, but use >>> whenever the
+    // value could have the sign bit set - it is the safe default for bit packing.
+    // Java has no `int&`, so the inner loop indexes instead of binding a reference.
+    for (int[] row : b)
+        for (int j = 0; j < row.length; j++) row[j] >>>= 1;   // commit, all at once
+}
+
+// LC 442 - sign marking: index is the hash, sign is the "seen" bit
+List<Integer> findDuplicates(int[] nums) {
+    List<Integer> out = new ArrayList<>();
+    for (int v : nums) {
+        int i = Math.abs(v) - 1;                           // magnitude survives
+        if (nums[i] < 0) out.add(Math.abs(v));             // marked twice
+        else nums[i] = -nums[i];
+    }
+    return out;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -116,6 +158,61 @@ void walk(vector<vector<int>>& g, int i, int j, char dir, string& path) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 49 - canonical form = sorted string (or a 26-count signature)
+List<List<String>> groupAnagrams(String[] strs) {
+    HashMap<String, List<String>> g = new HashMap<>();
+    for (String s : strs) {
+        char[] c = s.toCharArray();
+        Arrays.sort(c);                        // O(L log L); counting is O(L)
+        String key = new String(c);
+        g.computeIfAbsent(key, k -> new ArrayList<>()).add(s);
+    }
+    return new ArrayList<>(g.values());        // no move(); Java hands back references
+}
+
+// The 26-count signature. Build it with a StringBuilder: String is immutable,
+// so `key += cnt[i]` inside the loop reallocates every iteration and the whole
+// key construction degrades to O(n^2).
+String signature(String s) {
+    int[] cnt = new int[26];
+    for (char ch : s.toCharArray()) cnt[ch - 'a']++;
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < 26; i++) sb.append(cnt[i]).append('#');   // separator, not cosmetic
+    return sb.toString();
+}
+
+// LC 652 - canonical form = serialization WITH null markers
+// C++ took cnt/out by reference; Java has no reference parameters, so they are
+// threaded through as arguments (object references) or held as instance fields.
+String dfs(TreeNode n, HashMap<String, Integer> cnt, List<TreeNode> out) {
+    if (n == null) return "#";                 // the marker is the whole trick
+    String key = n.val + "," + dfs(n.left, cnt, out)
+                       + "," + dfs(n.right, cnt, out);
+    if (cnt.merge(key, 1, Integer::sum) == 2) out.add(n);   // merge returns the NEW count
+    return key;
+}
+
+// LC 694 - canonical form = movement path relative to the entry cell
+// C++ used `string& path`; StringBuilder is a mutable object, so passing the
+// reference gives the same accumulate-in-place behaviour (a String would not).
+void walk(int[][] g, int i, int j, char dir, StringBuilder path) {
+    if (i < 0 || i >= g.length || j < 0 || j >= g[0].length || g[i][j] == 0) return;
+    g[i][j] = 0;
+    path.append(dir);
+    walk(g, i + 1, j, 'D', path);
+    walk(g, i - 1, j, 'U', path);
+    walk(g, i, j + 1, 'R', path);
+    walk(g, i, j - 1, 'L', path);
+    path.append('b');                          // backtrack marker: shape, not just steps
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -169,6 +266,43 @@ vector<int> countSmaller(vector<int>& nums) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// Coordinate compression, the whole idiom.
+// C++'s sort + unique + erase has no single Java equivalent; the stream form is
+// the shortest, an explicit compaction pass + Arrays.copyOf(a, k) is the fast one.
+int[] vals = Arrays.stream(nums).distinct().sorted().toArray();
+// int[] a = nums.clone(); Arrays.sort(a);
+// int k = 0; for (int i = 0; i < a.length; i++) if (i == 0 || a[i] != a[i-1]) a[k++] = a[i];
+// int[] vals = Arrays.copyOf(a, k);
+
+// 1-based, BIT-friendly. Arrays.binarySearch is a valid rank lookup ONLY because
+// x is guaranteed to be present in vals; for an absent value it returns
+// -(insertionPoint) - 1, which you must convert yourself before using it.
+int rank(int[] vals, int x) { return Arrays.binarySearch(vals, x) + 1; }
+
+// LC 315 - count smaller after self: compress, then sweep right to left over a BIT
+List<Integer> countSmaller(int[] nums) {
+    int[] vals = Arrays.stream(nums).distinct().sorted().toArray();
+    int n = nums.length, m = vals.length;
+    int[] bit = new int[m + 1];
+    Integer[] res = new Integer[n];
+    for (int i = n - 1; i >= 0; i--) {
+        res[i] = qry(bit, rank(vals, nums[i]) - 1);   // strictly smaller, already inserted
+        add(bit, m, rank(vals, nums[i]));
+    }
+    return Arrays.asList(res);
+}
+// C++ used `[&]` lambdas capturing bit and m by reference. Java lambdas capture
+// locals by value, so these are written as plain methods taking the array.
+void add(int[] bit, int m, int i) { for (; i <= m; i += i & -i) bit[i]++; }
+int qry(int[] bit, int i) { int s = 0; for (; i > 0; i -= i & -i) s += bit[i]; return s; }
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -219,6 +353,36 @@ int minMeetingRooms(vector<vector<int>>& iv) {
     return best;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 1109 - difference array, one prefix sum at the end
+int[] corpFlightBookings(int[][] bookings, int n) {
+    int[] d = new int[n + 1];                  // n+1 so r+1 is always in range
+    for (int[] b : bookings) {
+        d[b[0] - 1] += b[2];                   // 1-based flights -> 0-based index
+        d[b[1]]     -= b[2];                   // "past the end", not "at the end"
+    }
+    for (int i = 1; i < n; i++) d[i] += d[i - 1];
+    return Arrays.copyOf(d, n);                // no pop_back(); copy off the spare slot
+}
+
+// LC 253 - the same object as a sweep line over a sorted event map
+int minMeetingRooms(int[][] iv) {
+    TreeMap<Integer, Integer> d = new TreeMap<>();   // ordered: coordinates are sparse
+    for (int[] m : iv) {
+        d.merge(m[0], 1, Integer::sum);
+        d.merge(m[1], -1, Integer::sum);
+    }
+    int cur = 0, best = 0;
+    for (int delta : d.values()) { cur += delta; best = Math.max(best, cur); }
+    return best;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -273,6 +437,39 @@ struct DSU {
     }
 };
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Grid cell -> single id, and back
+static int id(int r, int c, int cols) { return r * cols + c; }
+// r = id / cols;  c = id % cols;
+
+// Two bounded ints -> one key (both < 65536). Java's int is 32-bit like C++'s,
+// so this is the same 16+16 budget: a must fit in 16 bits or it overflows.
+static int key(int a, int b) { return (a << 16) | b; }
+// Two full 32-bit ints -> one 64-bit key. Java has no unsigned types, so mask
+// with 0xFFFFFFFFL instead of casting through `unsigned` to stop sign extension.
+static long key64(int a, int b) {
+    return ((long) a << 32) | (b & 0xFFFFFFFFL);
+}
+
+// LC 305 - DSU over packed grid ids, activated incrementally
+static class DSU {
+    int[] p;
+    DSU(int n) { p = new int[n]; Arrays.fill(p, -1); }
+    void make(int x) { if (p[x] == -1) p[x] = x; }
+    int find(int x) { return p[x] == x ? x : (p[x] = find(p[x])); }
+    boolean unite(int a, int b) {
+        a = find(a); b = find(b);
+        if (a == b) return false;
+        p[a] = b; return true;
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -329,6 +526,47 @@ struct RollingHash {
 // LC 1044 - binary search on the length, rolling hash for the O(1) check
 // exists(len): drop every length-len hash into a set, report the first repeat
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Java has no unsigned long long and no __int128, so overflow-based hashing is
+// not available at all - the modular arithmetic must be explicit. Every
+// intermediate stays in long, and the 128-bit product is recovered with
+// Math.multiplyHigh (Java 9+) instead of __uint128_t.
+static class RollingHash {
+    static final long M = (1L << 61) - 1;                   // Mersenne prime
+    long[] h, p;
+    static long mul(long a, long b) {
+        long lo = a * b;                                    // low 64 bits of a*b
+        long hi = Math.multiplyHigh(a, b);                  // high 64 bits of a*b
+        // (r & M) is lo's low 61 bits; (r >> 61) is (hi << 3) | (lo >>> 61).
+        // >>> is the logical shift - >> would sign-extend and corrupt the carry.
+        long r = (lo & M) + ((hi << 3) | (lo >>> 61));
+        return r >= M ? r - M : r;
+    }
+    RollingHash(String s, long B) {
+        h = new long[s.length() + 1];
+        p = new long[s.length() + 1];
+        p[0] = 1;
+        for (int i = 0; i < s.length(); i++) {
+            h[i + 1] = mul(h[i], B) + (s.charAt(i) & 0xFF);  // & 0xFF stands in for (unsigned char)
+            if (h[i + 1] >= M) h[i + 1] -= M;
+            p[i + 1] = mul(p[i], B);
+        }
+    }
+    long get(int l, int len) {                              // hash of s[l .. l+len-1]
+        long x = h[l + len] + M - mul(h[l], p[len]);
+        return x >= M ? x - M : x;
+    }
+}
+
+// LC 1044 - binary search on the length, rolling hash for the O(1) check
+// exists(len): drop every length-len hash into a set, report the first repeat
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |

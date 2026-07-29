@@ -51,6 +51,21 @@ int dfs(TreeNode* node) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// TreeNode: int val; TreeNode left, right;
+int dfs(TreeNode node) {
+    if (node == null) return BASE;          // contract for the empty tree
+    int left  = dfs(node.left);             // trust: left subtree's answer
+    int right = dfs(node.right);            // trust: right subtree's answer
+    return combine(left, right, node.val);  // single-node logic — the only part to verify
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -93,6 +108,25 @@ int depth(TreeNode* node) {                  // RETURNS: longest downward path (
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// C++'s file-scope mutable `best` has no Java equivalent: make it an instance field
+// (or pass an int[1] holder) so the recursion can record into shared state.
+int best = 0;
+
+int depth(TreeNode node) {                   // RETURNS: longest downward path (extendable)
+    if (node == null) return 0;
+    int l = depth(node.left);
+    int r = depth(node.right);
+    best = Math.max(best, l + r);            // RECORDS: best path bending at this node
+    return 1 + Math.max(l, r);               // parent can only extend one arm
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -134,6 +168,22 @@ bool dfs(TreeNode* node, int remaining) {          // inherited state as paramet
     return dfs(node->left, remaining) || dfs(node->right, remaining);
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+boolean dfs(TreeNode node, int remaining) {        // inherited state as parameter
+    if (node == null) return false;
+    remaining -= node.val;                         // params are by-value here too, so
+                                                   // each branch gets its own copy — no undo
+    if (node.left == null && node.right == null)   // decide at the LEAF
+        return remaining == 0;
+    return dfs(node.left, remaining) || dfs(node.right, remaining);
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -178,6 +228,27 @@ TreeNode* build(vector<int>& preorder, int lo, int hi) {   // in-order range [lo
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+Map<Integer, Integer> pos = new HashMap<>();       // value → in-order index (built once)
+// `pre` must survive across sibling calls; Java has no by-reference parameters, so it
+// lives as an instance field (an int[1] holder works if it must stay local).
+int pre = 0;                                       // pre-order consumption pointer
+
+TreeNode build(int[] preorder, int lo, int hi) {   // in-order range [lo, hi]
+    if (lo > hi) return null;
+    TreeNode root = new TreeNode(preorder[pre++]); // pre-order names the root
+    int mid = pos.get(root.val);                   // in-order locates the split
+    root.left  = build(preorder, lo, mid - 1);     // MUST build left first
+    root.right = build(preorder, mid + 1, hi);
+    return root;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -218,6 +289,22 @@ while (cur || !st.empty()) {
     cur = cur->right;                               // then the right subtree
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Deque<TreeNode> st = new ArrayDeque<>();            // ArrayDeque, not Stack/LinkedList
+TreeNode cur = root;
+while (cur != null || !st.isEmpty()) {
+    while (cur != null) { st.push(cur); cur = cur.left; }  // dive the left spine
+    cur = st.pop();                                 // push/pop work on the deque's head
+    visit(cur);                                     // the in-order moment
+    cur = cur.right;                                // then the right subtree
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

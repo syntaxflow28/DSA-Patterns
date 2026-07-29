@@ -62,6 +62,21 @@ void dfs(int u, vector<vector<int>>& adj) {
 // caller: components = number of i with !visited[i] that trigger a dfs(i)
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+boolean[] visited;                              // instance field, mirroring the C++ global
+void dfs(int u, List<Integer>[] adj) {          // Java arrays/objects are already by-reference
+    visited[u] = true;
+    for (int v : adj[u])
+        if (!visited[v]) dfs(v, adj);
+}
+// caller: components = number of i with !visited[i] that trigger a dfs(i)
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -101,6 +116,21 @@ void dfs(vector<vector<char>>& g, int r, int c) {
     dfs(g, r, c+1); dfs(g, r, c-1);
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int m, n;                               // instance fields, mirroring the C++ globals
+void dfs(char[][] g, int r, int c) {    // char[][] is a reference — no & needed
+    if (r < 0 || r >= m || c < 0 || c >= n || g[r][c] != '1') return;
+    g[r][c] = '0';                      // mark in place — the grid IS the visited set
+    dfs(g, r+1, c); dfs(g, r-1, c);
+    dfs(g, r, c+1); dfs(g, r, c-1);
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -148,6 +178,26 @@ bool dfs(int u, vector<vector<int>>& adj) {     // returns false on cycle
 // run from every white node; reverse(order) = topological order
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int[] color; List<Integer> order = new ArrayList<>();  // 0 white, 1 gray, 2 black — fields, as C++ used globals
+boolean dfs(int u, List<Integer>[] adj) {       // returns false on cycle
+    color[u] = 1;                       // gray: on the current path
+    for (int v : adj[u]) {
+        if (color[v] == 1) return false;            // back edge → cycle
+        if (color[v] == 0 && !dfs(v, adj)) return false;
+    }
+    color[u] = 2;                       // black: finished, provably cycle-free below
+    order.add(u);                       // finish time — everything u needs is already in
+    return true;
+}
+// run from every white node; Collections.reverse(order) = topological order
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -190,6 +240,25 @@ int dfs(int u, int parent, vector<vector<int>>& adj) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int best = 0;                                      // instance field: Java has no by-reference accumulator param
+int dfs(int u, int parent, List<Integer>[] adj) {
+    int top1 = 0, top2 = 0;                        // two deepest child arms
+    for (int v : adj[u]) if (v != parent) {        // parent check replaces visited set
+        int d = dfs(v, u, adj) + 1;
+        if (d > top1) { top2 = top1; top1 = d; }
+        else if (d > top2) top2 = d;
+    }
+    best = Math.max(best, top1 + top2);            // best path bending at u
+    return top1;                                   // best straight arm for the parent
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -231,6 +300,27 @@ bool dfs(const string& s, int start, unordered_set<string>& dict) {
     return memo[start] = false;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Map<Integer, Boolean> memo = new HashMap<>();  // start index → breakable?
+boolean dfs(String s, int start, Set<String> dict) {
+    if (start == s.length()) return true;
+    Boolean cached = memo.get(start);
+    if (cached != null) return cached;         // subproblem seen — reuse
+    for (int end = start + 1; end <= s.length(); end++)
+        if (dict.contains(s.substring(start, end)) && dfs(s, end, dict)) {
+            memo.put(start, true);             // no assignment-expression trick in Java
+            return true;
+        }
+    memo.put(start, false);
+    return false;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -279,6 +369,28 @@ void dfs(int u, int parent, vector<vector<int>>& adj) {
     }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int timer = 0;                                 // instance field — C++'s global counter
+int[] tin, low;                                // init to -1 / 0
+List<int[]> bridges = new ArrayList<>();       // int[]{u, v} stands in for pair<int,int>
+void dfs(int u, int parent, List<Integer>[] adj) {
+    tin[u] = low[u] = timer++;
+    for (int v : adj[u]) {
+        if (v == parent) continue;             // don't climb the tree edge you came down
+        if (tin[v] == -1) {                    // tree edge
+            dfs(v, u, adj);
+            low[u] = Math.min(low[u], low[v]);
+            if (low[v] > tin[u]) bridges.add(new int[]{u, v});  // v's subtree can't reach above u
+        } else low[u] = Math.min(low[u], tin[v]);   // back edge — a rope to an ancestor
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

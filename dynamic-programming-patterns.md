@@ -88,6 +88,21 @@ for (int x : nums) {
 return prev1;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// dp[i] = max loot from the first i houses (house i-1 considered last)
+int prev2 = 0, prev1 = 0;                       // dp[i-2], dp[i-1] — O(1) space
+for (int x : nums) {
+    int cur = Math.max(prev1, prev2 + x);       // skip house i  vs  rob it
+    prev2 = prev1; prev1 = cur;
+}
+return prev1;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -134,6 +149,35 @@ for (int x : nums) {
 // answer = tails.size();
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// O(n^2): dp[i] = LIS ending at i
+int[] dp = new int[n];
+Arrays.fill(dp, 1);
+for (int i = 0; i < n; i++)
+    for (int j = 0; j < i; j++)
+        if (nums[j] < nums[i]) dp[i] = Math.max(dp[i], dp[j] + 1);
+// answer = Arrays.stream(dp).max().getAsInt();
+
+// O(n log n): patience tails
+int[] tails = new int[n];
+int len = 0;                                               // tails[0..len) is the live prefix
+for (int x : nums) {
+    int lo = 0, hi = len;                                  // hand-rolled lower_bound: first tail >= x
+    while (lo < hi) {
+        int mid = lo + (hi - lo) / 2;
+        if (tails[mid] < x) lo = mid + 1; else hi = mid;
+    }
+    if (lo == len) tails[len++] = x;                       // extends longest
+    else tails[lo] = x;                                    // dominates: smaller tail, same length
+}
+// answer = len;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -172,6 +216,24 @@ for (int r = 0; r < m; r++)
     }
 return dp[n-1];
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int[] dp = new int[n];
+Arrays.fill(dp, Integer.MAX_VALUE);
+dp[0] = 0;
+for (int r = 0; r < m; r++)
+    for (int c = 0; c < n; c++) {
+        if (c > 0) dp[c] = Math.min(dp[c], dp[c-1]);   // dp[c] still holds "from above"
+        dp[c] += grid[r][c];                            // (r=0 handled by Integer.MAX_VALUE guard)
+    }
+return dp[n-1];
+```
+
+</details>
+
 *(Interview-safe version: keep the 2-D table first; roll only when asked.)*
 
 **Problems:**
@@ -213,6 +275,22 @@ return dp[target];
 
 // Unbounded (coin change min): for c LEFT-TO-RIGHT, dp[c] = min(dp[c], dp[c-coin] + 1)
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+boolean[] dp = new boolean[target + 1];         // vector<char> of flags → boolean[]
+dp[0] = true;                                   // empty subset reaches 0
+for (int x : nums)
+    for (int c = target; c >= x; c--)           // RIGHT-TO-LEFT: each item once
+        dp[c] = dp[c] || dp[c - x];
+return dp[target];
+
+// Unbounded (coin change min): for c LEFT-TO-RIGHT, dp[c] = Math.min(dp[c], dp[c-coin] + 1)
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -258,6 +336,24 @@ for (int i = 1; i <= n; i++)
 return dp[n][m];
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int[][] dp = new int[n + 1][m + 1];
+for (int i = 0; i <= n; i++) dp[i][0] = i;        // delete all of A's prefix
+for (int j = 0; j <= m; j++) dp[0][j] = j;        // insert all of B's prefix
+for (int i = 1; i <= n; i++)
+    for (int j = 1; j <= m; j++)
+        if (a.charAt(i-1) == b.charAt(j-1)) dp[i][j] = dp[i-1][j-1];   // free match
+        else dp[i][j] = 1 + Math.min(dp[i-1][j-1],                      // substitute
+                            Math.min(dp[i-1][j],                        // delete from A
+                                     dp[i][j-1]));                      // insert into A
+return dp[n][m];
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -300,6 +396,23 @@ for (int i = n - 1; i >= 0; i--) {          // i descending ⇔ length ascending
 return dp[0][n-1];
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// dp[i][j] = LPS length within s[i..j]
+int[][] dp = new int[n][n];
+for (int i = n - 1; i >= 0; i--) {          // i descending ⇔ length ascending
+    dp[i][i] = 1;
+    for (int j = i + 1; j < n; j++)
+        dp[i][j] = (s.charAt(i) == s.charAt(j)) ? dp[i+1][j-1] + 2
+                                                : Math.max(dp[i+1][j], dp[i][j-1]);
+}
+return dp[0][n-1];
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -340,6 +453,24 @@ for (int p : prices) {
 }
 return max(sold, rest);
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// hold: own a stock; sold: sold today (cooldown next); rest: free to buy
+final long NEG = Long.MIN_VALUE / 4;       // sentinel that survives `hold + p` (Long.MIN_VALUE would wrap)
+long hold = NEG, sold = NEG, rest = 0;
+for (int p : prices) {
+    long prevSold = sold;
+    sold = hold + p;                       // arrow: sell
+    hold = Math.max(hold, rest - p);       // arrow: buy (from rest only!)
+    rest = Math.max(rest, prevSold);       // arrow: cooldown expires
+}
+return Math.max(sold, rest);
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -383,6 +514,27 @@ for (int mask = 0; mask < full; mask++) {
 return dp[full - 1];
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int full = 1 << n;
+int[] dp = new int[full];
+Arrays.fill(dp, Integer.MAX_VALUE);
+dp[0] = 0;
+for (int mask = 0; mask < full; mask++) {
+    if (dp[mask] == Integer.MAX_VALUE) continue;
+    int i = Integer.bitCount(mask);            // canonical: fill person i next (__builtin_popcount)
+    for (int j = 0; j < n; j++)
+        if ((mask & (1 << j)) == 0)            // Java needs the explicit == 0: int is not a boolean
+            dp[mask | (1 << j)] = Math.min(dp[mask | (1 << j)],
+                                           dp[mask] + cost[i][j]);
+}
+return dp[full - 1];
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -420,6 +572,24 @@ pair<long long,long long> dfs(TreeNode* node) {
     return {skip, rob};
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// returns {best if node skipped, best if node robbed}
+// no std::pair / structured bindings in Java — return a 2-slot long[] instead
+long[] dfs(TreeNode node) {
+    if (node == null) return new long[]{0, 0};
+    long[] l = dfs(node.left);                                  // l[0] = lSkip, l[1] = lRob
+    long[] r = dfs(node.right);                                 // r[0] = rSkip, r[1] = rRob
+    long rob  = node.val + l[0] + r[0];                         // rob ⇒ children skipped
+    long skip = Math.max(l[0], l[1]) + Math.max(r[0], r[1]);    // skip ⇒ children free
+    return new long[]{skip, rob};
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -470,6 +640,36 @@ int dfs(int pos, int last, bool tight) {
 // f(N) = (num = to_string(N), memset(memo, -1, sizeof memo), dfs(0, 10, true));
 // answer on [L, R] = f(R) - f(L - 1)
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Java has no globals: num/memo become instance fields of the solution class
+char[] num;                       // decimal digits of N, most significant first
+int[][] memo = new int[20][11];   // [pos][last digit], last = 10 means "nothing placed yet"
+
+// numbers completable from position pos onward, given the last real digit placed
+int dfs(int pos, int last, boolean tight) {
+    if (pos == num.length) return last == 10 ? 0 : 1;            // all-padding = the number 0, not counted
+    if (!tight && memo[pos][last] != -1) return memo[pos][last];  // NEVER cache tight states
+    int limit = tight ? num[pos] - '0' : 9;
+    int res = 0;
+    for (int d = 0; d <= limit; ++d) {
+        if (d == last) continue;                                 // the property (last == 10 can never match)
+        boolean started = (last != 10) || d > 0;
+        res += dfs(pos + 1, started ? d : 10, tight && d == limit);
+    }
+    if (!tight) memo[pos][last] = res;
+    return res;
+}
+// f(N): num = Long.toString(N).toCharArray();
+//       for (int[] row : memo) Arrays.fill(row, -1);   // == memset(memo, -1, sizeof memo)
+//       return dfs(0, 10, true);
+// answer on [L, R] = f(R) - f(L - 1)
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -522,6 +722,36 @@ double knightProbability(int n, int k, int startRow, int startCol) {
     return total;                                        // probability of surviving all k moves
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+double knightProbability(int n, int k, int startRow, int startCol) {
+    final int[] dr = {-2,-2,-1,-1, 1, 1, 2, 2};
+    final int[] dc = {-1, 1,-2, 2,-2, 2,-1, 1};
+    double[][] dp = new double[n][n];                   // new double[][] is already zero-filled
+    dp[startRow][startCol] = 1.0;                       // all mass starts here
+    for (int step = 0; step < k; ++step) {
+        double[][] nxt = new double[n][n];
+        for (int r = 0; r < n; ++r)
+            for (int c = 0; c < n; ++c) {
+                if (dp[r][c] == 0.0) continue;
+                for (int d = 0; d < 8; ++d) {
+                    int nr = r + dr[d], nc = c + dc[d];
+                    if (nr >= 0 && nr < n && nc >= 0 && nc < n)
+                        nxt[nr][nc] += dp[r][c] / 8.0;  // mass leaving the board is simply dropped
+                }
+            }
+        dp = nxt;                                        // rolling layer: only step-1 matters
+    }
+    double total = 0.0;
+    for (double[] row : dp) for (double p : row) total += p;
+    return total;                                        // probability of surviving all k moves
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

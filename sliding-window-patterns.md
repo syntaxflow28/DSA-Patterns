@@ -38,6 +38,20 @@ for (int right = 0; right < n; right++) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+long windowSum = 0, best = Long.MIN_VALUE;            // long long → long
+for (int right = 0; right < n; right++) {
+    windowSum += nums[right];                         // element enters
+    if (right >= k) windowSum -= nums[right - k];     // element leaves
+    if (right >= k - 1) best = Math.max(best, windowSum); // window is full size
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -80,6 +94,30 @@ for (int right = 0; right < n; right++) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// s and n are free names in the C++ sketch; Java has no file-scope mutable state,
+// so pass them in or hold them as instance fields.
+int left = 0, best = 0;
+Map<Character,Integer> freq = new HashMap<>();   // window state — varies by problem
+for (int right = 0; right < n; right++) {
+    freq.merge(s.charAt(right), 1, Integer::sum);   // expand: fold s[right] in
+    while (/* window invalid */) {                  // shrink until the constraint holds
+        char cl = s.charAt(left);
+        // TRAP: freq.get(cl) is a boxed Integer — unbox to int (or use intValue())
+        // before comparing; == on two Integers compares references outside -128..127.
+        int cnt = freq.get(cl) - 1;
+        if (cnt == 0) freq.remove(cl); else freq.put(cl, cnt);
+        left++;
+    }
+    best = Math.max(best, right - left + 1);        // window is guaranteed valid here
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -119,6 +157,24 @@ for (int right = 0; right < n; right++) {
 }
 return best == INT_MAX ? 0 : best;
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int left = 0, best = Integer.MAX_VALUE;              // INT_MAX → Integer.MAX_VALUE
+long sum = 0;
+for (int right = 0; right < n; right++) {
+    sum += nums[right];                              // expand
+    while (sum >= target) {                          // shrink WHILE valid
+        best = Math.min(best, right - left + 1);     // record before breaking it
+        sum -= nums[left++];
+    }
+}
+return best == Integer.MAX_VALUE ? 0 : best;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -167,6 +223,32 @@ long long atMost(vector<int>& nums, int k) {
 long long exactlyK = atMost(nums, k) - atMost(nums, k - 1);
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+long atMost(int[] nums, int k) {
+    Map<Integer,Integer> freq = new HashMap<>();
+    long count = 0;
+    int left = 0;
+    for (int right = 0; right < nums.length; right++) {
+        freq.merge(nums[right], 1, Integer::sum);
+        while (freq.size() > k) {
+            // boxed Integer again: unbox before comparing, never == between Integers
+            int cnt = freq.get(nums[left]) - 1;
+            if (cnt == 0) freq.remove(nums[left]); else freq.put(nums[left], cnt);
+            left++;
+        }
+        count += right - left + 1;     // all valid subarrays ending at right
+    }
+    return count;
+}
+// exactly K distinct:
+long exactlyK = atMost(nums, k) - atMost(nums, k - 1);
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -209,6 +291,27 @@ for (int right = 0; right < n; right++) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// ArrayDeque is the right choice for both stack and queue duty in Java —
+// never LinkedList and never the legacy java.util.Stack.
+Deque<Integer> dq = new ArrayDeque<>();   // indices; values strictly decreasing
+List<Integer> result = new ArrayList<>();
+for (int right = 0; right < n; right++) {
+    while (!dq.isEmpty() && nums[dq.peekLast()] <= nums[right])
+        dq.pollLast();                    // dominated: older AND <= new element
+    dq.addLast(right);
+    if (dq.peekFirst() <= right - k)
+        dq.pollFirst();                   // front has left the window
+    if (right >= k - 1)
+        result.add(nums[dq.peekFirst()]);
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -245,6 +348,24 @@ for (int right = 0; right < n; right++) {
     best = max(best, right - left + 1);
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Arrays.sort(nums);
+long sum = 0;
+int left = 0, best = 1;
+for (int right = 0; right < n; right++) {
+    sum += nums[right];
+    // cost to lift the whole window up to nums[right]:
+    while ((long) nums[right] * (right - left + 1) - sum > k)
+        sum -= nums[left++];
+    best = Math.max(best, right - left + 1);
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -291,6 +412,35 @@ int longestSubstring(string s, int k) {
     return best;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int longestSubstring(String s, int k) {
+    int n = s.length(), best = 0;
+    for (int d = 1; d <= 26; d++) {              // pin the culprit variable
+        int[] cnt = new int[26];                 // new int[] is already zero-filled
+        int left = 0, distinct = 0, atLeastK = 0;
+        for (int right = 0; right < n; right++) {
+            int c = s.charAt(right) - 'a';
+            if (cnt[c]++ == 0) distinct++;
+            if (cnt[c] == k) atLeastK++;         // crossing UP, exactly at k
+            while (distinct > d) {               // monotonic again → legal shrink
+                int l = s.charAt(left) - 'a';
+                if (cnt[l] == k) atLeastK--;     // crossing DOWN, checked before decrement
+                if (--cnt[l] == 0) distinct--;
+                left++;
+            }
+            if (distinct == d && atLeastK == d)  // all d characters satisfied
+                best = Math.max(best, right - left + 1);
+        }
+    }
+    return best;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

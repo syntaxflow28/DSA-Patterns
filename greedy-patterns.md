@@ -78,6 +78,24 @@ for (auto& it : iv)
     }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// iv is int[][]: its elements are int[] objects, so a Comparator applies directly.
+// (A 1-D int[] could not be sorted with a Comparator — it would need boxing to Integer[].)
+Arrays.sort(iv, Comparator.comparingInt(a -> a[1]));   // by END — the theorem's key
+int count = 0;
+long freeAt = Long.MIN_VALUE;
+for (int[] it : iv)
+    if (it[0] >= freeAt) {        // >= or > : read the touching rule per problem!
+        count++;
+        freeAt = it[1];
+    }
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -120,6 +138,24 @@ for (int i = 0; i < n - 1; i++) {            // note: n-1 — don't jump FROM th
 return jumps;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int jumps = 0, curEnd = 0, furthest = 0;
+for (int i = 0; i < n - 1; i++) {                 // note: n-1 — don't jump FROM the goal
+    furthest = Math.max(furthest, i + nums[i]);   // best extension seen in this layer
+    if (i == curEnd) {                            // layer exhausted — must commit
+        jumps++;
+        curEnd = furthest;                        // next layer's edge
+        // if (curEnd >= n - 1) break;            // optional early exit
+    }
+}
+return jumps;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -158,6 +194,24 @@ for (auto& x : s) ans += x;
 return ans;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+String[] s = new String[nums.length];
+for (int i = 0; i < nums.length; i++)
+    s[i] = Integer.toString(nums[i]);
+// s is String[] (a reference array), so a Comparator applies; sorting the raw int[]
+// with a custom comparator would have required boxing it to Integer[] first.
+Arrays.sort(s, (a, b) -> (b + a).compareTo(a + b));   // the swap test: a before b iff a+b > b+a
+if (s[0].equals("0")) return "0";             // all zeros edge case
+StringBuilder ans = new StringBuilder();
+for (String x : s) ans.append(x);
+return ans.toString();
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -194,6 +248,21 @@ while (i <= j) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+Arrays.sort(people);                          // int[] — natural ascending sort, no comparator
+int i = 0, j = n - 1, boats = 0;
+while (i <= j) {
+    if (people[i] + people[j] <= limit) i++;  // lightest fits with heaviest — pair them
+    j--;                                      // heaviest departs regardless
+    boats++;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -227,6 +296,22 @@ int tied = count(cnt.begin(), cnt.end(), maxFreq);
 int skeleton = (maxFreq - 1) * (n + 1) + tied;     // forced by the bottleneck alone
 return max((int)tasks.size(), skeleton);            // dense case needs no idles
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int[] cnt = new int[26];
+for (char c : tasks) cnt[c - 'A']++;
+int maxFreq = 0;
+for (int v : cnt) maxFreq = Math.max(maxFreq, v);   // no max_element on int[]
+int tied = 0;
+for (int v : cnt) if (v == maxFreq) tied++;         // no count() on int[]
+int skeleton = (maxFreq - 1) * (n + 1) + tied;      // forced by the bottleneck alone
+return Math.max(tasks.length, skeleton);            // dense case needs no idles
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -273,6 +358,26 @@ while (i + 1 < (int)st.size() && st[i] == '0') i++;   // strip leading zeros
 return st.substr(i);
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+StringBuilder st = new StringBuilder();       // stack-as-string
+for (char c : num.toCharArray()) {
+    while (st.length() > 0 && k > 0 && st.charAt(st.length() - 1) > c) {
+        st.deleteCharAt(st.length() - 1);     // earlier smaller digit beats anything later
+        k--;
+    }
+    st.append(c);
+}
+st.setLength(st.length() - k);                // leftover budget: trim from the end
+int i = 0;
+while (i + 1 < st.length() && st.charAt(i) == '0') i++;   // strip leading zeros
+return st.substring(i);
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -306,6 +411,23 @@ for (int i = n - 2; i >= 0; i--)                 // right rule, merged with max
     if (ratings[i] > ratings[i+1]) candy[i] = max(candy[i], candy[i+1] + 1);
 return accumulate(candy.begin(), candy.end(), 0LL);
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int[] candy = new int[n];
+Arrays.fill(candy, 1);                           // every child starts with 1
+for (int i = 1; i < n; i++)                      // left rule: minimum legal values
+    if (ratings[i] > ratings[i-1]) candy[i] = candy[i-1] + 1;
+for (int i = n - 2; i >= 0; i--)                 // right rule, merged with max
+    if (ratings[i] > ratings[i+1]) candy[i] = Math.max(candy[i], candy[i+1] + 1);
+long total = 0;                                  // long accumulator, like the 0LL seed
+for (int c : candy) total += c;
+return total;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -348,6 +470,29 @@ int minRefuelStops(int target, int startFuel, vector<vector<int>>& stations) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int minRefuelStops(int target, int startFuel, int[][] stations) {
+    // C++ priority_queue<int> is a MAX-heap; Java's PriorityQueue is a MIN-heap,
+    // so reverse the comparator to keep the largest banked station on top.
+    PriorityQueue<Integer> pq = new PriorityQueue<>(Comparator.reverseOrder());
+    long fuel = startFuel;
+    int stops = 0, i = 0, n = stations.length;
+    while (fuel < target) {
+        while (i < n && stations[i][0] <= fuel)   // stations sorted by position
+            pq.offer(stations[i++][1]);           // bank the option, do NOT commit
+        if (pq.isEmpty()) return -1;              // stuck with nothing left to regret
+        fuel += pq.poll();                        // retroactively "I stopped at the biggest one"
+        stops++;
+    }
+    return stops;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -387,6 +532,27 @@ while (pq.size() > 1) {
 }
 return cost;
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// C++ used greater<> to turn its MAX-heap into a min-heap; Java's PriorityQueue is
+// already a MIN-heap, so no comparator is needed — but there is no O(n) heapify from
+// a primitive array, so the seeding loop is O(n log n).
+PriorityQueue<Long> pq = new PriorityQueue<>();
+for (int s : sticks) pq.offer((long) s);
+long cost = 0;
+while (pq.size() > 1) {
+    long a = pq.poll();
+    long b = pq.poll();
+    cost += a + b;                            // pay for this merge
+    pq.offer(a + b);                          // the result competes again
+}
+return cost;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

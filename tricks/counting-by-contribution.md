@@ -50,6 +50,42 @@ long long sumSubarrayMins(vector<int>& a) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// 907 Sum of Subarray Minimums: sum over all subarrays of their minimum.
+// left[i]  = # legal left endpoints  = i - prevStrictlySmaller(i)
+// right[i] = # legal right endpoints = nextSmallerOrEqual(i) - i
+long sumSubarrayMins(int[] a) {
+    final long MOD = 1_000_000_007L;
+    int n = a.length;
+    int[] pl = new int[n], nl = new int[n];
+    ArrayDeque<Integer> st = new ArrayDeque<>();     // stack of indices
+
+    for (int i = 0; i < n; i++) {                    // previous STRICTLY smaller
+        while (!st.isEmpty() && a[st.peek()] >= a[i]) st.pop();
+        pl[i] = st.isEmpty() ? -1 : st.peek();
+        st.push(i);
+    }
+    st.clear();
+    for (int i = n - 1; i >= 0; i--) {               // next smaller OR EQUAL
+        while (!st.isEmpty() && a[st.peek()] > a[i]) st.pop();
+        nl[i] = st.isEmpty() ? n : st.peek();
+        st.push(i);
+    }
+
+    long ans = 0;
+    for (int i = 0; i < n; i++) {
+        long left = i - pl[i], right = nl[i] - i;
+        ans = (ans + a[i] * (left * right % MOD)) % MOD;   // left*right < 1e10, fits
+    }
+    return ans;
+}
+```
+
+</details>
+
 Character-flavoured variant — for distinct-character counting, the "boundaries" are the previous and next occurrence of the *same character*:
 
 ```cpp
@@ -68,6 +104,32 @@ int uniqueLetterString(string s) {
     return (int)ans;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// 828 Count Unique Characters of All Substrings: charge each occurrence of c the
+// substrings in which c appears EXACTLY once.
+int uniqueLetterString(String s) {
+    List<List<Integer>> pos = new ArrayList<>();
+    for (int c = 0; c < 26; c++) {
+        pos.add(new ArrayList<>());
+        pos.get(c).add(-1);                           // sentinel before the string
+    }
+    for (int i = 0; i < s.length(); i++) pos.get(s.charAt(i) - 'A').add(i);
+    long ans = 0;
+    for (int c = 0; c < 26; c++) {
+        List<Integer> p = pos.get(c);
+        p.add(s.length());                            // sentinel after
+        for (int k = 1; k + 1 < p.size(); k++)
+            ans += (long) (p.get(k) - p.get(k - 1)) * (p.get(k + 1) - p.get(k));
+    }
+    return (int) ans;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -134,6 +196,48 @@ int numberOfSubstrings(string s) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// 560 Subarray Sum Equals K — equality predicate, hash map of prefix sums.
+int subarraySum(int[] nums, int k) {
+    Map<Long, Integer> cnt = new HashMap<>();
+    cnt.put(0L, 1);                              // empty prefix: sum 0 seen once
+    long pre = 0; int ans = 0;
+    for (int x : nums) {
+        pre += x;
+        ans += cnt.getOrDefault(pre - k, 0);     // how many l give sum(l..r) == k
+        cnt.merge(pre, 1, Integer::sum);         // AFTER counting, never before
+    }
+    return ans;
+}
+
+// 713 Subarray Product Less Than K — monotone predicate, sliding left pointer.
+int numSubarrayProductLessThanK(int[] nums, int k) {
+    if (k <= 1) return 0;
+    long prod = 1; int l = 0, ans = 0;
+    for (int r = 0; r < nums.length; r++) {
+        prod *= nums[r];
+        while (prod >= k) prod /= nums[l++];
+        ans += r - l + 1;                        // every start in [l, r] works
+    }
+    return ans;
+}
+
+// 1358 Substrings Containing All Three Characters — containment, last-seen table.
+int numberOfSubstrings(String s) {
+    int[] last = {-1, -1, -1}; long ans = 0;
+    for (int r = 0; r < s.length(); r++) {
+        last[s.charAt(r) - 'a'] = r;
+        ans += Math.min(last[0], Math.min(last[1], last[2])) + 1;   // -1 contributes 0
+    }
+    return (int) ans;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -190,6 +294,38 @@ int maxOverlap(vector<vector<int>>& iv) {       // iv: {start, end}, end exclusi
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// Difference array: dense, integer coordinates in [0, n).
+int[] rangeAdd(int n, int[][] ops) {            // ops: {l, r, val}
+    long[] diff = new long[n + 1];
+    for (int[] o : ops) {
+        diff[o[0]] += o[2];
+        diff[o[1] + 1] -= o[2];                 // half-open: cancel AFTER r
+    }
+    int[] res = new int[n];
+    long run = 0;
+    for (int i = 0; i < n; i++) { run += diff[i]; res[i] = (int) run; }
+    return res;
+}
+
+// Sweep line: sparse or huge coordinates — sort the events instead.
+int maxOverlap(int[][] iv) {                    // iv: {start, end}, end exclusive
+    List<int[]> ev = new ArrayList<>();         // {coord, delta}
+    for (int[] x : iv) { ev.add(new int[]{x[0], +1}); ev.add(new int[]{x[1], -1}); }
+    ev.sort((p, q) -> p[0] != q[0]             // ties: -1 sorts before +1, so
+            ? Integer.compare(p[0], q[0])      // touching intervals do not overlap
+            : Integer.compare(p[1], q[1]));
+    int cur = 0, best = 0;
+    for (int[] e : ev) { cur += e[1]; best = Math.max(best, cur); }
+    return best;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -243,6 +379,41 @@ long long countBad(long long n, long long a, long long b, long long c) {
          + n/L(L(a,b),c);
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// exactly(k) = atMost(k) - atMost(k-1). Write atMost once; call it twice.
+int subarraysWithKDistinct(int[] nums, int k) {
+    return atMost(nums, k) - atMost(nums, k - 1);
+}
+
+// C++ inlined this as a capturing lambda; Java takes the captured array as a parameter
+int atMost(int[] nums, int cap) {
+    if (cap < 0) return 0;
+    Map<Integer, Integer> cnt = new HashMap<>();
+    int l = 0, res = 0;
+    for (int r = 0; r < nums.length; r++) {
+        if (cnt.merge(nums[r], 1, Integer::sum) == 1) cap--;
+        while (cap < 0) if (cnt.merge(nums[l++], -1, Integer::sum) == 0) cap++;
+        res += r - l + 1;                    // Trick 2 inside Trick 4
+    }
+    return res;
+}
+
+// Three-term form: how many of 1..n are divisible by a, b, or c (LC 1201).
+long countBad(long n, long a, long b, long c) {
+    return n/a + n/b + n/c
+         - n/lcm(a,b) - n/lcm(a,c) - n/lcm(b,c)
+         + n/lcm(lcm(a,b),c);
+}
+
+long lcm(long x, long y) { return x / gcd(x, y) * y; }   // reduce first: no overflow
+long gcd(long x, long y) { return y == 0 ? x : gcd(y, x % y); }
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -303,6 +474,47 @@ vector<int> countSmaller(vector<int>& nums) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+static class BIT {
+    int n; int[] t;
+    BIT(int n) { this.n = n; this.t = new int[n + 1]; }
+    void add(int i, int v) { for (++i; i <= n; i += i & -i) t[i] += v; }
+    int sum(int i) { int s = 0; for (++i; i > 0; i -= i & -i) s += t[i]; return s; }
+}
+
+// 315 Count of Smaller Numbers After Self: sweep RIGHT to LEFT so that
+// "already inserted" means "strictly to the right of j".
+List<Integer> countSmaller(int[] nums) {
+    int n = nums.length;
+    int[] vals = nums.clone();
+    Arrays.sort(vals);
+    int m = 0;                                                  // compress: unique() in place
+    for (int i = 0; i < n; i++) if (i == 0 || vals[i] != vals[i - 1]) vals[m++] = vals[i];
+    final int uniq = m;
+
+    BIT bit = new BIT(uniq);
+    List<Integer> res = new ArrayList<>(Collections.nCopies(n, 0));
+    for (int j = n - 1; j >= 0; j--) {
+        int r = lowerBound(vals, uniq, nums[j]);                // rank(nums[j])
+        res.set(j, r > 0 ? bit.sum(r - 1) : 0);                 // seen values with rank < r
+        bit.add(r, 1);
+    }
+    return res;
+}
+
+// Java has no lower_bound over a sub-range with duplicates, so hand-roll it
+int lowerBound(int[] vals, int hiExcl, int x) {
+    int lo = 0, hi = hiExcl;
+    while (lo < hi) { int mid = (lo + hi) >>> 1; if (vals[mid] < x) lo = mid + 1; else hi = mid; }
+    return lo;
+}
+```
+
+</details>
+
 Merge-sort variant when the comparison is not a plain `<` (LC 493 needs `a[i] > 2 * a[j]`, which no single BIT index answers directly):
 
 ```cpp
@@ -319,6 +531,36 @@ long long reversePairsRec(vector<int>& a, int lo, int hi) {      // [lo, hi)
     return cnt;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+long reversePairsRec(int[] a, int lo, int hi) {      // [lo, hi)
+    if (hi - lo < 2) return 0;
+    int mid = lo + (hi - lo) / 2;
+    long cnt = reversePairsRec(a, lo, mid) + reversePairsRec(a, mid, hi);
+    int j = mid;
+    for (int i = lo; i < mid; i++) {                 // both halves sorted already
+        while (j < hi && (long) a[i] > 2L * a[j]) j++;
+        cnt += j - mid;                              // count BEFORE merging
+    }
+    inplaceMerge(a, lo, mid, hi);
+    return cnt;
+}
+
+// Java has no inplace_merge, so merge through a scratch buffer
+void inplaceMerge(int[] a, int lo, int mid, int hi) {
+    int[] buf = new int[hi - lo];
+    int i = lo, j = mid, k = 0;
+    while (i < mid && j < hi) buf[k++] = a[i] <= a[j] ? a[i++] : a[j++];
+    while (i < mid) buf[k++] = a[i++];
+    while (j < hi)  buf[k++] = a[j++];
+    System.arraycopy(buf, 0, a, lo, buf.length);
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |

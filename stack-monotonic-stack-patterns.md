@@ -49,6 +49,35 @@ string s;                      // a string is a perfectly good char stack
 s.push_back(c); s.pop_back(); s.back();
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// java.util.Stack is LEGACY and synchronized (it extends Vector) — never use it. Use ArrayDeque.
+// ArrayDeque used as a stack: push/pop/peek all operate on the HEAD.
+Deque<Integer> st = new ArrayDeque<>();   // LIFO
+st.push(x);                    // add to top (head)
+st.pop();                      // remove top — and RETURNS it (unlike C++ pop(), which is void)
+int t = st.peek();             // read top (returns null if empty — always guard)
+st.isEmpty();  st.size();
+
+// Very often an ArrayList is the BETTER stack:
+List<Integer> v = new ArrayList<>();
+v.add(x); v.remove(v.size() - 1); v.get(v.size() - 1);   // same amortized O(1) ops...
+// ...plus you can iterate/inspect BELOW the top and keep the result in place.
+
+// For int stacks, a raw int[] with a manual top index is fastest (no boxing at all):
+int[] arr = new int[n]; int top = 0;
+arr[top++] = x;                // push
+int popped = arr[--top];       // pop
+int peeked = arr[top - 1];     // top
+
+StringBuilder s = new StringBuilder();   // a StringBuilder is a perfectly good char stack
+s.append(c); s.deleteCharAt(s.length() - 1); s.charAt(s.length() - 1);
+```
+
+</details>
+
 Gotchas that cost interview minutes: `pop()` returns `void` — read `top()` first; `top()`/`pop()` on an empty stack is undefined behavior — guard with `empty()`; and reach for **`vector`-as-stack** whenever you need to look beneath the top or return the stack itself as the answer (most monotonic-stack and greedy-build problems).
 
 ---
@@ -73,6 +102,26 @@ bool isValid(string s) {
     return st.empty();                                    // nothing left open
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+boolean isValid(String s) {
+    // ArrayDeque, not java.util.Stack (legacy + synchronized); push/pop/peek work on the head.
+    Deque<Character> st = new ArrayDeque<>();
+    Map<Character,Character> match = Map.of(')','(', ']','[', '}','{');
+    for (char c : s.toCharArray()) {
+        if (!match.containsKey(c)) st.push(c);                        // an opener
+        else if (st.isEmpty() || st.peek().charValue() != match.get(c)) // closer with no/wrong partner
+            return false;                                             // .charValue() forces a VALUE compare:
+        else st.pop();                                                // Character != Character compares refs
+    }
+    return st.isEmpty();                                  // nothing left open
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -113,6 +162,27 @@ vector<int> asteroidCollision(vector<int>& a) {
     return st;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int[] asteroidCollision(int[] a) {
+    int[] st = new int[a.length]; int top = 0;       // survivors, left to right (int[] stack: no boxing)
+    for (int x : a) {
+        boolean alive = true;
+        while (alive && x < 0 && top > 0 && st[top - 1] > 0) {        // → meets ←
+            if (st[top - 1] < -x)       top--;                        // top explodes, keep colliding
+            else if (st[top - 1] == -x) { top--; alive = false; }     // both explode
+            else                          alive = false;               // incoming explodes
+        }
+        if (alive) st[top++] = x;
+    }
+    return Arrays.copyOf(st, top);                   // trim to the survivors
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -156,6 +226,30 @@ string decodeString(string s) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+String decodeString(String s) {
+    Deque<Integer> counts = new ArrayDeque<>(); Deque<StringBuilder> prevs = new ArrayDeque<>();
+    // Java String is immutable — `cur += c` inside a loop rebuilds the whole string each time (O(n^2)).
+    StringBuilder cur = new StringBuilder(); int num = 0;
+    for (char c : s.toCharArray()) {
+        if (c >= '0' && c <= '9') num = num * 10 + (c - '0');
+        else if (c == '[') { counts.push(num); prevs.push(cur); num = 0; cur = new StringBuilder(); }
+        else if (c == ']') {                      // close scope: repeat & splice back
+            StringBuilder built = prevs.pop();
+            int k = counts.pop();
+            while (k-- > 0) built.append(cur);
+            cur = built;
+        } else cur.append(c);
+    }
+    return cur.toString();
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -196,6 +290,28 @@ vector<int> nextGreater(vector<int>& nums) {
     return res;                             // whatever stays on the stack has no next-greater
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int[] nextGreater(int[] nums) {
+    int n = nums.length;
+    int[] res = new int[n];
+    Arrays.fill(res, -1);                   // -1 = none exists
+    Deque<Integer> st = new ArrayDeque<>(); // indices; values strictly decreasing
+    for (int i = 0; i < n; i++) {
+        while (!st.isEmpty() && nums[st.peek()] < nums[i]) {
+            res[st.peek()] = nums[i];       // nums[i] is st.peek()'s next-greater
+            st.pop();                       // answered → discard
+        }
+        st.push(i);
+    }
+    return res;                             // whatever stays on the stack has no next-greater
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -240,6 +356,28 @@ int largestRectangleArea(vector<int>& h) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int largestRectangleArea(int[] h) {
+    int n = h.length, best = 0;
+    Deque<Integer> st = new ArrayDeque<>();          // indices; heights increasing
+    for (int i = 0; i <= n; i++) {
+        int cur = (i == n) ? 0 : h[i];               // sentinel 0 flushes everything
+        while (!st.isEmpty() && h[st.peek()] >= cur) {
+            int height = h[st.pop()];                // ArrayDeque.pop() returns the popped index
+            int left = st.isEmpty() ? -1 : st.peek();   // first shorter bar on the left
+            best = Math.max(best, height * (i - left - 1));
+        }
+        st.push(i);
+    }
+    return best;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -282,6 +420,30 @@ int sumSubarrayMins(vector<int>& arr) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int sumSubarrayMins(int[] arr) {
+    final int MOD = 1_000_000_007;
+    int n = arr.length;
+    long ans = 0;
+    Deque<Integer> st = new ArrayDeque<>();             // indices; values increasing
+    for (int i = 0; i <= n; i++) {
+        int cur = (i == n) ? Integer.MIN_VALUE : arr[i];   // sentinel flushes the stack
+        while (!st.isEmpty() && arr[st.peek()] >= cur) {   // pop >= : "next less-or-equal" is i
+            int mid = st.pop();
+            int left = st.isEmpty() ? -1 : st.peek();      // "previous strictly less"
+            ans = (ans + (long) arr[mid] * (mid - left) * (i - mid)) % MOD;
+        }
+        st.push(i);
+    }
+    return (int) ans;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -320,6 +482,28 @@ string removeKdigits(string num, int k) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+String removeKdigits(String num, int k) {
+    // StringBuilder because Java String is immutable — `res += c` in a loop is O(n^2).
+    StringBuilder st = new StringBuilder();                 // the result, used as a stack
+    for (char c : num.toCharArray()) {
+        while (st.length() > 0 && k > 0 && st.charAt(st.length() - 1) > c) { // a bigger digit sits left of a smaller one
+            st.deleteCharAt(st.length() - 1); k--;                           // remove it while budget allows
+        }
+        st.append(c);
+    }
+    while (k > 0) { st.deleteCharAt(st.length() - 1); k--; }  // budget left → drop from the tail (largest place)
+    int i = 0; while (i < st.length() && st.charAt(i) == '0') i++;   // strip leading zeros
+    String res = st.substring(i);            // one-arg substring(i) runs to the end — same as C++ substr(i)
+    return res.isEmpty() ? "0" : res;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -357,6 +541,27 @@ public:
 };
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+class MinStack {
+    // ArrayDeque, not the legacy synchronized java.util.Stack. int[]{value, min at/below} beats
+    // a Pair here: no boxing of the two ints, and it stays a value-semantics record.
+    private final Deque<int[]> st = new ArrayDeque<>();
+
+    public void push(int x) {
+        int mn = st.isEmpty() ? x : Math.min(x, st.peek()[1]);
+        st.push(new int[]{x, mn});
+    }
+    public void pop()    { st.pop(); }
+    public int  top()    { return st.peek()[0]; }
+    public int  getMin() { return st.peek()[1]; } // O(1): the cached prefix-min
+}
+```
+
+</details>
+
 **Template (queue from two stacks — amortized O(1)):**
 ```cpp
 class MyQueue {
@@ -369,6 +574,24 @@ public:
     bool empty(){ return in.empty() && out.empty(); }
 };
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+class MyQueue {
+    private final Deque<Integer> in = new ArrayDeque<>(), out = new ArrayDeque<>();
+    // ArrayDeque as a stack — push/pop/peek act on the head, so pouring in→out reverses order.
+    private void shift() { if (out.isEmpty()) while (!in.isEmpty()) out.push(in.pop()); }
+
+    public void push(int x) { in.push(x); }
+    public int  pop()  { shift(); return out.pop(); }   // pop() returns the value (C++ needed top() first)
+    public int  peek() { shift(); return out.peek(); }
+    public boolean empty() { return in.isEmpty() && out.isEmpty(); }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

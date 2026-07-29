@@ -130,6 +130,22 @@ while (lo <= hi) {                       // interval [lo, hi] is non-empty
 return -1;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int lo = 0, hi = nums.length - 1;
+while (lo <= hi) {                       // interval [lo, hi] is non-empty
+    int mid = lo + (hi - lo) / 2;        // overflow-safe midpoint
+    if (nums[mid] == target) return mid;
+    else if (nums[mid] < target) lo = mid + 1;   // mid certified too small
+    else hi = mid - 1;                           // mid certified too big
+}
+return -1;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -167,6 +183,23 @@ while (lo < hi) {
 return lo;                          // first T, or n if none
 // last F = lo - 1.  last T (for T T T F F) = first F − 1 with the flipped predicate.
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int lo = 0, hi = n;                 // half-open [lo, hi); hi = n means "no T exists"
+while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (pred(mid)) hi = mid;        // first T is at mid or earlier — keep mid
+    else lo = mid + 1;              // mid is F — first T is strictly after
+}
+return lo;                          // first T, or n if none
+// last F = lo - 1.  last T (for T T T F F) = first F − 1 with the flipped predicate.
+// Arrays.binarySearch gives no insertion-point semantics across duplicates — write the loop.
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -207,6 +240,21 @@ while (lo < hi) {
 return nums[lo];
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int lo = 0, hi = nums.length - 1;
+while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (nums[mid] > nums[hi]) lo = mid + 1;   // min is strictly right of mid
+    else hi = mid;                            // right half sorted: min at mid or left
+}
+return nums[lo];
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -238,6 +286,21 @@ while (lo < hi) {
 }
 return lo;
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int lo = 0, hi = nums.length - 1;
+while (lo < hi) {
+    int mid = lo + (hi - lo) / 2;
+    if (nums[mid] < nums[mid + 1]) lo = mid + 1;  // uphill to the right — peak there
+    else hi = mid;                                 // mid could itself be the peak
+}
+return lo;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -275,6 +338,23 @@ while (lo < hi) {
 }
 return lo;                                        // smallest feasible
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Java has no C++ capture-by-reference lambda, so the predicate becomes a helper method:
+//   boolean feasible(long x) { /* greedy O(n) check: can we succeed with budget x? */ }
+long lo = minPossible, hi = maxPossible;          // bounds must bracket the answer
+while (lo < hi) {
+    long mid = lo + (hi - lo) / 2;
+    if (feasible(mid)) hi = mid;                  // try smaller
+    else lo = mid + 1;                            // need bigger
+}
+return lo;                                        // smallest feasible
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -323,6 +403,32 @@ while (lo < hi) {
 return lo;                                  // provably an existing matrix entry
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// countLE captured matrix and n by reference in C++; in Java it is a helper method
+// that takes them as parameters.
+long countLE(int[][] matrix, int n, long v) {  // elements <= v, O(n) staircase walk
+    long cnt = 0; int row = 0, col = n - 1;
+    while (row < n && col >= 0) {
+        if (matrix[row][col] <= v) { cnt += col + 1; row++; }
+        else col--;
+    }
+    return cnt;
+}
+
+long lo = matrix[0][0], hi = matrix[n-1][n-1];
+while (lo < hi) {
+    long mid = lo + (hi - lo) / 2;
+    if (countLE(matrix, n, mid) >= k) hi = mid;   // k-th smallest is <= mid
+    else lo = mid + 1;
+}
+return lo;                                  // provably an existing matrix entry
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -356,6 +462,22 @@ for (int iter = 0; iter < 100; iter++) {     // fixed-iteration: immune to FP we
 }
 return lo;
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// feasible is a helper method here — Java lambdas cannot capture mutable locals by reference.
+double lo = minVal, hi = maxVal;
+for (int iter = 0; iter < 100; iter++) {     // fixed-iteration: immune to FP weirdness
+    double mid = (lo + hi) / 2.0;
+    if (feasible(mid)) hi = mid;
+    else lo = mid;                           // no +1 — continuous domain
+}
+return lo;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -395,6 +517,23 @@ while (lo <= hi) {
 return false;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int lo = 0, hi = rows * cols - 1;
+while (lo <= hi) {
+    int mid = lo + (hi - lo) / 2;
+    int val = matrix[mid / cols][mid % cols];   // virtual flat index → 2-D
+    if (val == target) return true;
+    else if (val < target) lo = mid + 1;
+    else hi = mid - 1;
+}
+return false;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -432,6 +571,30 @@ return lo;
 // LC 702 shape: pred(i) = (reader.get(i) >= target), since out-of-range returns INT_MAX.
 // Answer exists iff reader.get(lo) == target.
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Phase 1 — gallop: find any hi with pred(hi) == true.
+long lo = 0, hi = 1;
+while (!pred(hi)) {                       // pred must be safe to call past the "end"
+    lo = hi + 1;                          // hi was F, so everything up to hi is F
+    hi <<= 1;                             // guard against overflow if the range is huge
+}
+// Phase 2 — ordinary first-true search in [lo, hi], which now brackets the boundary.
+while (lo < hi) {
+    long mid = lo + (hi - lo) / 2;
+    if (pred(mid)) hi = mid;
+    else lo = mid + 1;
+}
+return lo;
+
+// LC 702 shape: pred(i) = (reader.get(i) >= target), since out-of-range returns Integer.MAX_VALUE.
+// Answer exists iff reader.get(lo) == target.
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -480,6 +643,34 @@ double findMedian(vector<int>& a, vector<int>& b) {
     return 0.0;                                          // unreachable for valid input
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+double findMedian(int[] a, int[] b) {
+    if (a.length > b.length) return findMedian(b, a);   // always search the shorter one
+    int m = a.length, n = b.length, half = (m + n + 1) / 2;   // size of the left part
+    int lo = 0, hi = m;                                  // i = elements A puts on the left
+    while (lo <= hi) {
+        int i = lo + (hi - lo) / 2;
+        int j = half - i;                                // forced by i
+        long aL = (i == 0) ? Long.MIN_VALUE : a[i - 1];
+        long aR = (i == m) ? Long.MAX_VALUE : a[i];
+        long bL = (j == 0) ? Long.MIN_VALUE : b[j - 1];
+        long bR = (j == n) ? Long.MAX_VALUE : b[j];
+        if (aL <= bR && bL <= aR) {                      // valid partition — done
+            if ((m + n) % 2 == 1) return (double) Math.max(aL, bL); // odd: left part holds the median
+            return (Math.max(aL, bL) + Math.min(aR, bR)) / 2.0;
+        }
+        if (aL > bR) hi = i - 1;                         // A donated too many
+        else         lo = i + 1;                         // A donated too few
+    }
+    return 0.0;                                          // unreachable for valid input
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

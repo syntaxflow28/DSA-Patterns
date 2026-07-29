@@ -50,6 +50,26 @@ void dfs(int start, vector<int>& nums) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// C++'s file-scope res/path have no Java equivalent — they become instance fields.
+List<List<Integer>> res = new ArrayList<>();
+List<Integer> path = new ArrayList<>();
+void dfs(int start, int[] nums) {
+    res.add(new ArrayList<>(path));            // MUST copy! Java stores a reference; C++ push_back copies
+    for (int i = start; i < nums.length; i++) {
+        // duplicates version: if (i > start && nums[i] == nums[i-1]) continue;
+        path.add(nums[i]);                     // choose
+        dfs(i + 1, nums);                      // explore (i+1: never look back)
+        path.remove(path.size() - 1);          // unchoose — restore exactly (remove by INDEX)
+    }
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -94,6 +114,31 @@ void dfs(vector<int>& nums) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// File-scope state in C++ → instance fields in Java.
+List<List<Integer>> res = new ArrayList<>();
+List<Integer> path = new ArrayList<>();
+boolean[] used;
+void dfs(int[] nums) {
+    if (path.size() == nums.length) {
+        res.add(new ArrayList<>(path));             // MUST copy! adding `path` itself stores a live reference
+        return;
+    }
+    for (int i = 0; i < nums.length; i++) {
+        if (used[i]) continue;
+        // duplicates version (sorted): if (i > 0 && nums[i]==nums[i-1] && !used[i-1]) continue;
+        used[i] = true;  path.add(nums[i]);         // choose (two mutations!)
+        dfs(nums);                                  // explore
+        path.remove(path.size() - 1); used[i] = false; // unchoose — both, in reverse order
+    }
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -130,6 +175,22 @@ void dfs(int open, int close, int n) {
     if (close < open)  { cur.push_back(')');  dfs(open, close + 1, n); cur.pop_back(); }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Instance fields stand in for C++'s file-scope res/cur.
+List<String> res = new ArrayList<>();
+StringBuilder cur = new StringBuilder();   // StringBuilder, not String: Java Strings are immutable
+void dfs(int open, int close, int n) {
+    if (cur.length() == 2 * n) { res.add(cur.toString()); return; }  // toString() IS the required snapshot copy
+    if (open < n)      { cur.append('(');  dfs(open + 1, close, n); cur.deleteCharAt(cur.length() - 1); }
+    if (close < open)  { cur.append(')');  dfs(open, close + 1, n); cur.deleteCharAt(cur.length() - 1); }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -172,6 +233,29 @@ void dfs(const string& s, int start) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// Instance fields stand in for C++'s file-scope res/path.
+List<List<String>> res = new ArrayList<>();
+List<String> path = new ArrayList<>();
+void dfs(String s, int start) {
+    if (start == s.length()) {
+        res.add(new ArrayList<>(path));                            // MUST copy — Java adds a reference, not a value
+        return;                                                    // fully cut
+    }
+    for (int end = start; end < s.length(); end++)
+        if (isPalindrome(s, start, end)) {                         // legality before descent
+            path.add(s.substring(start, end + 1));                 // choose the segment (end index is exclusive)
+            dfs(s, end + 1);                                       // explore the remainder
+            path.remove(path.size() - 1);                          // unchoose
+        }
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -212,6 +296,25 @@ bool dfs(vector<vector<char>>& b, int r, int c, const string& w, int k) {
     return found;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// m and n are file-scope in the C++ version — instance fields here.
+boolean dfs(char[][] b, int r, int c, String w, int k) {
+    if (k == w.length()) return true;                     // matched everything
+    if (r < 0 || r >= m || c < 0 || c >= n || b[r][c] != w.charAt(k)) return false;
+    char saved = b[r][c];
+    b[r][c] = '#';                                        // choose: mark in place
+    boolean found = dfs(b, r+1, c, w, k+1) || dfs(b, r-1, c, w, k+1)
+                 || dfs(b, r, c+1, w, k+1) || dfs(b, r, c-1, w, k+1);
+    b[r][c] = saved;                                      // unchoose: restore exactly
+    return found;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

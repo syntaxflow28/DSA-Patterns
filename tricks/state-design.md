@@ -42,6 +42,34 @@ int lengthOfLIS(vector<int>& nums) {
 // strictly increasing -> lower_bound   |   non-decreasing -> upper_bound
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// tails[k] = smallest tail of an increasing subsequence of length k+1
+int lengthOfLIS(int[] nums) {
+    int[] tails = new int[nums.length];
+    int size = 0;                                             // logical length of tails
+    for (int x : nums) {
+        // Arrays.binarySearch has no lower_bound semantics: it returns an *arbitrary*
+        // matching index when the key is present, and only gives an insertion point when
+        // it is absent. We need "first index >= x" in both cases, so hand-roll it.
+        int lo = 0, hi = size;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (tails[mid] < x) lo = mid + 1;                 // first tail >= x
+            else hi = mid;
+        }
+        if (lo == size) tails[size++] = x;                    // x extends the longest chain
+        else tails[lo] = x;                                   // x is a better tail for that length
+    }
+    return size;   // the SIZE is the answer; the contents are not a real subsequence
+}
+// strictly increasing -> tails[mid] < x   |   non-decreasing -> tails[mid] <= x
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -104,6 +132,49 @@ int largestRectangleArea(vector<int> h) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// 312 Burst Balloons: pad with 1s so v[i-1] and v[j+1] always exist
+int maxCoins(int[] a) {
+    int n = a.length;
+    int[] v = new int[n + 2];
+    Arrays.fill(v, 1);
+    for (int i = 0; i < n; i++) v[i + 1] = a[i];        // v[0] and v[n+1] are the sentinels
+
+    int[][] dp = new int[n + 2][n + 2];
+    for (int len = 1; len <= n; len++)
+        for (int i = 1; i + len - 1 <= n; i++) {
+            int j = i + len - 1;
+            for (int k = i; k <= j; k++)                // k is burst LAST in [i, j]
+                dp[i][j] = Math.max(dp[i][j],
+                                    dp[i][k-1] + v[i-1]*v[k]*v[j+1] + dp[k+1][j]);
+        }                                               // no bounds check anywhere
+    return dp[1][n];
+}
+
+// 84 Largest Rectangle: a trailing 0 flushes the stack inside the same loop
+int largestRectangleArea(int[] heights) {
+    int n = heights.length;
+    int[] h = Arrays.copyOf(heights, n + 1);  // Java arrays are fixed-size, so copy to "push_back"
+    h[n] = 0;                                 // sentinel: shorter than every real bar
+    Deque<Integer> st = new ArrayDeque<>();
+    int best = 0;
+    for (int i = 0; i < h.length; i++) {
+        while (!st.isEmpty() && h[st.peek()] >= h[i]) {
+            int ht = h[st.pop()];
+            int left = st.isEmpty() ? -1 : st.peek();
+            best = Math.max(best, ht * (i - left - 1));
+        }
+        st.push(i);
+    }
+    return best;                              // no post-loop drain: the 0 already did it
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -162,6 +233,43 @@ pair<int,int> dfs(TreeNode* r) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// 188: dp over (transactions used, holding?) — rolled to O(k) space
+int maxProfit(int k, int[] prices) {
+    int n = prices.length;
+    if (n == 0 || k == 0) return 0;
+    if (k >= n / 2) {                                  // unlimited: the counter stops binding
+        int p = 0;
+        for (int i = 1; i < n; i++) p += Math.max(0, prices[i] - prices[i-1]);
+        return p;
+    }
+    int[] hold = new int[k + 1], freeC = new int[k + 1];
+    Arrays.fill(hold, Integer.MIN_VALUE / 2);          // freeC stays all-zero, as in C++
+    for (int price : prices)
+        for (int t = 1; t <= k; t++) {
+            hold[t]  = Math.max(hold[t],  freeC[t-1] - price);  // BUY consumes a transaction
+            freeC[t] = Math.max(freeC[t], hold[t] + price);     // sell closes it
+        }
+    return freeC[k];
+}
+
+// 337: each node returns { best if this node is NOT taken, best if it IS }
+// Java has no std::pair / structured bindings, so return an int[]{notTake, take}
+int[] dfs(TreeNode r) {
+    if (r == null) return new int[]{0, 0};
+    int[] l = dfs(r.left);                     // l[0] = ls, l[1] = lt
+    int[] rt = dfs(r.right);                   // rt[0] = rs, rt[1] = rt-taken
+    int notTake = Math.max(l[0], l[1]) + Math.max(rt[0], rt[1]);  // children are free to choose
+    int take    = r.val + l[0] + rt[0];                           // children must be skipped
+    return new int[]{notTake, take};
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -211,6 +319,35 @@ int longestPalindromeSubseq(string s) {
     return dp[0][n-1];
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// The interval-DP skeleton: length -> left endpoint -> split point
+for (int len = 2; len <= n; len++)
+    for (int i = 0; i + len - 1 < n; i++) {
+        int j = i + len - 1;
+        for (int k = i; k < j; k++)                          // k = the split / last operation
+            dp[i][j] = Math.min(dp[i][j], dp[i][k] + dp[k+1][j] + cost(i, k, j));
+    }
+return dp[0][n-1];
+
+// 516 Longest Palindromic Subsequence: a range DP whose transition needs no split
+int longestPalindromeSubseq(String s) {
+    int n = s.length();
+    int[][] dp = new int[n][n];
+    for (int i = n - 1; i >= 0; i--) {          // i descending => dp[i+1][*] is ready
+        dp[i][i] = 1;
+        for (int j = i + 1; j < n; j++)
+            dp[i][j] = (s.charAt(i) == s.charAt(j)) ? dp[i+1][j-1] + 2
+                                                    : Math.max(dp[i+1][j], dp[i][j-1]);
+    }
+    return dp[0][n-1];
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -273,6 +410,50 @@ int shortestPathLength(vector<vector<int>>& g) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// dp[mask][last] — TSP shape: mask = set already used, last = element ending the arrangement
+int[][] dp = new int[1 << n][n];
+for (int[] row : dp) Arrays.fill(row, INF);              // Java's memset equivalent
+for (int i = 0; i < n; i++) dp[1 << i][i] = start(i);
+
+for (int mask = 1; mask < (1 << n); mask++)
+    for (int last = 0; last < n; last++) {
+        if ((mask >> last & 1) == 0 || dp[mask][last] == INF) continue;
+        for (int nxt = 0; nxt < n; nxt++) {
+            if ((mask >> nxt & 1) != 0) continue;        // already used
+            int nm = mask | (1 << nxt);
+            dp[nm][nxt] = Math.min(dp[nm][nxt], dp[mask][last] + cost(last, nxt));
+        }
+    }
+// __builtin_popcount(mask) -> Integer.bitCount(mask), e.g. when the position being filled
+// is derivable from the mask (LC 526)
+
+// 847: BFS over (mask, node) — revisits allowed, so a plain visited-by-node set is wrong
+int shortestPathLength(int[][] g) {
+    int n = g.length, full = (1 << n) - 1;
+    Deque<int[]> q = new ArrayDeque<>();                      // {node, mask}
+    boolean[][] seen = new boolean[n][1 << n];
+    for (int i = 0; i < n; i++) { q.add(new int[]{i, 1 << i}); seen[i][1 << i] = true; }
+    for (int steps = 0; ; steps++)
+        for (int sz = q.size(); sz-- > 0; ) {
+            int[] cur = q.poll();
+            int u = cur[0], mask = cur[1];
+            if (mask == full) return steps;
+            for (int v : g[u]) {
+                int nm = mask | (1 << v);
+                if (seen[v][nm]) continue;
+                seen[v][nm] = true;
+                q.add(new int[]{v, nm});
+            }
+        }
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -324,6 +505,38 @@ long long go(int pos, int st, bool tight, bool started) {
 }
 // count in [L, R]  =  go(R) - go(L - 1)
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// C++ file-scope mutable state has no Java equivalent: make S and memo instance fields,
+// initialised by the public entry point before it calls go(...)
+private char[] S;            // decimal digits of N: Long.toString(N).toCharArray()
+private long[][] memo;       // new long[20][/* problem state */ 2], only for !tight && started
+
+long go(int pos, int st, boolean tight, boolean started) {
+    if (pos == S.length) return started ? 1 : 0;         // the empty number is not counted
+    if (!tight && started && memo[pos][st] != -1) return memo[pos][st];
+
+    int hi = tight ? S[pos] - '0' : 9;
+    long res = 0;
+    for (int d = 0; d <= hi; d++) {
+        if (!started && d == 0) {
+            res += go(pos + 1, st, false, false);        // still padding: state untouched
+            continue;                                     // tight is false: 0 < any leading digit
+        }
+        if (!allowed(st, d)) continue;                    // the problem's own constraint
+        res += go(pos + 1, next(st, d), tight && d == hi, true);
+    }
+    if (!tight && started) memo[pos][st] = res;
+    return res;
+}
+// memset(memo, -1, sizeof memo)  ->  for (long[] row : memo) Arrays.fill(row, -1L);
+// count in [L, R]  =  go(R) - go(L - 1)   (reset memo between the two bounds)
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -380,6 +593,48 @@ int minAbsDifference(vector<int>& nums, int goal) {
     return (int)best;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Enumerate every subset sum of a half
+long[] subsetSums(int[] a) {
+    int m = a.length;
+    long[] s = new long[1 << m];
+    for (int mask = 1; mask < (1 << m); mask++) {
+        int lb = mask & -mask, i = Integer.numberOfTrailingZeros(mask);  // __builtin_ctz
+        s[mask] = s[mask ^ lb] + a[i];              // build from the mask with one bit removed
+    }
+    return s;
+}
+
+// 1755: minimize |subsetSum - goal|
+int minAbsDifference(int[] nums, int goal) {
+    int n = nums.length, h = n / 2;
+    int[] A = Arrays.copyOfRange(nums, 0, h), B = Arrays.copyOfRange(nums, h, n);
+    long[] sa = subsetSums(A), sb = subsetSums(B);
+    Arrays.sort(sb);
+
+    long best = Long.MAX_VALUE;
+    for (long x : sa) {
+        long need = (long) goal - x;
+        // hand-rolled lower_bound again: we need the insertion index even when the key is
+        // present, because both it and its predecessor have to be tested
+        int lo = 0, hi = sb.length;
+        while (lo < hi) {
+            int mid = (lo + hi) >>> 1;
+            if (sb[mid] < need) lo = mid + 1;
+            else hi = mid;
+        }
+        if (lo < sb.length) best = Math.min(best, Math.abs(x + sb[lo] - goal));
+        if (lo > 0)         best = Math.min(best, Math.abs(x + sb[lo - 1] - goal));  // check BOTH
+    }
+    return (int) best;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |

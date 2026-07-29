@@ -92,6 +92,28 @@ while (!q.empty()) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// ArrayDeque is the right choice for BOTH queue and stack duty in Java —
+// never LinkedList (pointer-chasing) and never the legacy synchronized Stack.
+Deque<TreeNode> q = new ArrayDeque<>();
+if (root != null) q.add(root);
+while (!q.isEmpty()) {
+    int sz = q.size();                  // census of the CURRENT level — snapshot it!
+    for (int i = 0; i < sz; i++) {      // process exactly one level
+        TreeNode node = q.poll();
+        // per-level logic: i == 0 is leftmost, i == sz-1 is rightmost
+        if (node.left != null)  q.add(node.left);
+        if (node.right != null) q.add(node.right);
+    }
+    // level boundary: finalize this level's answer here
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -137,6 +159,34 @@ while (!q.empty()) {
 }
 return -1;                                            // unreachable
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// grid/m/n and PASSABLE are free (file-scope) names in the C++ sketch; Java has no
+// file-scope mutable state, so make them instance fields or method parameters.
+int[][] dirs = {{1,0},{-1,0},{0,1},{0,-1}};
+int[][] dist = new int[m][n];
+for (int[] row : dist) Arrays.fill(row, -1);         // -1 = unvisited
+Deque<int[]> q = new ArrayDeque<>();                 // pair<int,int> → int[]{r, c}
+dist[sr][sc] = 0; q.add(new int[]{sr, sc});          // mark AT enqueue
+while (!q.isEmpty()) {
+    int[] cell = q.poll();
+    int r = cell[0], c = cell[1];
+    if (r == tr && c == tc) return dist[r][c];       // first arrival = answer
+    for (int[] d : dirs) {
+        int nr = r + d[0], nc = c + d[1];
+        if (nr < 0 || nr >= m || nc < 0 || nc >= n) continue;
+        if (grid[nr][nc] != PASSABLE || dist[nr][nc] != -1) continue;
+        dist[nr][nc] = dist[r][c] + 1;               // discover = finalize
+        q.add(new int[]{nr, nc});
+    }
+}
+return -1;                                            // unreachable
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -185,6 +235,31 @@ while (!q.empty()) {                       // ordinary BFS from here on
     }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Deque<int[]> q = new ArrayDeque<>();
+int[][] dist = new int[m][n];
+for (int[] row : dist) Arrays.fill(row, -1);
+for (int r = 0; r < m; r++)
+    for (int c = 0; c < n; c++)
+        if (mat[r][c] == 0) { dist[r][c] = 0; q.add(new int[]{r, c}); }  // ALL sources seeded
+
+while (!q.isEmpty()) {                     // ordinary BFS from here on
+    int[] cell = q.poll();
+    int r = cell[0], c = cell[1];
+    for (int[] d : dirs) {
+        int nr = r + d[0], nc = c + d[1];
+        if (nr < 0 || nr >= m || nc < 0 || nc >= n || dist[nr][nc] != -1) continue;
+        dist[nr][nc] = dist[r][c] + 1;
+        q.add(new int[]{nr, nc});
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -237,6 +312,32 @@ while (!q.empty()) {
 return -1;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+Set<String> visited = new HashSet<>();         // or Map<State,Integer> with a proper hashCode
+Deque<String> q = new ArrayDeque<>();
+q.add(start); visited.add(start);
+int steps = 0;
+while (!q.isEmpty()) {
+    int sz = q.size();
+    for (int i = 0; i < sz; i++) {                  // level loop = move counter
+        String cur = q.poll();
+        if (cur.equals(target)) return steps;       // .equals, NOT == : == compares references
+        for (String nxt : neighbors(cur))           // the problem-specific part
+            if (!visited.contains(nxt)) {
+                visited.add(nxt);                   // mark at enqueue, as always
+                q.add(nxt);
+            }
+    }
+    steps++;
+}
+return -1;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -284,6 +385,33 @@ for (int r = 0; r < m; r++)
             }
         }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int islands = 0;
+for (int r = 0; r < m; r++)
+    for (int c = 0; c < n; c++)
+        if (grid[r][c] == '1') {
+            islands++;                          // virgin territory = new region
+            Deque<int[]> q = new ArrayDeque<>();
+            grid[r][c] = '0';                   // grid itself is the visited set
+            q.add(new int[]{r, c});
+            while (!q.isEmpty()) {
+                int[] cell = q.poll();
+                int cr = cell[0], cc = cell[1];
+                for (int[] d : dirs) {
+                    int nr = cr + d[0], nc = cc + d[1];
+                    if (nr < 0 || nr >= m || nc < 0 || nc >= n || grid[nr][nc] != '1') continue;
+                    grid[nr][nc] = '0';         // mark at enqueue — even here
+                    q.add(new int[]{nr, nc});
+                }
+            }
+        }
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -335,6 +463,33 @@ while (!q.empty()) {
 return (int)order.size() == n ? order : vector<int>{};       // short = cycle
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+List<List<Integer>> adj = new ArrayList<>();
+for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+int[] indeg = new int[n];
+for (int[] p : prerequisites) {
+    adj.get(p[1]).add(p[0]);            // edge: prereq → course
+    indeg[p[0]]++;
+}
+Deque<Integer> q = new ArrayDeque<>();
+for (int i = 0; i < n; i++) if (indeg[i] == 0) q.add(i);    // all unblocked
+
+List<Integer> order = new ArrayList<>();
+while (!q.isEmpty()) {
+    int u = q.poll();                   // poll() returns a boxed Integer; assigning to int
+                                        // unboxes it — safe only because isEmpty() guards null
+    order.add(u);
+    for (int v : adj.get(u))
+        if (--indeg[v] == 0) q.add(v);  // last blocker removed → ready
+}
+return order.size() == n ? order : new ArrayList<Integer>();  // short = cycle
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -381,6 +536,31 @@ while (!dq.empty()) {
     }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Deque<int[]> dq = new ArrayDeque<>();                  // addFirst/addLast + pollFirst = 0-1 BFS
+int[][] dist = new int[m][n];
+for (int[] row : dist) Arrays.fill(row, Integer.MAX_VALUE);   // INT_MAX → Integer.MAX_VALUE
+dist[0][0] = 0; dq.addFirst(new int[]{0, 0});
+while (!dq.isEmpty()) {
+    int[] cell = dq.pollFirst();
+    int r = cell[0], c = cell[1];
+    for (int[] mv : movesFrom(r, c)) {                 // each move with cost w ∈ {0, 1}
+        int nr = mv[0], nc = mv[1], w = mv[2];
+        if (dist[r][c] + w < dist[nr][nc]) {
+            dist[nr][nc] = dist[r][c] + w;
+            if (w == 0) dq.addFirst(new int[]{nr, nc});   // same layer — jump the line
+            else        dq.addLast(new int[]{nr, nc});    // next layer — wait your turn
+        }
+    }
+}
+```
+
+</details>
+
 (Note: 0-1 BFS relaxes like Dijkstra — `dist` comparison, not a visited set — because a node can be improved while in the deque.)
 
 **Problems:**
@@ -429,6 +609,35 @@ while (!beginSet.empty() && !endSet.empty()) {
 }
 return 0;
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Set<String> beginSet = new HashSet<>(List.of(start));
+Set<String> endSet   = new HashSet<>(List.of(target));
+Set<String> visited  = new HashSet<>();
+int steps = 1;
+while (!beginSet.isEmpty() && !endSet.isEmpty()) {
+    if (beginSet.size() > endSet.size()) {                // expand smaller side
+        Set<String> tmp = beginSet; beginSet = endSet; endSet = tmp;   // no std::swap in Java
+    }
+    Set<String> next = new HashSet<>();
+    for (String cur : beginSet)
+        for (String nb : neighbors(cur)) {
+            if (endSet.contains(nb)) return steps;        // frontiers touched — done
+            if (!visited.contains(nb)) {
+                visited.add(nb);
+                next.add(nb);
+            }
+        }
+    beginSet = next;                                      // reference reassign (C++ move)
+    steps++;
+}
+return 0;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

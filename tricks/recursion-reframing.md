@@ -36,6 +36,29 @@ public:
 };
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 124 — returns the best DOWNWARD chain; records the best BEND
+class Solution {
+    // C++ recorded into a member; Java has no int& either, so a field is the substitution
+    private int best = Integer.MIN_VALUE;       // the actual answer lives here
+
+    private int gain(TreeNode n) {             // CONTRACT: best sum of a chain
+        if (n == null) return 0;               // that starts at n and goes down only
+        int L = Math.max(0, gain(n.left));     // a negative chain is worse than nothing
+        int R = Math.max(0, gain(n.right));
+        best = Math.max(best, n.val + L + R);  // RECORD: the bend, complete right here
+        return n.val + Math.max(L, R);         // RETURN: one branch, extendable by a parent
+    }
+
+    public int maxPathSum(TreeNode root) { gain(root); return best; }
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -84,6 +107,38 @@ Info dfs(TreeNode* n) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 1373 — one postorder pass, every fact the parent needs in one object
+static class Info {
+    boolean isBST;
+    int mn, mx;        // min and max value in this subtree
+    int sum;           // sum of this subtree
+    Info(boolean isBST, int mn, int mx, int sum) {
+        this.isBST = isBST; this.mn = mn; this.mx = mx; this.sum = sum;
+    }
+}
+// C++ used a file-scope global for the record; Java uses an instance field instead
+int best = 0;
+
+Info dfs(TreeNode n) {
+    // identities: empty is a valid BST
+    if (n == null) return new Info(true, Integer.MAX_VALUE, Integer.MIN_VALUE, 0);
+    Info L = dfs(n.left), R = dfs(n.right);
+    if (L.isBST && R.isBST && L.mx < n.val && n.val < R.mn) {
+        int s = L.sum + n.val + R.sum;
+        best = Math.max(best, s);                  // Trick 1's record, layered on top
+        return new Info(true, Math.min(L.mn, n.val), Math.max(R.mx, n.val), s);
+    }
+    // fields below are never read again
+    return new Info(false, Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
+}
+```
+
+</details>
+
 ```cpp
 // LC 110 — the same idea with the struct collapsed into a sentinel return
 int height(TreeNode* n) {                 // CONTRACT: height, or -1 if unbalanced below
@@ -94,6 +149,22 @@ int height(TreeNode* n) {                 // CONTRACT: height, or -1 if unbalanc
 }
 bool isBalanced(TreeNode* root) { return height(root) >= 0; }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 110 — the same idea with the struct collapsed into a sentinel return
+int height(TreeNode n) {                  // CONTRACT: height, or -1 if unbalanced below
+    if (n == null) return 0;
+    int L = height(n.left);  if (L < 0) return -1;    // short-circuit, no second pass
+    int R = height(n.right); if (R < 0) return -1;
+    return Math.abs(L - R) > 1 ? -1 : 1 + Math.max(L, R);
+}
+boolean isBalanced(TreeNode root) { return height(root) >= 0; }
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -142,6 +213,30 @@ TreeNode* lca(TreeNode* n, TreeNode* p, TreeNode* q) {
     return L ? L : R;                            // otherwise pass the single find upward
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// DOWN: the path prefix is an argument. LC 129 — root-to-leaf numbers
+int dfs(TreeNode n, int cur) {                  // cur = number formed by ancestors
+    if (n == null) return 0;
+    cur = cur * 10 + n.val;
+    if (n.left == null && n.right == null) return cur;  // a leaf completes one number
+    return dfs(n.left, cur) + dfs(n.right, cur);
+}
+
+// UP: the discovery is a return value. LC 236 — lowest common ancestor
+TreeNode lca(TreeNode n, TreeNode p, TreeNode q) {
+    if (n == null || n == p || n == q) return n;   // found one, or fell off
+    TreeNode L = lca(n.left,  p, q);
+    TreeNode R = lca(n.right, p, q);
+    if (L != null && R != null) return n;          // the split point: both sides delivered
+    return L != null ? L : R;                      // otherwise pass the single find upward
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -201,6 +296,43 @@ pair<int,int> rob(TreeNode* n) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 968 — 0 = needs cover, 1 = has camera, 2 = covered (no camera here)
+class Solution {
+    // C++ mutated a member from dfs; Java has no int& out-parameter, so the counter is a field
+    private int cameras = 0;
+
+    private int dfs(TreeNode n) {
+        if (n == null) return 2;                           // null never demands a camera
+        int L = dfs(n.left), R = dfs(n.right);
+        if (L == 0 || R == 0) { cameras++; return 1; }     // a child is exposed: act NOW
+        if (L == 1 || R == 1) return 2;                    // a child watches me
+        return 0;                                          // both merely covered: I am not
+    }
+
+    public int minCameraCover(TreeNode root) {
+        int top = dfs(root);                               // sequence the side effect first
+        return cameras + (top == 0 ? 1 : 0);               // the root may still be exposed
+    }
+}
+
+// LC 337 — return {robbed, skipped} so the parent never recurses twice
+int[] rob(TreeNode n) {                          // int[]{a, b} stands in for pair<int,int>
+    if (n == null) return new int[]{0, 0};
+    int[] l = rob(n.left);                       // l[0] = lr (robbed), l[1] = ls (skipped)
+    int[] r = rob(n.right);                      // r[0] = rr (robbed), r[1] = rs (skipped)
+    return new int[]{
+        n.val + l[1] + r[1],                                     // rob n  => both children must be skipped
+        Math.max(l[0], l[1]) + Math.max(r[0], r[1])              // skip n => each child takes its better
+    };
+}
+```
+
+</details>
+
 **Pitfalls:**
 - Returning `2` for null on 968 by accident and calling it luck. State it: an empty child imposes no obligation, so it must be the state that triggers nothing. Return `0` there and every leaf's parent gets a needless camera.
 - Forgetting the root. The recursion never gives the root a parent to rescue it, so `dfs(root) == 0` costs one more camera. Evaluate `dfs` into a variable first — reading `cameras` in the same expression as the call is unsequenced.
@@ -244,6 +376,40 @@ public:
     }
 };
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 437 — O(n) with a prefix map that is pushed and popped along the path
+class Solution {
+    // C++ kept the map, the accumulator and the target as members; Java uses fields for the
+    // same reason — there is no way to hand a mutable int back out of a void recursion
+    private Map<Long, Integer> cnt = new HashMap<>();  // prefix sums of ANCESTORS on this path only
+    private int total = 0;
+    private int target;
+
+    private void dfs(TreeNode n, long cur) {
+        if (n == null) return;
+        cur += n.val;
+        total += cnt.getOrDefault(cur - target, 0);  // every matching ancestor start
+
+        cnt.merge(cur, 1, Integer::sum);             // enter: I am now an ancestor
+        dfs(n.left, cur);
+        dfs(n.right, cur);
+        cnt.merge(cur, -1, Integer::sum);            // leave: undo, or siblings see me
+    }
+
+    public int pathSum(TreeNode root, int t) {
+        target = t;
+        cnt.put(0L, 1);                              // the empty prefix: paths from the root
+        dfs(root, 0);
+        return total;
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -296,6 +462,40 @@ void perm(vector<int>& nums, vector<bool>& used, vector<int>& path, vector<vecto
     }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 90 / 40 — subsets and combinations with duplicates. Sort, then skip siblings.
+void back(int[] nums, int start, List<Integer> path, List<List<Integer>> out) {
+    // COPY the path: C++ pushed by value, Java would store a reference to the live list
+    // and every later mutation would corrupt the answer. #1 Java backtracking bug.
+    out.add(new ArrayList<>(path));                       // 90: every node is an answer
+    for (int i = start; i < nums.length; i++) {
+        if (i > start && nums[i] == nums[i - 1]) continue; // sibling duplicate: prune
+        path.add(nums[i]);
+        back(nums, i + 1, path, out);                     // i + 1: no reuse (39 uses i)
+        path.remove(path.size() - 1);
+    }
+}
+// caller: Arrays.sort(nums); back(nums, 0, path, out);
+
+// LC 47 — permutations with duplicates. Every index is a candidate, so guard via used[].
+void perm(int[] nums, boolean[] used, List<Integer> path, List<List<Integer>> out) {
+    // copy here too, for exactly the same reason
+    if (path.size() == nums.length) { out.add(new ArrayList<>(path)); return; }
+    for (int i = 0; i < nums.length; i++) {
+        if (used[i]) continue;
+        if (i > 0 && nums[i] == nums[i - 1] && !used[i - 1]) continue;  // use equals L->R
+        used[i] = true;  path.add(nums[i]);
+        perm(nums, used, path, out);
+        path.remove(path.size() - 1); used[i] = false;    // remove(int) is remove-by-index
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |

@@ -64,6 +64,30 @@ priority_queue<pair<int,int>, vector<pair<int,int>>, greater<>> pq2; // min by .
 priority_queue<int> h(v.begin(), v.end());
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// INVERSION: Java's PriorityQueue is a MIN-heap by default — the exact opposite of C++.
+PriorityQueue<Integer> maxHeap = new PriorityQueue<>(Comparator.reverseOrder()); // MAX-heap needs an explicit comparator
+PriorityQueue<Integer> minHeap = new PriorityQueue<>();                          // min-heap is the default
+
+// Custom comparator. Java's reads the natural way (C++'s answers "does a have
+// LOWER priority than b?"; Java's compare(a,b) < 0 means a comes out FIRST),
+// so the same intent is written with the opposite-looking sign.
+Comparator<int[]> cmp = (a, b) -> Integer.compare(a[1], b[1]);   // smaller [1] on top
+PriorityQueue<int[]> pq = new PriorityQueue<>(cmp);
+
+// int[] has no lexicographic ordering built in — unlike C++ pairs, spell it out:
+PriorityQueue<int[]> pq2 = new PriorityQueue<>(
+        (a, b) -> a[0] != b[0] ? Integer.compare(a[0], b[0]) : Integer.compare(a[1], b[1])); // min by [0]
+
+// O(n) heapify from existing data (vs n offers = O(n log n)):
+PriorityQueue<Integer> h = new PriorityQueue<>(list);   // the Collection constructor heapifies
+```
+
+</details>
+
 Gotchas that cost interview minutes: the default is a **max**-heap (Python's `heapq` is min — don't cross-wire them); `pop()` returns `void`, so read `top()` first; the comparator direction is inverted relative to intuition (when on the fence, test with two elements).
 
 ---
@@ -85,6 +109,20 @@ for (int x : nums) {
 }
 // heap.top() is the k-th largest; heap holds the top k
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+PriorityQueue<Integer> heap = new PriorityQueue<>();   // MIN-heap for k LARGEST — Java's default, no comparator needed
+for (int x : nums) {
+    heap.offer(x);
+    if (heap.size() > k) heap.poll();   // evict the weakest club member
+}
+// heap.peek() is the k-th largest; heap holds the top k
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -127,6 +165,26 @@ while (!pq.empty()) {
 }
 return dummy.next;
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// MIN-heap: C++ wrote a->val > b->val to invert its max-heap default; Java is already
+// a min-heap, so the comparator states the ordering directly.
+PriorityQueue<ListNode> pq = new PriorityQueue<>((a, b) -> Integer.compare(a.val, b.val));
+for (ListNode head : lists) if (head != null) pq.offer(head);   // the k frontiers
+
+ListNode dummy = new ListNode(), tail = dummy;
+while (!pq.isEmpty()) {
+    ListNode node = pq.poll();                        // global next-smallest
+    tail.next = node; tail = node;
+    if (node.next != null) pq.offer(node.next);       // advance that frontier
+}
+return dummy.next;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -172,6 +230,32 @@ double median() {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// C++'s file-scope heaps become instance fields — Java has no free functions over globals.
+// BOTH directions are inverted relative to C++:
+//   lo is a MAX-heap  -> Java needs Comparator.reverseOrder() (C++ got it by default)
+//   hi is a MIN-heap  -> Java's default             (C++ needed greater<int>)
+private PriorityQueue<Integer> lo = new PriorityQueue<>(Comparator.reverseOrder()); // max-heap: smaller half
+private PriorityQueue<Integer> hi = new PriorityQueue<>();                          // min-heap: larger half
+
+public void add(int x) {
+    lo.offer(x);                   // 1. always enter through lo
+    hi.offer(lo.poll());           // 2. push lo's best across the boundary
+    if (hi.size() > lo.size()) {   // 3. rebalance sizes (lo may hold one extra)
+        lo.offer(hi.poll());
+    }
+}
+public double median() {
+    if (lo.size() > hi.size()) return lo.peek();
+    return (lo.peek() + (double) hi.peek()) / 2.0;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -205,6 +289,23 @@ for (auto& iv : intervals) {
 }
 return ends.size();                                      // peak concurrency
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));   // by start time
+// MIN-heap of room end-times — Java's default direction, so no comparator (C++ needed greater<int>)
+PriorityQueue<Integer> ends = new PriorityQueue<>();
+for (int[] iv : intervals) {
+    if (!ends.isEmpty() && ends.peek() <= iv[0])
+        ends.poll();                                     // earliest-freeing room is free → reuse
+    ends.offer(iv[1]);                                   // occupy (new or reused) room
+}
+return ends.size();                                      // peak concurrency
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -246,6 +347,27 @@ int  top() {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// C++'s file-scope pq/stale and free functions become instance fields and methods.
+// INVERSION: this is a MAX-heap, so Java needs the explicit reverseOrder comparator.
+private PriorityQueue<Integer> pq = new PriorityQueue<>(Comparator.reverseOrder());
+private Map<Integer, Integer> stale = new HashMap<>();        // value → pending delete count
+
+public void remove(int x) { stale.merge(x, 1, Integer::sum); }   // O(1) "deletion"
+public int top() {
+    while (!pq.isEmpty() && stale.getOrDefault(pq.peek(), 0) > 0) {
+        stale.merge(pq.peek(), -1, Integer::sum);
+        pq.poll();                                            // purge corpses only at the surface
+    }
+    return pq.peek();
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -284,6 +406,32 @@ while (!pq.empty()) {
         }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+long[] dist = new long[n];
+Arrays.fill(dist, Long.MAX_VALUE);
+// MIN-heap keyed by distance first — Java's default direction (C++ needed greater<>);
+// int[]/long[] carry the pair, and the comparator must be explicit.
+PriorityQueue<long[]> pq = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));
+dist[src] = 0; pq.offer(new long[]{0, src});
+while (!pq.isEmpty()) {
+    long[] cur = pq.poll();
+    long d = cur[0]; int u = (int) cur[1];
+    if (d > dist[u]) continue;            // stale entry — lazy deletion in action
+    for (int[] e : adj.get(u)) {          // e = {v, w}
+        int v = e[0], w = e[1];
+        if (dist[u] + w < dist[v]) {
+            dist[v] = dist[u] + w;
+            pq.offer(new long[]{dist[v], v}); // re-push instead of decrease-key
+        }
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -324,6 +472,26 @@ while (reach < target) {
 }
 return stops;
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Arrays.sort(stations, (a, b) -> Integer.compare(a[0], b[0]));  // by position
+// INVERSION: MAX-heap of skipped stations' fuel — Java needs reverseOrder (C++ got it by default)
+PriorityQueue<Long> fuelOptions = new PriorityQueue<>(Comparator.reverseOrder());
+long reach = startFuel; int stops = 0, i = 0;
+while (reach < target) {
+    while (i < stations.length && stations[i][0] <= reach)
+        fuelOptions.offer((long) stations[i++][1]); // commit: note every passable station
+    if (fuelOptions.isEmpty()) return -1;           // stranded, nothing to regret
+    reach += fuelOptions.poll();                    // retract best skipped option
+    stops++;
+}
+return stops;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -374,6 +542,40 @@ vector<vector<int>> getSkyline(vector<vector<int>>& buildings) {
     return res;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+public List<List<Integer>> getSkyline(int[][] buildings) {
+    List<int[]> events = new ArrayList<>();            // {x, height, endX}; height 0 = stop marker
+    for (int[] b : buildings) {
+        events.add(new int[]{b[0], b[2], b[1]});       // building becomes active
+        events.add(new int[]{b[1], 0, 0});             // force a sweep stop at its right edge
+    }
+    events.sort((a, b) -> Integer.compare(a[0], b[0]));
+
+    // INVERSION: MAX-heap of {height, endX} — Java needs the reversed comparator (C++'s default),
+    // spelled lexicographically to match C++ pair ordering.
+    PriorityQueue<int[]> live = new PriorityQueue<>(
+            (a, b) -> a[0] != b[0] ? Integer.compare(b[0], a[0]) : Integer.compare(b[1], a[1]));
+    List<List<Integer>> res = new ArrayList<>();
+    for (int i = 0; i < events.size(); ) {
+        int x = events.get(i)[0];
+        while (i < events.size() && events.get(i)[0] == x) {          // admit ALL starts at x
+            if (events.get(i)[1] > 0) live.offer(new int[]{events.get(i)[1], events.get(i)[2]});
+            ++i;
+        }
+        while (!live.isEmpty() && live.peek()[1] <= x) live.poll();   // expire at the surface
+        int h = live.isEmpty() ? 0 : live.peek()[0];                  // current skyline height
+        if (res.isEmpty() || res.get(res.size() - 1).get(1) != h)     // emit only on change
+            res.add(List.of(x, h));
+    }
+    return res;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

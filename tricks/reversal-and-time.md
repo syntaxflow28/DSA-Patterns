@@ -44,6 +44,33 @@ int maxCoins(vector<int>& a) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 312 — pad with sentinel 1s so nums[i-1] and nums[j+1] always exist
+int maxCoins(int[] a) {
+    int n = a.length;
+    int[] v = new int[n + 2];
+    Arrays.fill(v, 1);
+    for (int i = 0; i < n; i++) v[i + 1] = a[i];
+
+    // dp[i][j] = best coins from bursting ALL of the open interval (i, j)
+    int[][] dp = new int[n + 2][n + 2];
+
+    for (int len = 1; len <= n; len++)            // length of the closed range
+        for (int i = 1; i + len - 1 <= n; i++) {
+            int j = i + len - 1;
+            for (int k = i; k <= j; k++)          // k bursts LAST in [i, j]
+                dp[i][j] = Math.max(dp[i][j],
+                                    dp[i][k - 1] + v[i - 1] * v[k] * v[j + 1] + dp[k + 1][j]);
+        }
+    return dp[1][n];
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -90,6 +117,32 @@ vector<int> nextGreater(const vector<int>& a) {
 vector<int> sufMax(n + 1, INT_MIN);
 for (int i = n - 1; i >= 0; i--) sufMax[i] = max(sufMax[i + 1], a[i]);
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Right-to-left monotonic stack: index of the next strictly greater element
+int[] nextGreater(int[] a) {
+    int n = a.length;
+    int[] res = new int[n];
+    Arrays.fill(res, -1);
+    Deque<Integer> st = new ArrayDeque<>();   // indices, values strictly decreasing bottom->top
+    for (int i = n - 1; i >= 0; i--) {
+        while (!st.isEmpty() && a[st.peek()] <= a[i]) st.pop();   // shadowed forever
+        if (!st.isEmpty()) res[i] = st.peek();
+        st.push(i);
+    }
+    return res;
+}
+
+// Suffix aggregate: the "future" as one running number
+int[] sufMax = new int[n + 1];
+Arrays.fill(sufMax, Integer.MIN_VALUE);
+for (int i = n - 1; i >= 0; i--) sufMax[i] = Math.max(sufMax[i + 1], a[i]);
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -146,6 +199,37 @@ vector<int> eventualSafeNodes(vector<vector<int>>& g) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 802 — reverse graph + Kahn peeling from the terminal nodes
+List<Integer> eventualSafeNodes(int[][] g) {
+    int n = g.length;
+    List<List<Integer>> rev = new ArrayList<>();
+    for (int i = 0; i < n; i++) rev.add(new ArrayList<>());
+    int[] outdeg = new int[n];
+    for (int u = 0; u < n; u++)
+        for (int v : g[u]) { rev.get(v).add(u); outdeg[u]++; }
+
+    Deque<Integer> q = new ArrayDeque<>();          // terminals: out-degree 0
+    for (int u = 0; u < n; u++) if (outdeg[u] == 0) q.add(u);
+
+    boolean[] safe = new boolean[n];
+    while (!q.isEmpty()) {
+        int v = q.poll();
+        safe[v] = true;
+        for (int u : rev.get(v))                    // walk edges backwards
+            if (--outdeg[u] == 0) q.add(u);         // all of u's exits are safe
+    }
+    List<Integer> res = new ArrayList<>();
+    for (int u = 0; u < n; u++) if (safe[u]) res.add(u);
+    return res;                                     // already sorted
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -200,6 +284,39 @@ vector<int> hitBricks(vector<vector<int>>& grid, vector<vector<int>>& hits) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// Reverse-time DSU skeleton (LC 803 shape)
+// 1. apply ALL removals to the grid
+// 2. union everything still standing (plus a virtual node for the "anchor")
+// 3. undo removals backwards; each undo is a union
+int[] hitBricks(int[][] grid, int[][] hits) {
+    int rows = grid.length, cols = grid[0].length, roof = rows * cols;
+    DSU dsu = new DSU(roof + 1);              // one virtual node anchoring row 0
+    for (int[] h : hits)
+        if (grid[h[0]][h[1]] == 1) grid[h[0]][h[1]] = 2;   // mark, don't erase
+
+    // no C++ '&' needed: arrays and DSU are objects, so the helpers mutate the same instances
+    connectAllOnes(grid, dsu);                // full-state union pass, roof included
+
+    int[] res = new int[hits.length];
+    for (int t = hits.length - 1; t >= 0; t--) {           // BACKWARDS
+        int r = hits[t][0], c = hits[t][1];
+        if (grid[r][c] != 2) continue;                     // no brick was there
+        int before = dsu.size(dsu.find(roof));
+        grid[r][c] = 1;                                    // put it back
+        unionWithLiveNeighbours(r, c, dsu);                // and with roof if r == 0
+        int after = dsu.size(dsu.find(roof));
+        res[t] = Math.max(0, after - before - 1);          // -1: the brick itself
+    }
+    return res;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -239,6 +356,24 @@ int brokenCalc(int startValue, int target) {
     return ops + (startValue - target);     // only -1 remains, applied blindly
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 991 — forward: x*2 or x-1. Backward from target: /2 (if even) or +1.
+int brokenCalc(int startValue, int target) {
+    int ops = 0;
+    while (target > startValue) {
+        if (target % 2 == 0) target /= 2;   // forced-good: the only fast shrink
+        else target += 1;                   // forced: odd cannot have been a double
+        ops++;
+    }
+    return ops + (startValue - target);     // only -1 remains, applied blindly
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |

@@ -57,6 +57,56 @@ for (int i = 0; i < m; i++)
 while (!q.empty()) { /* ordinary BFS */ }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 1168 — wells become edges from the virtual node 0, then plain Kruskal
+class DSU {
+    int[] p, r;
+    DSU(int n) {
+        p = new int[n]; r = new int[n];
+        for (int i = 0; i < n; i++) p[i] = i;
+    }
+    int find(int x) { return p[x] == x ? x : (p[x] = find(p[x])); }
+    boolean unite(int a, int b) {
+        a = find(a); b = find(b);
+        if (a == b) return false;
+        if (r[a] < r[b]) { int t = a; a = b; b = t; }
+        p[b] = a; if (r[a] == r[b]) r[a]++;
+        return true;
+    }
+}
+
+int minCostToSupplyWater(int n, int[] wells, int[][] pipes) {
+    List<int[]> e = new ArrayList<>();             // {w, u, v}
+    for (int i = 0; i < n; i++)
+        e.add(new int[]{wells[i], 0, i + 1});      // THE TRICK: node 0 = the ground
+    for (int[] p : pipes)
+        e.add(new int[]{p[2], p[0], p[1]});
+
+    e.sort((a, b) -> a[0] != b[0] ? Integer.compare(a[0], b[0])   // array<int,3> sorts
+                   : a[1] != b[1] ? Integer.compare(a[1], b[1])   // lexicographically;
+                                  : Integer.compare(a[2], b[2])); // spell it out in Java
+    DSU d = new DSU(n + 1);
+    int cost = 0;
+    for (int[] edge : e) {
+        int w = edge[0], u = edge[1], v = edge[2];
+        if (d.unite(u, v)) cost += w;              // n edges chosen over n+1 nodes
+    }
+    return cost;
+}
+
+// Multi-source BFS — the super-source, implicit: seed the queue with ALL sources
+Deque<int[]> q = new ArrayDeque<>();
+for (int i = 0; i < m; i++)
+    for (int j = 0; j < n; j++)
+        if (isSource(i, j)) { dist[i][j] = 0; q.add(new int[]{i, j}); }  // layer 0 together
+while (!q.isEmpty()) { /* ordinary BFS */ }
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -129,6 +179,55 @@ int shortestPathAllKeys(vector<string>& g) {
 // if best[r][c] >= k you have been here before with at least as much budget, skip.
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 864 — node = (cell, key bitmask)
+int shortestPathAllKeys(String[] g) {
+    int m = g.length, n = g[0].length(), all = 0, sr = 0, sc = 0;
+    for (int i = 0; i < m; i++)
+        for (int j = 0; j < n; j++) {
+            char c = g[i].charAt(j);
+            if (c == '@') { sr = i; sc = j; }
+            else if (Character.isLowerCase(c)) all |= 1 << (c - 'a');
+        }
+
+    boolean[][][] seen = new boolean[m][n][1 << 6];
+    Deque<int[]> q = new ArrayDeque<>();          // {r, c, mask}
+    q.add(new int[]{sr, sc, 0});
+    seen[sr][sc][0] = true;
+
+    int steps = 0;
+    int[] dr = {1,-1,0,0}, dc = {0,0,1,-1};
+    while (!q.isEmpty()) {
+        for (int sz = q.size(); sz-- > 0; ) {
+            int[] cur = q.poll();
+            int r = cur[0], c = cur[1], mask = cur[2];
+            if (mask == all) return steps;
+            for (int d = 0; d < 4; d++) {
+                int nr = r + dr[d], nc = c + dc[d];
+                if (nr < 0 || nr >= m || nc < 0 || nc >= n) continue;
+                char ch = g[nr].charAt(nc);
+                if (ch == '#') continue;
+                if (Character.isUpperCase(ch) && (mask >> (ch - 'A') & 1) == 0) continue;  // locked
+                int nm = mask | (Character.isLowerCase(ch) ? 1 << (ch - 'a') : 0);
+                if (seen[nr][nc][nm]) continue;                          // keyed on PAIR
+                seen[nr][nc][nm] = true;
+                q.add(new int[]{nr, nc, nm});
+            }
+        }
+        steps++;
+    }
+    return -1;
+}
+
+// LC 1293 — same shape, situation = eliminations left. The dominance prune:
+// if best[r][c] >= k you have been here before with at least as much budget, skip.
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -190,6 +289,46 @@ int numBusesToDestination(vector<vector<int>>& routes, int source, int target) {
 // unordered_map<string, vector<string>> bucket;  key = word with one letter starred
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 815 — nodes are ROUTES; stopToRoutes gives the adjacency for free
+int numBusesToDestination(int[][] routes, int source, int target) {
+    if (source == target) return 0;
+    Map<Integer, List<Integer>> stopToRoutes = new HashMap<>();
+    for (int i = 0; i < routes.length; i++)
+        for (int s : routes[i])
+            stopToRoutes.computeIfAbsent(s, k -> new ArrayList<>()).add(i);
+
+    Deque<Integer> q = new ArrayDeque<>();         // queue of ROUTE ids
+    boolean[] usedRoute = new boolean[routes.length];
+    Set<Integer> seenStop = new HashSet<>();
+    seenStop.add(source);
+    for (int r : stopToRoutes.getOrDefault(source, List.of())) { usedRoute[r] = true; q.add(r); }
+
+    int buses = 1;
+    while (!q.isEmpty()) {
+        for (int sz = q.size(); sz-- > 0; ) {
+            int r = q.poll();
+            for (int s : routes[r]) {
+                if (s == target) return buses;
+                if (!seenStop.add(s)) continue;             // stop already expanded
+                for (int nr : stopToRoutes.getOrDefault(s, List.of()))
+                    if (!usedRoute[nr]) { usedRoute[nr] = true; q.add(nr); }
+            }
+        }
+        buses++;
+    }
+    return -1;
+}
+
+// LC 127 — bucket nodes: "h*t" is a virtual vertex joining hot, hat, hit
+// Map<String, List<String>> bucket;  key = word with one letter starred
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -236,6 +375,41 @@ auto idx = [&](const string& s) {
     return it != id.end() ? it->second : id[s] = id.size();
 };
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 990 — all equalities first, then test every inequality against the finished partition
+// C++ used a recursive lambda capturing `p` by reference; a Java lambda cannot call
+// itself, so `p` becomes a field and `find` an ordinary (recursive) method.
+int[] p = new int[26];
+
+int find(int x) { return p[x] == x ? x : (p[x] = find(p[x])); }
+
+boolean equationsPossible(String[] eq) {
+    for (int i = 0; i < 26; i++) p[i] = i;
+
+    for (String e : eq)                                 // PASS 1: build the partition
+        if (e.charAt(1) == '=') p[find(e.charAt(0) - 'a')] = find(e.charAt(3) - 'a');
+    for (String e : eq)                                 // PASS 2: only now, contradictions
+        if (e.charAt(1) == '!' && find(e.charAt(0) - 'a') == find(e.charAt(3) - 'a')) return false;
+    return true;
+}
+
+// Non-integer items: intern them once, then union as usual
+Map<String, Integer> id = new HashMap<>();
+
+int idx(String s) {                    // computeIfAbsent cannot read id.size() while it
+    Integer it = id.get(s);            // is mutating the map, so do the lookup by hand
+    if (it != null) return it;
+    int v = id.size();
+    id.put(s, v);
+    return v;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -288,6 +462,40 @@ double dfs(const string& cur, const string& dst, double acc,
 priority_queue<pair<int,int>, vector<pair<int,int>>, greater<>> pq;
 // ... nd = max(d, abs(h[nr][nc] - h[r][c]));   if (nd < dist[nr][nc]) relax
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 399 — weighted DFS over the ratio graph
+// pair<string,double> has no Java equivalent, so the adjacency is a neighbour -> weight
+// map and the entry iteration replaces the structured binding [nxt, w].
+double dfs(String cur, String dst, double acc,
+           Map<String, Map<String, Double>> g, Set<String> seen) {
+    if (!g.containsKey(cur) || !g.containsKey(dst)) return -1.0;
+    if (cur.equals(dst)) return acc;
+    seen.add(cur);
+    for (Map.Entry<String, Double> en : g.get(cur).entrySet()) {
+        String nxt = en.getKey();
+        double w = en.getValue();
+        if (!seen.contains(nxt)) {
+            double r = dfs(nxt, dst, acc * w, g, seen);   // ratios COMPOSE by product
+            if (r > 0) return r;
+        }
+    }
+    return -1.0;
+}
+// build: g.computeIfAbsent(a, k -> new HashMap<>()).put(b, v);
+//        g.computeIfAbsent(b, k -> new HashMap<>()).put(a, 1.0 / v);
+
+// Minimax weight — Dijkstra with max instead of +  (LC 1631 / 778)
+// C++ priority_queue with greater<> is a MIN-heap, and Java's PriorityQueue is already
+// a min-heap, so the comparator only has to name the key — no direction flip needed.
+PriorityQueue<int[]> pq = new PriorityQueue<>((a, b) -> Integer.compare(a[0], b[0]));
+// ... nd = Math.max(d, Math.abs(h[nr][nc] - h[r][c]));   if (nd < dist[nr][nc]) relax
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -349,6 +557,49 @@ void hierholzer(const string& u, map<string, multiset<string>>& g, vector<string
 
 // FINGERPRINT: "prerequisites" -> Kahn; emitted < n means a cycle
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// FINGERPRINT: "two hostile groups" -> BFS two-colouring
+boolean isBipartite(int[][] g) {
+    int n = g.length;
+    int[] col = new int[n];
+    Arrays.fill(col, -1);
+    for (int s = 0; s < n; s++) {
+        if (col[s] != -1) continue;
+        col[s] = 0;
+        Deque<Integer> q = new ArrayDeque<>(); q.add(s);
+        while (!q.isEmpty()) {
+            int u = q.poll();
+            for (int v : g[u]) {
+                if (col[v] == col[u]) return false;      // odd cycle found
+                if (col[v] == -1) { col[v] = col[u] ^ 1; q.add(v); }
+            }
+        }
+    }
+    return true;
+}
+
+// FINGERPRINT: "use every edge exactly once" -> Hierholzer, built backwards
+// multiset<string> has no Java equivalent: a TreeMap from neighbour to remaining
+// multiplicity keeps both the sorted order and the duplicate edges.
+void hierholzer(String u, Map<String, TreeMap<String, Integer>> g, List<String> out) {
+    TreeMap<String, Integer> adj = g.computeIfAbsent(u, k -> new TreeMap<>());
+    while (!adj.isEmpty()) {
+        String v = adj.firstKey();
+        int left = adj.get(v);
+        if (left == 1) adj.remove(v); else adj.put(v, left - 1);   // consume the edge
+        hierholzer(v, g, out);
+    }
+    out.add(u);                                          // post-order, then reverse
+}
+
+// FINGERPRINT: "prerequisites" -> Kahn; emitted < n means a cycle
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |

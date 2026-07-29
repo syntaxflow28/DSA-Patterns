@@ -26,6 +26,24 @@ for (int i = 0; i < n; i++) {
 // anything left on the stack has no next greater (ans stays 0 / -1)
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int[] ans = new int[n];                         // zero-initialized by default
+Deque<Integer> st = new ArrayDeque<>();         // indices; values strictly decreasing
+for (int i = 0; i < n; i++) {
+    while (!st.isEmpty() && nums[i] > nums[st.peek()]) {
+        ans[st.peek()] = i - st.peek();         // resolved: i is st.peek()'s answer
+        st.pop();                               // dominated — never useful again
+    }
+    st.push(i);
+}
+// anything left on the stack has no next greater (ans stays 0 / -1)
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -70,6 +88,25 @@ for (int x : nums) {
 return count;
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+Map<Long, Integer> seen = new HashMap<>();
+seen.put(0L, 1);                             // empty prefix — the crucial seed
+long pre = 0;
+int count = 0;
+for (int x : nums) {
+    pre += x;
+    Integer hit = seen.get(pre - k);         // earlier prefixes pairing with me
+    if (hit != null) count += hit;
+    seen.merge(pre, 1, Integer::sum);        // register AFTER querying (j > i strictly)
+}
+return count;
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -109,6 +146,24 @@ for (auto& cur : iv) {
         merged.push_back(cur);                              // gap → block closes forever
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Arrays.sort(iv, (a, b) -> Integer.compare(a[0], b[0]));   // by start (int[][] takes a comparator directly)
+List<int[]> merged = new ArrayList<>();
+for (int[] cur : iv) {
+    if (!merged.isEmpty() && cur[0] <= merged.get(merged.size() - 1)[1]) {
+        int[] last = merged.get(merged.size() - 1);
+        last[1] = Math.max(last[1], cur[1]);                // overlap → extend block
+    } else {
+        merged.add(cur);                                    // gap → block closes forever
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -161,6 +216,35 @@ struct DSU {
 };
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+class DSU {
+    int[] parent, sz;
+    DSU(int n) {
+        parent = new int[n]; sz = new int[n];
+        for (int i = 0; i < n; i++) { parent[i] = i; sz[i] = 1; }   // no iota in Java
+    }
+    int find(int x) {
+        while (parent[x] != x) {
+            parent[x] = parent[parent[x]];   // path compression (halving)
+            x = parent[x];
+        }
+        return x;
+    }
+    boolean unite(int a, int b) {            // returns false ⇔ already connected
+        a = find(a); b = find(b);
+        if (a == b) return false;            // this edge closes a cycle
+        if (sz[a] < sz[b]) { int t = a; a = b; b = t; }   // union by size (no std::swap)
+        parent[b] = a; sz[a] += sz[b];
+        return true;
+    }
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -198,6 +282,20 @@ for (int i = 0; i < n; i++) {
 }
 return true;
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int reach = 0;
+for (int i = 0; i < n; i++) {
+    if (i > reach) return false;             // invariant broken: i unreachable
+    reach = Math.max(reach, i + nums[i]);    // invariant: max index reachable using 0..i
+}
+return true;
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -261,6 +359,43 @@ struct Trie {
 };
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+class TrieNode {
+    TrieNode[] child = new TrieNode[26];
+    boolean isWord = false;
+}
+class Trie {
+    TrieNode root = new TrieNode();
+    void insert(String w) {
+        TrieNode cur = root;
+        for (char c : w.toCharArray()) {
+            int i = c - 'a';
+            if (cur.child[i] == null) cur.child[i] = new TrieNode();
+            cur = cur.child[i];
+        }
+        cur.isWord = true;
+    }
+    boolean search(String w) {               // exact word
+        TrieNode cur = walk(w);
+        return cur != null && cur.isWord;
+    }
+    boolean startsWith(String p) { return walk(p) != null; }
+    TrieNode walk(String s) {
+        TrieNode cur = root;
+        for (char c : s.toCharArray()) {
+            cur = cur.child[c - 'a'];
+            if (cur == null) return null;
+        }
+        return cur;
+    }
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -301,6 +436,22 @@ while (cur) {
 return prev;                     // new head
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+ListNode prev = null, cur = head;
+while (cur != null) {
+    ListNode nxt = cur.next;     // save before overwriting
+    cur.next = prev;             // flip the arrow
+    prev = cur;                  // advance both
+    cur = nxt;
+}
+return prev;                     // new head
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -337,6 +488,19 @@ void pop()       { st.pop(); }
 int  top()       { return st.top().first; }
 int  getMin()    { return st.top().second; }   // history travels with the stack
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+Deque<int[]> st = new ArrayDeque<>();          // (value, min at-and-below); int[2] stands in for pair
+void push(int x) { st.push(new int[]{x, st.isEmpty() ? x : Math.min(x, st.peek()[1])}); }
+void pop()       { st.pop(); }
+int  top()       { return st.peek()[0]; }
+int  getMin()    { return st.peek()[1]; }      // history travels with the stack
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -380,6 +544,25 @@ for (int j = 0; j < n; j++)
     if (nums[j] != j + 1) { /* j+1 is missing; nums[j] is a duplicate */ }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int i = 0, n = nums.length;
+while (i < n) {
+    int home = nums[i] - 1;                             // value v wants index v-1
+    if (nums[i] >= 1 && nums[i] <= n && nums[home] != nums[i]) {
+        int t = nums[i]; nums[i] = nums[home]; nums[home] = t;   // send it home, retry index i (no std::swap)
+    } else {
+        ++i;                                            // in place, or out of range, or a dup
+    }
+}
+for (int j = 0; j < n; j++)
+    if (nums[j] != j + 1) { /* j+1 is missing; nums[j] is a duplicate */ }
+```
+
+</details>
+
 ```cpp
 // Sign-marking variant (448/442) — no swaps, one pass to mark, one to read
 for (int x : nums) {
@@ -389,6 +572,22 @@ for (int x : nums) {
 }
 for (int j = 0; j < n; j++) if (nums[j] > 0) missing.push_back(j + 1);
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// Sign-marking variant (448/442) — no swaps, one pass to mark, one to read
+// duplicates / missing are List<Integer>: their size is not known up front, so no int[]
+for (int x : nums) {
+    int idx = Math.abs(x) - 1;
+    if (nums[idx] > 0) nums[idx] = -nums[idx];          // "value idx+1 was present"
+    else duplicates.add(idx + 1);                       // marked twice -> seen twice
+}
+for (int j = 0; j < n; j++) if (nums[j] > 0) missing.add(j + 1);
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -434,6 +633,27 @@ struct BIT {
 };
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+class BIT {
+    int n; long[] t;
+    BIT(int n) { this.n = n; t = new long[n + 1]; }
+    void add(int i, long v) {                            // point update: nums[i] += v
+        for (++i; i <= n; i += i & -i) t[i] += v;         // walk covering blocks upward
+    }
+    long sum(int i) {                                    // prefix sum of nums[0..i]
+        long s = 0;
+        for (++i; i > 0; i -= i & -i) s += t[i];          // disjoint blocks tiling the prefix
+        return s;
+    }
+    long range(int l, int r) { return sum(r) - sum(l - 1); }   // sum(-1) == 0 safely
+}
+```
+
+</details>
+
 ```cpp
 // 315: count of smaller numbers after self — BIT over compressed VALUES, scanned right to left
 vector<int> srt(nums); sort(srt.begin(), srt.end());
@@ -446,6 +666,27 @@ for (int i = nums.size() - 1; i >= 0; --i) {
     bit.add(r, 1);
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// 315: count of smaller numbers after self — BIT over compressed VALUES, scanned right to left
+int[] srt = nums.clone(); Arrays.sort(srt);
+int m = 0;                                              // no erase/unique in Java: compact in place
+for (int i = 0; i < srt.length; i++)
+    if (i == 0 || srt[i] != srt[i - 1]) srt[m++] = srt[i];
+srt = Arrays.copyOf(srt, m);
+BIT bit = new BIT(srt.length);
+int[] ans = new int[nums.length];
+for (int i = nums.length - 1; i >= 0; --i) {
+    int r = Arrays.binarySearch(srt, nums[i]);          // exact hit guaranteed: nums[i] is in srt
+    ans[i] = r > 0 ? (int) bit.sum(r - 1) : 0;          // already-inserted values strictly smaller
+    bit.add(r, 1);
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -502,6 +743,41 @@ while (top <= bot && left <= right) {
     }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// 48. Rotate 90° clockwise = transpose, then reverse each row.
+int n = m.length;
+for (int i = 0; i < n; i++)
+    for (int j = i + 1; j < n; j++) {                   // j > i: swap each pair once
+        int t = m[i][j]; m[i][j] = m[j][i]; m[j][i] = t;
+    }
+for (int[] row : m)                                     // no reverse() for int[]: swap ends inward
+    for (int l = 0, r = n - 1; l < r; l++, r--) { int t = row[l]; row[l] = row[r]; row[r] = t; }
+// counter-clockwise: transpose, then reverse the row ORDER instead.
+
+// 54. Spiral order via four shrinking boundaries.
+int top = 0, bot = rows - 1, left = 0, right = cols - 1;
+List<Integer> out = new ArrayList<>();
+while (top <= bot && left <= right) {
+    for (int j = left; j <= right; j++) out.add(m[top][j]);
+    ++top;
+    for (int i = top; i <= bot; i++) out.add(m[i][right]);
+    --right;
+    if (top <= bot) {                                   // re-check: a single row must not replay
+        for (int j = right; j >= left; j--) out.add(m[bot][j]);
+        --bot;
+    }
+    if (left <= right) {                                // re-check: a single column must not replay
+        for (int i = bot; i >= top; i--) out.add(m[i][left]);
+        ++left;
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |

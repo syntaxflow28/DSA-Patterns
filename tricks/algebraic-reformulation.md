@@ -34,6 +34,26 @@ int maxScoreSightseeingPair(vector<int>& v) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 1014: maximize values[i] + values[j] + i - j  over i < j
+// = (values[i] + i) + (values[j] - j)
+int maxScoreSightseeingPair(int[] v) {
+    int best = Integer.MIN_VALUE;       // max of A(i) = v[i] + i over all i < j
+    int ans  = Integer.MIN_VALUE;
+    for (int j = 0; j < v.length; j++) {
+        if (j > 0)                                          // need a legal partner first
+            ans = Math.max(ans, best + (v[j] - j));         // A(i) + B(j)
+        best = Math.max(best, v[j] + j);                    // only NOW may j serve as an i
+    }
+    return ans;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -77,6 +97,30 @@ int maxAbsValExpr(vector<int>& a, vector<int>& b) {
     return ans;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 1131: max over i,j of |a[i]-a[j]| + |b[i]-b[j]| + |i-j|
+int maxAbsValExpr(int[] a, int[] b) {
+    int n = a.length;
+    long ans = 0;
+    for (int s1 : new int[]{1, -1})
+        for (int s2 : new int[]{1, -1}) {        // s3 fixed to +1 by i/j symmetry
+            long hi = Long.MIN_VALUE, lo = Long.MAX_VALUE;
+            for (int k = 0; k < n; k++) {
+                long p = (long) s1 * a[k] + (long) s2 * b[k] + k;
+                hi = Math.max(hi, p);
+                lo = Math.min(lo, p);            // best i and best j, independently
+            }
+            ans = Math.max(ans, hi - lo);        // a fresh hi/lo per sign pattern
+        }
+    return (int) ans;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -125,6 +169,35 @@ int subarraysWithKDistinct(vector<int>& nums, int k) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 992: count subarrays with exactly k distinct integers
+int atMostK(int[] nums, int k) {
+    if (k < 0) return 0;                       // makes atMost(K-1) safe at K = 0
+    HashMap<Integer,Integer> cnt = new HashMap<>();
+    int left = 0, distinct = 0;
+    long res = 0;
+    for (int right = 0; right < nums.length; right++) {
+        // merge returns the NEW value as a boxed Integer: unbox with intValue() before
+        // comparing, because == on two Integers compares references, not values
+        if (cnt.merge(nums[right], 1, Integer::sum).intValue() == 1) distinct++;
+        while (distinct > k) {
+            int out = nums[left++];
+            if (cnt.merge(out, -1, Integer::sum).intValue() == 0) distinct--;
+        }
+        res += right - left + 1;               // all subarrays ending at right
+    }
+    return (int) res;
+}
+int subarraysWithKDistinct(int[] nums, int k) {
+    return atMostK(nums, k) - atMostK(nums, k - 1);
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -164,6 +237,27 @@ int findMaxLength(vector<int>& nums) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// LC 525: longest subarray with equal 0s and 1s
+int findMaxLength(int[] nums) {
+    HashMap<Integer,Integer> first = new HashMap<>();
+    first.put(0, -1);                           // prefix value -> EARLIEST index
+    int sum = 0, best = 0;
+    for (int i = 0; i < nums.length; i++) {
+        sum += (nums[i] == 1 ? 1 : -1);         // the remap: 0 becomes -1
+        Integer seen = first.get(sum);          // boxed: may be null, and == would compare refs
+        if (seen != null) best = Math.max(best, i - seen.intValue());
+        else first.put(sum, i);                 // never overwrite: longest needs earliest
+    }
+    return best;
+}
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | How the trick applies |
 |---|---|---|
@@ -202,6 +296,23 @@ int eraseOverlapIntervals(vector<vector<int>>& iv) {
     return (int)iv.size() - kept;                                     // the complement
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 435: minimum intervals to remove so the rest don't overlap
+int eraseOverlapIntervals(int[][] iv) {
+    Arrays.sort(iv, (a, b) -> Integer.compare(a[1], b[1]));           // by END
+    int kept = 0;
+    long freeAt = Long.MIN_VALUE;
+    for (int[] it : iv)
+        if (it[0] >= freeAt) { kept++; freeAt = it[1]; }              // touching is OK here
+    return iv.length - kept;                                          // the complement
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |
@@ -245,6 +356,28 @@ int subarraySum(vector<int>& nums, int k) {
     return ans;
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// LC 560: number of subarrays summing to k (values may be negative)
+int subarraySum(int[] nums, int k) {
+    HashMap<Long,Integer> cnt = new HashMap<>();   // prefix sums are long, so the key is Long
+    cnt.put(0L, 1);                                // the empty prefix counts once
+    long sum = 0;
+    int ans = 0;
+    for (int x : nums) {
+        sum += x;
+        // getOrDefault unboxes to int, avoiding both a null check and an Integer == comparison
+        ans += cnt.getOrDefault(sum - k, 0);       // lefts that qualify for THIS right
+        cnt.merge(sum, 1, Integer::sum);           // only now is this prefix a legal left
+    }
+    return ans;
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | How the trick applies |

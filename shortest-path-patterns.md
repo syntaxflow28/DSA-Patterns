@@ -12,6 +12,15 @@ Every algorithm in this guide is built from one atomic operation — **relaxatio
 if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;   // edge (u, v, w)
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+if (dist[u] + w < dist[v]) dist[v] = dist[u] + w;   // edge (u, v, w)
+```
+
+</details>
+
 "I found a cheaper way to reach v — through u." That's the entire vocabulary. The algorithms differ *only* in the **order** they apply relaxations and in **when they're allowed to stop**:
 
 - **BFS** relaxes in distance-layer order — legal only when all weights are 1, so layer order *is* cost order.
@@ -74,6 +83,26 @@ while (!q.empty()) {
 }
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+int[] dist = new int[n];
+Arrays.fill(dist, -1);                              // -1 doubles as "unvisited"
+Deque<Integer> q = new ArrayDeque<>();              // ArrayDeque is Java's queue of choice
+for (int s : sources) { dist[s] = 0; q.addLast(s); }// seed EVERY source at 0
+while (!q.isEmpty()) {
+    int u = q.pollFirst();
+    for (int v : adj[u])                            // adj is List<Integer>[] here (unweighted)
+        if (dist[v] == -1) {                        // visited at ENQUEUE — first arrival is optimal
+            dist[v] = dist[u] + 1;
+            q.addLast(v);
+        }
+}
+```
+
+</details>
+
 **Problems:** 1091 (Shortest Path in Binary Matrix), 127 (Word Ladder), 752 (Open the Lock), 542/994 (multi-source fields), 909 (Snakes and Ladders), 815 (Bus Routes — BFS over *routes*, a modeling gem).
 
 **Pitfall worth re-flagging here:** "minimum number of operations" problems are unweighted shortest paths on state graphs — candidates who only associate BFS with grids miss them. If every operation costs the same, it's BFS, whatever the nodes look like.
@@ -103,6 +132,32 @@ while (!dq.empty()) {
         }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+int[] dist = new int[n];
+Arrays.fill(dist, Integer.MAX_VALUE);
+Deque<int[]> dq = new ArrayDeque<>();        // {dist, node}
+dist[src] = 0;
+dq.addLast(new int[]{0, src});
+while (!dq.isEmpty()) {
+    int[] cur = dq.pollFirst();
+    int d = cur[0], u = cur[1];
+    if (d > dist[u]) continue;               // stale entry — same lazy deletion as Dijkstra
+    for (int[] e : adj[u]) {                 // e = {v, w}; w is 0 or 1
+        int v = e[0], w = e[1];
+        if (dist[u] + w < dist[v]) {
+            dist[v] = dist[u] + w;
+            if (w == 0) dq.addFirst(new int[]{dist[v], v});   // same layer
+            else        dq.addLast (new int[]{dist[v], v});   // next layer
+        }
+    }
+}
+```
+
+</details>
 
 **Problems:** 1368 (Min Cost Valid Path — follow arrow free, change it for 1), 2290 (Minimum Obstacle Removal), 1293 (Obstacle Elimination — reframable both ways), 934 (Shortest Bridge — flood fill + the "expand free, cross for 1" reading).
 
@@ -136,6 +191,33 @@ while (!pq.empty()) {
         }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+long[] dist = new long[n];
+Arrays.fill(dist, Long.MAX_VALUE);
+// Java's PriorityQueue is ALREADY a min-heap; C++ needed greater<> because its default is a MAX-heap
+PriorityQueue<long[]> pq = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));  // {dist, node} — dist FIRST
+dist[src] = 0;
+pq.add(new long[]{0, src});
+while (!pq.isEmpty()) {
+    long[] top = pq.poll();
+    long d = top[0]; int u = (int) top[1];
+    if (d > dist[u]) continue;               // stale duplicate — lazy deletion
+    // (optional) if (u == target) return d; // settled = final: safe early exit
+    for (int[] e : adj[u]) {                 // adj is List<int[]>[]; e = {v, w}
+        int v = e[0], w = e[1];
+        if (dist[u] + w < dist[v]) {         // relaxation
+            dist[v] = dist[u] + w;
+            pq.add(new long[]{dist[v], v});  // duplicate-push instead of decrease-key
+        }
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -172,6 +254,20 @@ if (cand < dist[v]) {
     pq.push({dist[v], v});
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// identical skeleton to Pattern 3 (same min-heap PriorityQueue<long[]>); only the relaxation changes:
+long cand = Math.max(dist[u], (long) w);       // path cost = worst edge so far
+if (cand < dist[v]) {
+    dist[v] = cand;
+    pq.add(new long[]{dist[v], v});
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -217,6 +313,31 @@ for (int pass = 0; pass <= k; pass++) {          // k stops = k+1 edges
 return dist[dst] == LLONG_MAX ? -1 : dist[dst];
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+long[] dist = new long[n];
+Arrays.fill(dist, Long.MAX_VALUE);
+dist[src] = 0;
+for (int pass = 0; pass <= k; pass++) {           // k stops = k+1 edges
+    long[] next = dist.clone();                   // FROZEN snapshot — essential
+    boolean changed = false;
+    for (int[] e : edges) {                       // e = {u, v, w}
+        int u = e[0], v = e[1], w = e[2];
+        if (dist[u] != Long.MAX_VALUE && dist[u] + w < next[v]) {
+            next[v] = dist[u] + w;
+            changed = true;
+        }
+    }
+    dist = next;                                  // no move() in Java — rebinding the reference is the same
+    if (!changed) break;                          // early convergence
+}
+return dist[dst] == Long.MAX_VALUE ? -1 : dist[dst];
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -254,6 +375,24 @@ for (int u : topo)
             dist[v] = min(dist[v], dist[u] + w);   // flip to max for longest path
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+// topo = topological order (from Kahn's algorithm), an int[] or List<Integer>
+long[] dist = new long[n];
+Arrays.fill(dist, Long.MAX_VALUE);
+dist[src] = 0;
+for (int u : topo)
+    if (dist[u] != Long.MAX_VALUE)
+        for (int[] e : adj[u]) {                   // e = {v, w}
+            int v = e[0], w = e[1];
+            dist[v] = Math.min(dist[v], dist[u] + w);   // flip to max for longest path
+        }
+```
+
+</details>
+
 **Problems:**
 | Problem | Difficulty | Note |
 |---|---|---|
@@ -288,6 +427,20 @@ for (int k = 0; k < n; k++)                  // intermediate — OUTERMOST, non-
             if (d[i][k] != INF && d[k][j] != INF)
                 d[i][j] = min(d[i][j], d[i][k] + d[k][j]);
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// d[i][j] = direct edge weight, INF if absent, 0 if i == j  (long[][] to survive INF-sized sums)
+for (int k = 0; k < n; k++)                  // intermediate — OUTERMOST, non-negotiable
+    for (int i = 0; i < n; i++)
+        for (int j = 0; j < n; j++)
+            if (d[i][k] != INF && d[k][j] != INF)
+                d[i][j] = Math.min(d[i][j], d[i][k] + d[k][j]);
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -332,6 +485,33 @@ while (!pq.empty()) {
         }
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// dist[v][r] = min cost reaching v with r units of resource used/left
+long[][] dist = new long[n][R + 1];
+for (long[] row : dist) Arrays.fill(row, Long.MAX_VALUE);
+// min-heap by cost — Java's PriorityQueue default; C++ had to spell it with greater<>
+PriorityQueue<long[]> pq = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));  // {cost, node, res}
+dist[src][0] = 0;
+pq.add(new long[]{0, src, 0});
+while (!pq.isEmpty()) {
+    long[] top = pq.poll();
+    long d = top[0]; int u = (int) top[1], r = (int) top[2];
+    if (d > dist[u][r]) continue;
+    for (int[] mv : moves(u, r)) {                // mv = {v, w, dr}; dr = resource consumed
+        int v = mv[0], w = mv[1], dr = mv[2];
+        if (r + dr <= R && d + w < dist[v][r + dr]) {
+            dist[v][r + dr] = d + w;
+            pq.add(new long[]{dist[v][r + dr], v, r + dr});
+        }
+    }
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
@@ -385,6 +565,38 @@ while (!pq.empty()) {
 return (int)ways[dst];
 ```
 
+<details>
+<summary>Java</summary>
+
+```java
+final long MOD = 1_000_000_007L;
+long[] dist = new long[n], ways = new long[n];
+Arrays.fill(dist, Long.MAX_VALUE);
+// min-heap by distance — free in Java; C++ needed greater<> to flip its default MAX-heap
+PriorityQueue<long[]> pq = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));  // {dist, node}
+dist[src] = 0; ways[src] = 1;
+pq.add(new long[]{0, src});
+while (!pq.isEmpty()) {
+    long[] top = pq.poll();
+    long d = top[0]; int u = (int) top[1];
+    if (d > dist[u]) continue;                    // stale — ways[u] is final at this point
+    for (int[] e : adj[u]) {                      // e = {v, w}
+        int v = e[0], w = e[1];
+        long nd = d + w;
+        if (nd < dist[v]) {                       // strictly better: the old paths are dead
+            dist[v] = nd;
+            ways[v] = ways[u];                    // OVERWRITE, never +=
+            pq.add(new long[]{nd, v});
+        } else if (nd == dist[v]) {               // tie: a new family of shortest paths
+            ways[v] = (ways[v] + ways[u]) % MOD;  // no push — dist[v] didn't change
+        }
+    }
+}
+return (int) ways[dst];
+```
+
+</details>
+
 **Template (k-th smallest distinct cost — the second-shortest generalization):**
 ```cpp
 priority_queue<pair<long long,int>,
@@ -401,6 +613,29 @@ while (!pq.empty()) {
     for (auto [v, w] : adj[u]) pq.push({d + w, v});
 }
 ```
+
+<details>
+<summary>Java</summary>
+
+```java
+// min-heap by cost — Java's PriorityQueue is a min-heap out of the box (C++ used greater<>)
+PriorityQueue<long[]> pq = new PriorityQueue<>((a, b) -> Long.compare(a[0], b[0]));  // {dist, node}
+int[] settled = new int[n];
+long[] last = new long[n];
+Arrays.fill(last, -1);                            // last cost settled at each node
+pq.add(new long[]{0, src});
+while (!pq.isEmpty()) {
+    long[] top = pq.poll();
+    long d = top[0]; int u = (int) top[1];
+    if (settled[u] >= K) continue;                // u already has its K best costs
+    if (last[u] == d) continue;                   // want DISTINCT costs (drop for non-distinct)
+    last[u] = d; settled[u]++;
+    if (u == dst && settled[u] == K) return d;    // the K-th smallest cost to dst
+    for (int[] e : adj[u]) pq.add(new long[]{d + e[1], e[0]});   // e = {v, w}
+}
+```
+
+</details>
 
 **Problems:**
 | Problem | Difficulty | Note |
