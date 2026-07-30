@@ -9,7 +9,7 @@ DP has a reputation as the hardest interview topic, but it's really one idea ind
 > **DP applies when a problem has (1) optimal substructure — the answer is composable from answers to smaller subproblems — and (2) overlapping subproblems — the same subproblems recur, so caching pays.**
 
 Both conditions matter, and each rules out a different impostor:
-- Optimal substructure without overlap → plain **divide & conquer** (merge sort: subproblems never repeat; caching buys nothing).
+- Optimal substructure without overlap → plain **[divide & conquer](divide-and-conquer-patterns.md)** (merge sort: subproblems never repeat; caching buys nothing).
 - Overlap without needing every option → maybe **greedy** (if a local rule provably always leads to the optimum, you don't need the table at all — and proving that exchange argument is how you justify *skipping* DP).
 - Neither → search/backtracking territory.
 
@@ -48,7 +48,7 @@ If you can say all four out loud, the implementation is transcription. If you ca
 | Situation | Why DP breaks | Use instead |
 |---|---|---|
 | A greedy exchange argument actually holds | Table is correct but wasteful | Greedy (prove it!) |
-| Subproblems don't overlap | Memo never hits | Divide & conquer |
+| Subproblems don't overlap | Memo never hits | [Divide & conquer](divide-and-conquer-patterns.md) |
 | State needs the full history (no compact summary suffices) | State space explodes | Search/backtracking, or find a better state |
 | "Subarray" problems with monotone structure | DP works but O(n²) | Sliding window / Kadane / monotonic stack |
 | Need the optimal *and* adversary moves alternate | Plain max/min misses the opponent | Minimax DP (still DP — flip max/min per turn) |
