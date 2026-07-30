@@ -51,11 +51,11 @@ If you can say all four out loud, the implementation is transcription. If you ca
 | Subproblems don't overlap | Memo never hits | [Divide & conquer](divide-and-conquer-patterns.md) |
 | State needs the full history (no compact summary suffices) | State space explodes | Search/backtracking, or find a better state |
 | "Subarray" problems with monotone structure | DP works but O(n²) | Sliding window / Kadane / monotonic stack |
-| Need the optimal *and* adversary moves alternate | Plain max/min misses the opponent | Minimax DP (still DP — flip max/min per turn) |
+| Need the optimal *and* adversary moves alternate | Plain max/min misses the opponent | Game/minimax DP (still DP — flip max/min per turn, P12) |
 
 **Routing by problem shape** — ask what the future actually needs to know about the past, and the pattern falls out:
 
-![Routing the single question "what must the state carry?" to each of the eleven DP patterns](images/dp-routing.svg)
+![Routing the single question "what must the state carry?" to each of the twelve DP patterns](images/dp-routing.svg)
 
 ---
 
@@ -773,6 +773,69 @@ double knightProbability(int n, int k, int startRow, int startCol) {
 
 ---
 
+## Pattern 12: Game DP — Minimax over Positions
+
+**Logic:** Two players alternate moves and *both play optimally*. The state is the position plus whose turn it is, and the combine alternates: the mover **maximizes**, the opponent **minimizes**. The reframing that removes half the work: store the **score difference from the perspective of the player to move**, so both players maximize the same quantity and the turn flag disappears from the state.
+
+**Core insight — why it works:** A plain `max` over your own moves is wrong because the value of the position you hand over is chosen by someone who wants you to lose. Minimax fixes this by making the recursion *alternate the objective*, and optimal play makes the game value **well-defined**: from any position there is a single number both players can force, so it memoizes exactly like any other DP. The difference trick is the load-bearing simplification — define `dp[state] = (mover's total) − (opponent's total)` under optimal play; after you take a move worth `v`, the roles swap, so the opponent's own difference on the remaining position counts *against* you: `dp[state] = max over moves of (v − dp[next])`. One `max`, one sign flip, no turn dimension. The player-to-move wins iff `dp[start] >= 0` (or `> 0` when ties lose). The prerequisite is the same one interval and knapsack DP need — the game must be **finite and acyclic** in its state graph. When moves can return to an earlier state (913), no fill order exists and you must resolve values by propagating backward from terminal positions instead.
+
+**Template (Predict the Winner — take from either end, score difference):**
+```cpp
+bool predictTheWinner(vector<int>& nums) {
+    int n = nums.size();
+    // dp[i][j] = best achievable (my score - opponent score) on nums[i..j], me to move
+    vector<vector<int>> dp(n, vector<int>(n, 0));
+    for (int i = 0; i < n; ++i) dp[i][i] = nums[i];       // one pile left: take it
+    for (int len = 2; len <= n; ++len)                     // interval order: short spans first
+        for (int i = 0, j = len - 1; j < n; ++i, ++j)
+            dp[i][j] = max(nums[i] - dp[i + 1][j],         // take left, then roles swap -> subtract
+                           nums[j] - dp[i][j - 1]);        // take right, same flip
+    return dp[0][n - 1] >= 0;                              // ties count as a win here
+}
+```
+
+<details>
+<summary>Java</summary>
+
+```java
+public boolean predictTheWinner(int[] nums) {
+    int n = nums.length;
+    // dp[i][j] = best achievable (my score - opponent score) on nums[i..j], me to move
+    int[][] dp = new int[n][n];
+    for (int i = 0; i < n; i++) dp[i][i] = nums[i];       // one pile left: take it
+    for (int len = 2; len <= n; len++)                     // interval order: short spans first
+        for (int i = 0, j = len - 1; j < n; i++, j++)
+            dp[i][j] = Math.max(nums[i] - dp[i + 1][j],    // take left, then roles swap -> subtract
+                                nums[j] - dp[i][j - 1]);   // take right, same flip
+    return dp[0][n - 1] >= 0;                              // ties count as a win here
+}
+// Note: int[][] is zero-initialized, so no Arrays.fill is needed for the base row.
+```
+
+</details>
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 486. Predict the Winner | Medium | The template itself. Write the two-dimensional `(interval, turn)` version first, then collapse it with the difference trick — narrating that collapse is the whole interview. |
+| 877. Stone Game | Medium | Identical recurrence, but the constraints (even count, odd total) make the answer always `true` by a parity/coloring argument. Give the DP *and* the one-line proof; interviewers ask 877 specifically to see if you notice. |
+| 1140. Stone Game II | Medium | State gains a parameter: `(index, M)` with the move taking 1..2M piles. Shows that "whose turn" stays gone while the *rules* grow a dimension — suffix sums make each transition O(1). |
+| 1406. Stone Game III | Hard | Take 1, 2, or 3 from the front: a **1-D** game DP, `dp[i] = max(suffix[i] - dp[i+k])`. The cheapest place to internalize the sign flip without interval bookkeeping. |
+| 1510. Stone Game IV | Hard | Boolean game value instead of a score: `dp[n]` is a win iff *some* move leads to a losing position for the opponent. The "win/lose" flavor of minimax — no arithmetic, pure quantifier alternation. |
+| 464. Can I Win | Medium | Reusable integers forbidden, so the state is a **bitmask of used numbers** (P8 machinery + minimax). The running total is derivable from the mask, so it must not enter the memo key — the classic state-design trap. |
+| 375. Guess Number Higher or Lower II | Medium | Minimax *without* an opponent-player: you minimize over guesses, the adversary maximizes over outcomes — `dp[i][j] = min over k of (k + max(dp[i][k-1], dp[k+1][j]))`. The lesson is that "worst case" is an adversary. |
+| 292. Nim Game | Easy | The anti-DP: the game value is `n % 4 != 0`. Always check for a closed form before building a table — and say why the pattern *collapsed* here. |
+| 913. Cat and Mouse | Hard | The boundary case: the state graph has **cycles**, so no fill order exists. Resolve by BFS from terminal states counting unresolved moves per node (retrograde analysis) — keep this in your pocket for any game whose states can loop. |
+
+**Pitfalls:**
+- Taking `max` at every level (forgetting to alternate) silently solves "both players help me" — it usually still passes the sample, which is why it survives to the failing test.
+- Carrying a `turn` flag *and* using score differences double-counts the alternation; pick one. If you keep the flag, the mover maximizes and the opponent minimizes on the **same** absolute scores.
+- Putting derivable data in the memo key (464's running total, reachable from the mask) multiplies the state count and can turn a passing solution into a TLE without changing any answer.
+- Tie handling is problem-specific: `dp >= 0` vs `> 0`. Read whether "player 1 wins" includes a draw before choosing the comparison.
+- Assuming the state graph is acyclic. If a move can revisit a position, memoized recursion either infinite-loops or caches an in-progress value — that is the signal to switch to retrograde propagation from terminals.
+
+---
+
 ## Cheat Sheet: Problem Phrase → Pattern
 
 | Phrase in the problem | Pattern |
@@ -789,6 +852,8 @@ double knightProbability(int n, int k, int startRow, int startCol) {
 | best value over subtrees, parent-child constraints | Tree DP (P9) |
 | "how many integers in [L, R] whose digits …", bounds like 10⁹ | Digit DP (P10) |
 | "probability that …", "expected number of …", dice/coins/random moves | Probability & expectation (P11) |
+| "two players alternate", "both play optimally", "who wins" | Game/minimax (P12) |
+| "minimize the worst case", cost paid by an adversary | Minimax without a player (P12) |
 | "subarray" with monotone structure | maybe NOT DP — window/Kadane/stack first |
 
 ---
@@ -804,6 +869,7 @@ double knightProbability(int n, int k, int startRow, int startCol) {
 - Tree DP: O(n × states per node). Rerooting: two O(n) passes.
 - Digit DP: O(digits × property states × base) — ~19 positions for a 64-bit bound, so effectively **constant** in the magnitude of N; that's the whole point.
 - Probability/expectation: identical to the underlying shape (grid, knapsack, linear); watch for the O(n × k) window sum that rolls to O(n).
+- Game/minimax: same as the shape it sits on — O(n²) for end-taking intervals, O(2ⁿ × n) when the state is a used-set mask. The score-difference reframing removes the turn dimension, halving the table for free.
 
 ---
 
@@ -826,5 +892,6 @@ double knightProbability(int n, int k, int startRow, int startCol) {
 **Week 3 — sequences & machines:** 1143 → 583 → 72 → 97 → 718 → 121 → 122 → 309 → 714 → 123
 **Week 4 — boss fights:** 115 → 44 → 10 → 516 → 312 → 1039 → 1547 → 188 → 526 → 698 → 337 → 968 → 834
 **Week 5 — number line & chance:** 357 → 902 → 233 → 600 → 1012 → 2376 → 688 → 1155 → 1230 → 837 → 808
+**Week 6 — adversaries:** 292 → 1406 → 486 → 877 → 1510 → 1140 → 375 → 464 → 913
 
 Good luck with the interviews!
