@@ -55,7 +55,7 @@ If you can say all four out loud, the implementation is transcription. If you ca
 
 **Routing by problem shape** — ask what the future actually needs to know about the past, and the pattern falls out:
 
-![Routing the single question "what must the state carry?" to each of the twelve DP patterns](images/dp-routing.svg)
+![Routing the single question "what must the state carry?" to each of the thirteen DP patterns](images/dp-routing.svg)
 
 ---
 
@@ -377,7 +377,7 @@ return dp[n][m];
 
 ## Pattern 6: Interval DP — Solve by Span Length
 
-**Logic:** `dp[i][j]` = answer for the contiguous range [i, j]; transitions split the interval at some k or peel its endpoints; the table is filled **by increasing interval length**, since any split produces strictly shorter intervals.
+**Logic:** `dp[i][j]` = answer for the contiguous range [i, j]; transitions split the interval at some k or peel its endpoints; the table is filled **by increasing interval length**, since any split produces strictly shorter intervals. (Contrast with [Partition DP (P13)](#pattern-13-partition-dp--cutting-a-sequence-into-segments): if the sequence is only ever cut left-to-right and pieces never interact, the cheaper `dp[prefix][segments]` shape applies instead.)
 
 **Core insight — why it works:** The discovery move is choosing the *right* last decision — the one that makes the pieces **independent**. Burst Balloons is the canonical lesson: recursing on the *first* balloon burst leaves two halves that still interact through their shared boundary (neighbors change as bursts happen); recursing on the **last** balloon burst means, at that final moment, it neighbors exactly the interval's fixed walls i−1 and j+1 — and the two sides, fully burst before it, never interacted across it. Independence restored, recurrence legal. This "pick the decision that decouples" is interval DP's repeating trick (last burst, the matrix-chain's outermost multiplication, the triangle containing a fixed edge). Fill-by-length is just the topological order of "longer depends on shorter." Costs run O(n²) states × O(n) splits = O(n³) — fine for n ≤ ~500, which the constraints will confirm.
 
@@ -836,6 +836,84 @@ public boolean predictTheWinner(int[] nums) {
 
 ---
 
+## Pattern 13: Partition DP — Cutting a Sequence into Segments
+
+**Logic:** Split a sequence into **contiguous** pieces and pay a cost per piece. State: `dp[i][k]` = best way to cover the first `i` elements with `k` segments. Transition asks one question — *where does the last cut go?* — so you scan the start `j` of the final segment: `dp[i][k] = best over j of (dp[j][k-1] + cost(j..i-1))`. When the number of pieces is unconstrained, the `k` dimension vanishes and it collapses to 1-D: `dp[i] = best over j of (dp[j] + cost(j..i-1))`.
+
+**Core insight — why it works:** Every partition of a prefix has a unique **last segment**, so enumerating that segment's start is a disjoint, exhaustive case split — the same "what was the last move?" argument as P1, with a *variable-length* move instead of a fixed one. That is what separates this from Interval DP (P6): P6 combines a range `[i, j]` inward and costs O(n³); here the sequence is only ever cut left-to-right, so states are `(prefix, segments)` and the cost is O(k·n²). The second load-bearing trick is that the inner loop must **grow the last segment incrementally** — walk `j` *downward* and update the segment's cost (a max, a sum, a mismatch count) in O(1) per step. Recomputing `cost(j..i-1)` from scratch turns an O(k·n²) solution into O(k·n³) and is the usual reason a correct recurrence still TLEs. If the cost is not incrementally maintainable, precompute it in a table first (`isPalindrome[i][j]` for the palindrome family).
+
+**Template (Minimum Difficulty of a Job Schedule — exactly `d` segments, cost = segment max):**
+```cpp
+int minDifficulty(vector<int>& jobs, int d) {
+    int n = jobs.size();
+    if (n < d) return -1;                                  // fewer jobs than days: no valid partition
+    const int INF = 1e9;
+    // dp[k][i] = min total difficulty covering the first i jobs with exactly k days
+    vector<vector<int>> dp(d + 1, vector<int>(n + 1, INF));
+    dp[0][0] = 0;                                          // zero jobs, zero days — the only free state
+    for (int k = 1; k <= d; ++k)
+        for (int i = k; i <= n; ++i) {                     // need at least k jobs to fill k days
+            int mx = 0;
+            for (int j = i - 1; j >= k - 1; --j) {         // last day covers jobs[j .. i-1]
+                mx = max(mx, jobs[j]);                     // descending j grows the segment in O(1)
+                if (dp[k - 1][j] < INF)
+                    dp[k][i] = min(dp[k][i], dp[k - 1][j] + mx);
+            }
+        }
+    return dp[d][n];
+}
+```
+
+<details>
+<summary>Java</summary>
+
+```java
+public int minDifficulty(int[] jobs, int d) {
+    int n = jobs.length;
+    if (n < d) return -1;                                  // fewer jobs than days: no valid partition
+    final int INF = (int) 1e9;
+    // dp[k][i] = min total difficulty covering the first i jobs with exactly k days
+    int[][] dp = new int[d + 1][n + 1];
+    for (int[] row : dp) Arrays.fill(row, INF);            // int[][] defaults to 0, so fill explicitly
+    dp[0][0] = 0;                                          // zero jobs, zero days — the only free state
+    for (int k = 1; k <= d; k++)
+        for (int i = k; i <= n; i++) {                     // need at least k jobs to fill k days
+            int mx = 0;
+            for (int j = i - 1; j >= k - 1; j--) {         // last day covers jobs[j .. i-1]
+                mx = Math.max(mx, jobs[j]);                // descending j grows the segment in O(1)
+                if (dp[k - 1][j] < INF)
+                    dp[k][i] = Math.min(dp[k][i], dp[k - 1][j] + mx);
+            }
+        }
+    return dp[d][n];
+}
+```
+
+</details>
+
+**Problems:**
+| Problem | Difficulty | Note |
+|---|---|---|
+| 1335. Minimum Difficulty of a Job Schedule | Hard | The template. The `n < d` guard and the "need ≥ k elements for k segments" loop bound are the two feasibility details that decide acceptance. |
+| 139. Word Break | Medium | The degenerate 1-D case: unbounded segments, cost is a *predicate* (is this piece a word) rather than a number. Cross-listed from P1 — recognizing it as partition DP is what generalizes it to 140. |
+| 132. Palindrome Partitioning II | Hard | Unbounded k, minimizing cut count. The cost isn't incrementally maintainable, so **precompute `isPal[i][j]` in O(n²) first** — the canonical "build the cost table before the DP" problem. |
+| 1043. Partition Array for Maximum Sum | Medium | Unbounded k but segment length ≤ K, so the inner loop is bounded and the whole thing is O(nK). The gentlest place to first see the descending-j max trick. |
+| 813. Largest Sum of Averages | Medium | At most k groups, maximize the sum of averages. Prefix sums make the segment cost O(1); "at most" vs "exactly" doesn't change the answer here because splitting never hurts — say why. |
+| 1278. Palindrome Partitioning III | Hard | Exactly k segments, cost = characters to change to make the piece a palindrome. Precompute `changes[i][j]`, then it is literally the template. Pairs with 132 to cover both cost styles. |
+| 410. Split Array Largest Sum | Hard | Minimize the maximum segment sum. Solvable by this pattern in O(k·n²) — but **binary search on the answer is O(n log S)** and is the expected solution. The best problem in the guide for "name two approaches and justify the choice". |
+| 1416. Restore The Array | Hard | Counting instead of optimizing: sum over valid last segments. Leading zeros and the `> k` early break are the traps; the break is what keeps the inner loop O(log k). |
+| 2478. Number of Beautiful Partitions | Hard | Exactly k segments with validity rules on the cut boundaries. Counting + exact-k + a legality predicate — every lever of the pattern at once. |
+
+**Pitfalls:**
+- **Recomputing the segment cost inside the inner loop** — the single most common cause of a correct-but-TLE solution. Either extend the segment incrementally (descending `j`) or precompute a cost table.
+- Feasibility guards: `n < k` is impossible, and a `k`-segment state needs `i >= k`. Skipping these lets `INF` leak into the answer or produces empty segments the problem forbids.
+- `INF + cost` overflows silently. Guard the read (`if (dp[k-1][j] < INF)`) or size `INF` so that `INF + maxCost` still fits.
+- **"Exactly k" vs "at most k"** — for at-most, either take the best over all `k` at the end or allow empty segments; the two differ whenever adding a cut can hurt.
+- Confusing this with Interval DP (P6). If the cost of merging depends on *both* neighbours after inner pieces are resolved (312, 1000), it is P6 and O(n³). If the sequence is only cut left-to-right, it is this pattern.
+- Before writing an O(k·n²) table for a min-max objective, check whether **binary search on the answer** applies (410, 1011, 1231) — monotone feasibility usually beats the DP.
+
+---
+
 ## Cheat Sheet: Problem Phrase → Pattern
 
 | Phrase in the problem | Pattern |
@@ -854,6 +932,9 @@ public boolean predictTheWinner(int[] nums) {
 | "probability that …", "expected number of …", dice/coins/random moves | Probability & expectation (P11) |
 | "two players alternate", "both play optimally", "who wins" | Game/minimax (P12) |
 | "minimize the worst case", cost paid by an adversary | Minimax without a player (P12) |
+| "split into exactly k contiguous parts / days / groups" | Partition DP (P13) |
+| "fewest cuts so every piece is valid", cost per piece | Partition DP (P13) |
+| "minimize the largest segment sum" | Partition DP (P13) — but try binary search on the answer first |
 | "subarray" with monotone structure | maybe NOT DP — window/Kadane/stack first |
 
 ---
@@ -870,6 +951,7 @@ public boolean predictTheWinner(int[] nums) {
 - Digit DP: O(digits × property states × base) — ~19 positions for a 64-bit bound, so effectively **constant** in the magnitude of N; that's the whole point.
 - Probability/expectation: identical to the underlying shape (grid, knapsack, linear); watch for the O(n × k) window sum that rolls to O(n).
 - Game/minimax: same as the shape it sits on — O(n²) for end-taking intervals, O(2ⁿ × n) when the state is a used-set mask. The score-difference reframing removes the turn dimension, halving the table for free.
+- Partition into segments: **O(k · n²)** — n·k states × O(n) cut choices; drops to O(n²) when k is unconstrained and to O(nL) when segments are capped at length L. Rolls to two rows of size n. Note the contrast with interval DP: cutting left-to-right is a factor of n cheaper than combining ranges inward.
 
 ---
 
@@ -892,6 +974,7 @@ public boolean predictTheWinner(int[] nums) {
 **Week 3 — sequences & machines:** 1143 → 583 → 72 → 97 → 718 → 121 → 122 → 309 → 714 → 123
 **Week 4 — boss fights:** 115 → 44 → 10 → 516 → 312 → 1039 → 1547 → 188 → 526 → 698 → 337 → 968 → 834
 **Week 5 — number line & chance:** 357 → 902 → 233 → 600 → 1012 → 2376 → 688 → 1155 → 1230 → 837 → 808
-**Week 6 — adversaries:** 292 → 1406 → 486 → 877 → 1510 → 1140 → 375 → 464 → 913
+**Week 6 — cutting sequences:** 139 → 1043 → 813 → 132 → 410 → 1335 → 1278 → 1416 → 2478
+**Week 7 — adversaries:** 292 → 1406 → 486 → 877 → 1510 → 1140 → 375 → 464 → 913
 
 Good luck with the interviews!
